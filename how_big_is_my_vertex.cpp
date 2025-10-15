@@ -5,7 +5,7 @@
 #include <memory>
 
 struct Vertex {
-        int state;
+        char state;
         std::vector<std::shared_ptr<Vertex>> edges;
 };
 

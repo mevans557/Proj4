@@ -2,3 +2,12 @@ how_big_is_my_vertex
 test
 graph_model_prototype_smart_ptr
 .vscode
+testing.cpp
+*.bbl
+*.aux
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.gz
+*.pdf

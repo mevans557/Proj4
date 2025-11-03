@@ -1,0 +1,1 @@
+rm *.aux *.fdb_latexmk *.log *.lot *.out *.bbl *.blg *.fls *.synctex.gz *.toc *.lof

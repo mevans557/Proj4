@@ -1,0 +1,529 @@
+%%%%%%%%%%%%%%%%%%%%%
+% Version 1 17/10/25
+
+
+\documentclass[12pt,a4paper,openany,twoside]{book}
+\usepackage[top=1in, bottom=1in, left=0.8in, right=0.8in]{geometry} % 0.8 inch margins
+
+% Language and date format
+\usepackage[UKenglish]{babel} 
+\usepackage[UKenglish]{isodate}
+\cleanlookdateon 
+
+% Fonts
+\usepackage[T1]{fontenc} %DO NOT CHANGE
+\usepackage{lmodern} % better Latin Modern fonts %DO NOT CHANGE
+\usepackage{microtype} % improves justification and kerning 
+
+% Graphics and captions
+\usepackage{graphicx} 
+\usepackage[dvipsnames]{xcolor} % Gives you colours! 
+\usepackage[margin=15pt,font=footnotesize,labelfont=bf,format=hang]{caption} 
+\usepackage{subcaption} 
+\usepackage{pgfplots} % you can import graphs as PGF files 
+\pgfplotsset{compat=1.18} 
+\usepackage{float}
+
+% Maths
+\usepackage{amsmath,amssymb,mathtools} 
+\usepackage{bm} % Making letters bold 
+\usepackage{isomath} % Modern standards 
+
+% Theorems, definitions, etc.
+\usepackage{amsthm} 
+\newtheorem{theorem}{Theorem}[chapter] % Number theorem per chapter
+\newtheorem{lemma}[theorem]{Lemma} % Number lemmas like theorems
+\newtheorem{definition}{Definition}[chapter] % Number definitions per chapter
+
+% Lists, tables, units
+\usepackage{enumitem} % Allows for formatting of lists 
+\setlist{topsep=0pt} 
+\usepackage{booktabs} % Prettier tables 
+\usepackage{siunitx} % Typeset measurements correctly 
+
+% Referencing
+\usepackage{natbib}
+
+\bibliographystyle{abbrvnat} % possible citation style
+%\bibliographystyle{plain} % possible citation style
+%\setcitestyle{authoryear,open={(},close={)}} % Many options available. Can be changed after discussing with your supervisor.
+\usepackage[pdfencoding=auto,pdftitle={Dissertation},pdflang={en-GB}]{hyperref} % Make links work
+\hypersetup{
+	colorlinks = true,
+	linkcolor = blue,
+	citecolor = Green
+}
+\usepackage{cleveref} % Easy internal referencing 
+
+% Formatting
+\usepackage[raggedright]{titlesec} %DO NOT CHANGE
+\usepackage{fancyhdr} %DO NOT CHANGE
+
+%% Subfiles so you can write separate chapter files [You can enable this if you're using subfiles]
+%\usepackage{subfiles}
+%\newcommand{\subfilebibliography}{%
+%	\ifSubfilesClassLoaded{%
+%		\bibliography{references.bib}
+%	}{}
+%} % Makes the bibliography work for every chapter file
+
+% Headers and footers. 
+\pagestyle{fancy} %DO NOT CHANGE
+\renewcommand{\headrulewidth}{0pt} %DO NOT CHANGE
+\renewcommand\sectionmark[1]{\markright{\thesection\; #1}} %DO NOT CHANGE
+\fancyhead[RO]{\small\it\lowercase\nouppercase\selectfont\rightmark} %DO NOT CHANGE
+\fancyhead[LO]{}%DO NOT CHANGE
+\fancyhead[LE]{\small\it\lowercase\nouppercase\selectfont\rightmark} %DO NOT CHANGE
+\fancyhead[RE]{} %DO NOT CHANGE
+\setlength{\headheight}{15pt} %DO NOT CHANGE
+\fancypagestyle{blank}{\fancyhf{}\fancyfoot[C]{}\renewcommand{\headrulewidth}{0pt}} %DO NOT CHANGE
+
+% Standard spacing
+\setlength{\parindent}{0ex} %DO NOT CHANGE
+\setlength{\parskip}{1ex} %DO NOT CHANGE
+\let\cleardoublepage\clearpage %DO NOT CHANGE
+
+
+% Chapter title
+\titleformat{\chapter}[display] %DO NOT CHANGE
+{\Huge\bfseries}   % font size and style %DO NOT CHANGE
+{\chaptername\ \thechapter} % label %DO NOT CHANGE
+{20pt}             % spacing between label and title %DO NOT CHANGE
+{\Huge}            % title formatting %DO NOT CHANGE
+
+\titlespacing*{\chapter} %DO NOT CHANGE
+{0pt}    % left margin %DO NOT CHANGE
+{0pt}   % space before chapter title %DO NOT CHANGE
+{20pt}   % space after chapter title %DO NOT CHANGE
+
+% Section title %DO NOT CHANGE
+\titleformat{\section} %DO NOT CHANGE
+{\large\bfseries}  % font size and style %DO NOT CHANGE
+{\thesection}      % label %DO NOT CHANGE
+{1em}              % spacing between label and title %DO NOT CHANGE
+{} %DO NOT CHANGE
+
+\titlespacing*{\section} %DO NOT CHANGE
+{0pt}    % left margin %DO NOT CHANGE
+{10pt}   % space before section title %DO NOT CHANGE
+{10pt}   % space after section title %DO NOT CHANGE
+
+% Subsection title %DO NOT CHANGE
+\titleformat{\subsection} %DO NOT CHANGE
+{\normalsize\bfseries}  % font size and style %DO NOT CHANGE
+{\thesubsection}      % label %DO NOT CHANGE
+{1em}              % spacing between label and title %DO NOT CHANGE
+{}
+
+\titlespacing*{\subsection} %DO NOT CHANGE
+{0pt}    % left margin %DO NOT CHANGE
+{10pt}   % space before subsection title %DO NOT CHANGE
+{0pt}   % space after subsection title %DO NOT CHANGE
+
+
+%From here you can find useful commands to save time and make things look nice. You can use them, change them, or add to them at will
+
+% Vectors, matrices etc.
+\renewcommand{\v}[1]{\mathbfit{#1}}      % Generic vector
+\newcommand{\uv}[1]{\widehat{\mathbfit{#1}}}      % Generic unit vector
+\renewcommand{\t}[1]{\mathsfbfit{#1}}	 % Generic tensor
+\newcommand{\m}[1]{\mathsfbfit{#1}}	 % Generic matrix
+\newcommand{\vu}[1]{\mathbf{#1}}         % Upright vector (for zero vector)
+\newcommand{\tu}[1]{\bm{\mathsf{#1}}}	 % Upright tensor (for zero tensor)
+
+%Vector operators
+\renewcommand{\d}{{\mathrm d}}
+\def \p {\partial}
+\newcommand{\vnabla}{\bm{\nabla}}
+\newcommand{\Lap}{{\Delta}} %Pure Laplacian
+\newcommand{\aLap}{\nabla^2} %Applied Laplacian
+%Hats, tildes and bars that fit
+\renewcommand{\hat}{\widehat}
+\renewcommand{\tilde}{\widetilde}
+\renewcommand{\bar}{\overline}
+
+% Differentiating 
+\newcommand{\fd}[2]{\mathchoice{\frac{\d #1}{\d #2}}{\d #1/\d #2}{\d #1/\d #2}{\d #1/\d #2}}
+\newcommand{\fdd}[2]{\mathchoice{\frac{\d^2 #1}{\d #2^2}}{\d^2 #1/\d #2^2}{\d^2 #1/\d #2^2}{\d^2 #1/\d #2^2}}
+\newcommand{\fddd}[2]{\mathchoice{\frac{\d^3 #1}{\d #2^3}}{\d^3 #1/\d #2^3}{\d^3 #1/\d #2^3}{\d^3 #1/\d #2^3}}
+\newcommand{\fdddd}[2]{\mathchoice{\frac{\d^4 #1}{\d #2^4}}{\d^4 #1/\d #2^4}{\d^4 #1/\d #2^4}{\d^4 #1/\d #2^4}}
+\newcommand{\fdn}[3]{\mathchoice{\frac{\d^{#1} #2}{\d #3^{#1}}}{\d^{#1} #2/\d #3^{#1}}{\d^{#1} #2/\d #3^{#1}}{\d^{#1} #2/\d #3^{#1}}}
+\newcommand{\pd}[2]{\mathchoice{\frac{\p #1}{\p #2}}{\p #1/\p #2}{\p #1/\p #2}{\p #1/\p #2}}
+\newcommand{\pdd}[2]{\mathchoice{\frac{\p^2 #1}{\p #2^2}}{\p^2 #1/\p #2^2}{\p^2 #1/\p #2^2}{\p^2 #1/\p #2^2}}
+\newcommand{\pddmixed}[3]{\mathchoice{\frac{\p^2 #1}{\p #2 \p #3}}{\p^2 #1 /\p #2 \p #3}{\p^2 #1 /\p #2 \p #3}{\p^2 #1 /\p #2 \p #3}}
+\newcommand{\pddd}[2]{\frac{\p^3 #1}{\p #2^3}}
+\newcommand{\pdn}[3]{\mathchoice{\frac{\p^{#1} #2}{\p #3^{#1}}}{\p^{#1} #2/\p #3^{#1}}{\p^{#1} #2/\p #3^{#1}}{\p^{#1} #2/\p #3^{#1}}}
+
+% Misc
+\DeclareMathSymbol{\Delta}{\mathalpha}{operators}{1} % Keeps Delta upright
+\DeclareMathSymbol{\Gamma}{\mathalpha}{operators}{0} % Keeps Gamma upright
+\newcommand{\ep}{\varepsilon} % A more normal epsilon
+
+% Upright e and i for exponential and imaginary number
+\newcommand{\e}{\mathrm{e}}
+\renewcommand{\i}{\mathrm{i}}
+
+
+
+	
+\begin{document} %DO NOT REMOVE the title page. Just edit it.
+\frontmatter
+	% Pretty title page
+	\thispagestyle{empty}
+	\begin{titlepage}
+		\begin{center}
+			\includegraphics[scale=0.8]{images/durham-logo.pdf}
+			\vspace{45mm}
+			
+			\Huge \textbf{Integration by parts: An exciting final-year project on sophisticated mathematics}
+			
+			\vspace{15mm}
+			\large
+			\begin{align*}
+				\textit{by} &\quad \text{Megan Squirrel} \\
+				&\quad \text{St Acorn's College}\\[4mm]
+				\textit{Supervisor} &\quad \text{Dr Pencil Case}
+			\end{align*}
+			\vspace{35mm}
+			
+			A dissertation submitted for the degree of \\
+			\emph{MMath Mathematics}
+			\vspace{5mm}
+			
+			\today
+		\end{center}
+	\end{titlepage}
+	\normalsize
+	
+	% ----- PLAGIARISM DECLARATION ----- 
+    % DO NOT REMOVE. WRITE YOUR NAME IN THE APPROPRIATE PLACE TO ACKNOWLEDGE THAT YOU HAVE READ, HAVE UNDERSTOOD, AND CONFIRM THAT YOU ADHERE TO THE STATEMENT.
+	\begin{center}
+		\large\textbf{Plagiarism declaration}
+	\end{center}
+	\begin{quote}
+		This piece of work is a result of my own work and I have complied with the Department’s guidance on multiple submission and on the use of AI tools. Material from the work of others not involved in the project has been acknowledged, quotations and paraphrases suitably indicated, and all uses of AI tools have been declared.
+	\end{quote}
+	\vfill
+	I, \underline{<Insert your name>} confirm that I have read, understood, and have adhered to the plagiarism declaration above.
+	
+	\newpage
+	
+		% ----- Declaration of use of AI tools in the writing process. ----- DO NOT REMOVE. Fill as needed 
+	\begin{center}
+		\large\textbf{Declaration of use of AI tools in the writing process}
+	\end{center}
+	\begin{center}
+        \renewcommand{\arraystretch}{1.3} % Increase spacing between rows
+		\begin{tabular}{p{4cm} p{9cm} p{2.2cm}}
+			\toprule
+			Location & Explanation of AI use & AI used \\
+			\midrule
+			\Cref{euler} & I have used AI to learn how to write superscript & Copilot\\
+			Third paragraph of \cref{sec:citing} (page \pageref{page:overflow_help})  & I have used AI to help me deal with an overflow in this paragraph & ChatGPT\\
+			\Cref{fig:logistic-growth} & I have used AI to help me plot the figure in \LaTeX{}  & Pusskumnet\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+	
+	
+	\newpage
+	
+	% ----- ABSTRACT ----- % You may remove if you want or modify upon agreement with your supervisor
+	\begin{center}
+		\large\textbf{Abstract}
+	\end{center}
+	\begin{quote}
+		It was Gauss, or perhaps Euler, who said that there is no integral that cannot be successfully tackled with integration by parts. In this dissertation we set out to prove this maxim true. The first chapters concern integration by two parts, and the penultimate chapters concern integration by $n < 5$ parts. We will prove by induction in the final chapter that this holds for any arbitrary number $n$ of parts.%
+	\end{quote}
+	
+	\newpage
+	
+	% ----- ACKNOWLEDGEMENTS ----- % You may remove if you want or modify upon agreement with your supervisor
+	\begin{center}
+		\large\textbf{Acknowledgements}
+	\end{center}
+	\begin{quote}
+		I could not have achieved this mighty feat without the love and support of my pet pigeon, Hot Dog. Many moons ago we started this journey, and it was Hot Dog's encouragement that led me to integrate by not just one part, but by multiple parts. I shall be forever grateful. 
+		
+		I would also like to thank the academy for their kind nomination. This has been a labour of love and I think the messages contained within this dissertation will echo for many decades to come.
+		
+		My supervisor also existed.
+	\end{quote}
+	\newpage
+	
+	% ----- LIST OF FIGURES ----- % You may remove if you want or modify upon agreement with your supervisor
+	
+	\listoffigures
+	\markboth{}{} 
+	%	The name of the figure that appears in the list is taken from the short description of the caption, i.e.
+	% \caption[short caption - appears in the list of figures]{long caption - appears under the figure}
+	% if no short description appears, i.e. if you use \caption{something} then 'something' will appear in the list of figures (and might be a very long sentence!).
+	
+	\newpage
+	
+		% ----- LIST OF TABLES----- % You may remove if you want or modify upon agreement with your supervisor
+	
+	\listoftables
+	\markboth{}{} 
+	% You will need to use the Table environment (not Tabular) and to use \caption in order for the table to appear in the above list (you can wrap the tabular environment within a table environemnt, see an example below). Much like with the list of figures, the short description of the caption is the one that is taken for the list of tables. 
+	
+	\newpage
+	
+	% ----- LIST OF NOTATION----- % You may remove if you want or modify upon agreement with your supervisor
+	
+	\chapter*{Notation}
+
+	
+			\begin{tabular}{p{4cm} l  }
+			$\mathbb{N}$ & Natural numbers\\
+			$\mathbb{R}$ & Real numbers\\
+			$\v{\alpha}$ & Multi-index\\
+		\end{tabular}
+	
+	
+	% Pretty table of contents - DO NOT CHANGE OR REMOVE
+	\setlength{\parskip}{0.2ex}
+	\setcounter{tocdepth}{1}
+	\renewcommand{\baselinestretch}{0.95}\normalsize
+	\tableofcontents
+	\renewcommand{\baselinestretch}{1}\normalsize
+	\markboth{}{} 
+	\setlength{\parskip}{1ex}
+	
+
+
+\mainmatter
+
+
+% Your individual chapters. From here you should start changing
+
+\chapter{Introduction}\label{intro-section}
+
+\section{About the template}
+
+You are welcome to add commands and shortcuts in the preamble of this template but a few things  \emph{should not be changed}. This includes the title page and various declarations, the font and margins, the size of various titles in their respective environment and the spaces between paragraphs. These commands appear with
+\begin{center}
+	\verb|%DO NOT CHANGE|	
+\end{center}
+next to them in the preamble of the template file.
+
+
+\section{How do we format mathematics correctly?}
+
+The aim of mathematical writing is to communicate ideas clearly. To aid in this, mathematicians have developed notation conventions: for example, you might see a letter in boldface and assume it is a vector. This template includes commands for some of these conventions (which you can find by looking at the preamble of the template). Feel free to use them if you wish.
+
+Here are a few examples:
+
+\begin{itemize}
+	\item Vectors are often typeset bold italic, and look like $\v{a}$, $\v{M}$ and $\v{\omega}$. You can use \verb|\v{a}| to typeset this.
+	%
+	\item Vectors which are constants (typically the zero vector), rather than variables, look nicer if they are typeset bold upright, and look like $\vu{0}$. You can use \verb|\vu{0}| to typeset this.
+	%
+	\item Vector operators, such as $\nabla$, are sometimes typeset in bold ($\vnabla$). You can use \verb|\vnabla| to achieve this. 
+	%
+	\item Tensors and matrices are sometimes typeset in bold sans-serif italic, and look like $\t{a}$ and $\t{M}$ and $\t{\omega}$. You can use \verb|\t{a}| or \verb|\m{a}| to typeset this.
+	%
+	\item Similarly, tensors and matrices which are constants are sometimes typeset in bold sans-serif upright, and look like $\tu{0}$. You can use \verb|\tu{0}| to typeset this.
+	%
+	\item It is common that constant scalars are typeset upright. The most common are $\e$ and $\i$. You can use \verb|\e| and \verb|\i| to typeset these.
+	%
+	\item If you include measurements in your report, a half space between the number and the unit symbol (which looks better upright) would make it easier to read. You can use \verb|\qty{10}{\m}|, \verb|\qty{-40}{\celsius}| to produce \qty{10}{\m}, \qty{-40}{\celsius}, for example.
+\end{itemize}
+
+Here are a few slightly more involved commands which the template includes:
+\begin{itemize}
+	\item You can use \verb|\pd{x}{t}| to typeset partial derivatives. This gives $\pd{x}{t}$ when written on the same line as text, and $\displaystyle\pd{x}{t}$ when written on its own line. Higher derivatives can be written using \verb|\pdd{x}{t}| etc. Take a look at the preamble for more.
+	\item Full (ordinary) derivatives can be typeset with \verb|\fd{x}{t}|. This gives $\fd{x}{t}$ when written on the same line as text, and $\displaystyle\fd{x}{t}$ when written on its own line. Higher derivatives can be written using \verb|\fdd{x}{t}| for $\displaystyle\fdd{x}{t}$, etc.
+\end{itemize}
+
+\section{Labelling equations}
+An equation which is on its own line can have an equation number, for example
+\begin{equation}
+	\e^{\i \pi} + 1 = 0.
+	\label{euler}
+\end{equation}
+Note that in formal writing all equations have punctuation, because they should be formatted as if they are in a sentence. However, you can also include equations without a number. For example:
+\begin{equation*}
+	\pd{\v{u}}{t} + (\v{u}\cdot\vnabla)\v{u} = -\vnabla p + \mu \Lap \v{u}.
+\end{equation*}
+
+You even have environments, such as \texttt{align}, where you can decide which line of the equation get a number! For example:
+\begin{align}
+	(x+1)^2 &= (x+1)(x+1) \nonumber \\
+	&= x^2 + x + x + 1 \nonumber \\
+	&= x^2 + 2x + 1.
+\end{align}
+
+To be able to reference an equation, a theorem, a section, and even a page, you will need to use the \verb|\label{labelnamegoeshere}| command in the appropriate environment. You can then refer to it with the command \verb|\ref{labelnamegoeshere}| (or \verb|\pageref{labelnamegoeshere}| when referencing a page). Several environments have a commonly used referencing style -- for instance, equation numbers usually appear inside parentheses like (\ref{euler}). 
+
+In this template you can use \verb|\cref{labelgoeshere}| or \verb|\Cref{labelgoeshere}| to circumvent this as it knows what type of thing you are referencing and will typeset it accordingly (you can read about the difference between the two options online). 
+
+
+
+\section{Citing papers and books}\label{sec:citing}
+There are lots of different styles for referencing, for instance:
+
+The trapezium rule \citep{tai1994mathematical} was instrumental in the results presented in the seminal work, \citet{maruyama2013galois}. Without the earlier results by \citeauthor{tai1994mathematical}, it is unlikely that we would have landed on the moon.
+
+There are a few options for referencing styles in the template and you can choose one after discussing it with your supervisor (or leave it in the default setting). The template uses the \verb|natbib| package in which you can refer to items by using \verb|\citep{something}| if you cite the reference indirectly, or by using \verb|\citet{something}| when you cite it directly. You can disable this package if you want (in which case you will change to the \verb|\cite{something}| command). 
+
+\label{page:overflow_help}Sometimes you might want to cite a website: this is not traditional in academic writing but there are occasions where it may be appropriate. Many bibliography style options were written for a time when this wasn't accepted practice, so check that any website you cite is properly listed in your bibliography. For example, did you know that the 2025 Great North Run medals mixed up the rivers Tyne and Wear \citep{bbcnews}?
+
+
+\section{Tables and pictures}
+The template enables the \texttt{booktabs} package which makes tables look nicer. For instance:
+\begin{table}[h!]
+	\begin{center}
+	\begin{tabular}{lc}
+		\toprule
+		Module name & Number of letters in name \\
+		\midrule
+		Mathematical Biology & 19 \\
+		Mathematical Finance & 19 \\
+		Analysis & 8 \\
+		\bottomrule
+	\end{tabular}
+		\caption[Length of module names]{Module name and the number of letters in it}
+	\end{center}
+\end{table}
+
+You can place tables and images directly in the text -- like \includegraphics[width=1em]{images/melt.png} -- or you can place them in floating environments, like below. You are encouraged to read more about placing floats in \LaTeX. 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{images/cathedral.jpg}
+	\caption[Durham Cathedral]{Legend states that climbing the tower of Durham Cathedral before you graduate is bad luck. You may say that that is just superstition, but what if you're wrong?\\ \emph{Image credit: Wikimedia user TSP, CC BY-SA 4.0}}
+	\label{fig:cathedral}
+\end{figure}
+
+ Like equations, you can then refer to tables and figures (for example: \cref{fig:cathedral}). You can include subfigures by using the \texttt{subcaption} (which will also allow for subcaptions) or \texttt{subfig} packages.
+
+\section{Definitions, theorems etc.}
+\LaTeX{} allows for formal stating and numbering definitions, theorems and proofs. The \texttt{amsthm} package, which is enabled in the template, includes many appropriate environments to achieve that. Here are a few examples:
+\begin{definition}[Thesis]
+	A \emph{thesis} is a document which contains lots of important work.
+\end{definition}
+\begin{theorem}[Cauchy]
+	All paragraphs that contain em dashes (---) are the work of ChatGPT.
+\end{theorem}
+\begin{proof}
+	By contradiction, assume that a human exists that knows how to type em dashes. This person does not exist. Thus by contradiction, the theorem is proved.
+\end{proof}
+You can tweak how these look, including changing the numbering rules, after a discussion with your supervisor.
+
+\section{Having fun}
+Writing a dissertation is a creative task, and you should enjoy making it look its best. Playing with the preamble and tweaking settings will teach you how to master the powerful \LaTeX{} typesetting system. 
+
+
+\chapter{Population models: growth and competition}
+\label{chap:growth}
+
+As an example of good typesetting practice, the template includes the beginning of the Mathematical Biology III notes.
+
+\section{Exponential growth}
+A fundamental aspect of a living or biological system is its \emph{growth}. In this course, we will consider time-dependent growth of a species (say greenflies!) whose population size or density will be represented by a function $x(t)$. Note that we will model populations as continuous, rather than discrete numbers. For $x(t)$ to be a sensible model we, naturally, need $x(t)\in[0,\infty)$.
+
+If we assume the food supply of this species is unlimited, it seems reasonable that the rate of growth of this population would be proportional to the current population size, as there are plenty of potential couplings, i.e.,
+\begin{equation}\label{exp_growth_model}
+	\fd{x}{t} = a x \implies x(t) = A\e^{a t}.
+\end{equation}
+Here, $a>0$ is the growth (birth ratio per greenfly) and $A = x(0)$ is the initial population size. It tells us that the population grows without bound over time -- see \cref{fig:exponential-growth}.
+
+\begin{figure}%
+	\centering%
+	\input{images/exponential-growth.pgf}
+	\caption[Exponential growth]{Exponential growth, $x(t) = A\e^{a t}$}
+	\label{fig:exponential-growth}
+\end{figure}
+
+This is a pretty simple model of population growth, but it became influential in 1798, when it was presented by the cleric and economist Thomas Robert Malthus in his book \emph{An Essay on the Principle of Population}. In it, Malthus warned that while human population growth was exponential, food production growth at the time was only arithmetic, and that this would lead to famine in the future. Its publication led to the first British census in 1801 and every ten years since.
+
+But populations (of humans, or greenflies) don't actually grow like this long-term. Hans Rosling's 2018 book \emph{Factfulness} warns us of the assumption that exponential growth never slows. So what could change? 
+
+\section{Logistic growth}
+\label{sec:logistic-growth}
+\subsection{Self-competition}
+One improvement would be to demand that we include a notion of \emph{self-competition} within the population. This could, for example, model competition for food or territory. Mathematically, we need a decay term which is small for small $x$, allowing the population to grow, but dominates the growth term when $x$ gets larger, thus restricting its growth. 
+
+The simplest example of such a model is the \emph{logistic equation}. Originally introduced by Pierre Fran\c{c}ois Verhulst in 1838, the equation is nonlinear and takes the form
+\begin{equation}
+	\label{logistic}
+	\fd{x}{t} = a x\left(1-\frac{x}{K}\right),
+\end{equation}
+where $a>0$ is the usual growth term and, as we shall see, $K$ is the limiting population or \emph{carrying capacity}. 
+
+Can we guess what this model looks like?  See that there is an equilibrium ($\fd{x}{t} = 0$) at $x=K$. The term $(1-x/K)$ is negative if $x>K$ and positive if $x<K$ so we might expect it to either decay towards $K$ from above and up towards $K$ if from below. 
+
+This sort of analysis turns out to be quite common for population models because it is not always possible to solve them analytically. Thankfully this time we can, however.
+
+\subsection{Solutions to the logistic equation}
+Let's go ahead and now work out the solutions of our model. We can separate \cref{logistic}:
+\begin{equation}
+	\int\frac{1}{x(1 - x/K)}\d x = at + C.
+\end{equation}
+We can integrate the first integral using partial fractions (remember those!),
+\begin{equation}
+	\frac{1}{x(1 - x/K)} = \frac{1}{x} + \frac{1}{K\left(1-x/K\right)},
+\end{equation}
+and so
+\begin{equation}
+	\log(x) - \log(1-x/K)  =a t+C \implies   \frac{x}{1-x/K}  =   A\e^{at},
+\end{equation}
+so that finally,
+\begin{equation}
+	\label{logsol}
+	x(t) = \frac{A \e^{a t}}{1+ \frac{A}{K}\e^{at}}.
+\end{equation}
+%
+\begin{figure}%
+	\centering
+	\input{images/logistic-growth-2.pgf}
+	\caption[Logistic growth]{Logistic growth, $x(t) = A\e^{a t}/(1+(A/K)\e^{at})$. Pale lines correspond to different values of $A$}
+	\label{fig:logistic-growth}
+\end{figure}%	
+\Cref{fig:logistic-growth} demonstrates the behaviour of this equation.
+
+What about that limiting population we promised? See that as $t \to \infty$, $x(t) \to K$: a fact independent of the initial condition.
+
+
+\subsection{Equilibria of the logistic equation}
+Rather than worry about how the population changes, we might only really care where it will end up, given sufficient time. We have already spotted that the system tends to a state where $\fd{x}{t}=0$ at $x=K$. Is this the only possibility? 
+
+No! If we set $\fd{x}{t}=0$ then we have
+\begin{equation}
+	a x\left(1-\frac{x}{K}\right) = 0 \implies x=0, K.
+\end{equation}
+So there is also an unchanging state of $x=0$ where there is no population. This makes sense, of course: no population means no reproduction.  At this stage we make our first definition:
+
+\begin{description}
+	\item[Equilibrium:] An equilibrium of a system is one in which all \emph{time} derivatives are zero. For example, consider the system
+	\begin{equation}
+		\fdd{u}{t}  + \fd{u}{t} = u^2+v^2,\qquad \fdn{3}{v}{t} = uv.
+	\end{equation}
+	The equations of equilibrium are
+	\begin{equation}
+		0 = u^2+v^2,\qquad  0 = uv
+	\end{equation}
+	(the only solution to which is $u=v=0$). The definition of equilibrium is often (in a dynamical systems context) referred to as a \emph{steady state} or \emph{fixed point}.
+	
+	\item[Permissible/feasible equilibrium:]
+	We earlier demanded that the population is $\geq 0$. We thus define a \emph{permissible} or \emph{feasible equilibrium} as one which satisfies this criteria. It will be important throughout the course that our models have permissible equilibria to be valid. Another idea we will come to discuss is that a good model should not allow a positive initial population to become negative.
+\end{description}
+
+\subsection{A first look at stability}
+We note that for any positive $A$, \cref{logsol} will tend to $K$. We say that the $x=K$ equilibrium is \emph{stable} because any small change from $x=K$ (say $x= K-\ep$) will tend back to $x=K$ if we go forward in time (convince yourself of this by looking again at \cref{fig:logistic-growth}). However, if we are at $x=0$ and there is a sudden small change to  $x=\ep$, perhaps representing a small population migration, if we go forward in time it will grow inexorably towards $K$. Thus we say that the $x=0$ equilibrium is \emph{unstable}. 
+
+But did we need to solve the logistic equation, \cref{logistic}, to find this? Actually no! Because our differential equation is of the form $\fd{x}{t} = f(x)$, we can use a common technique where we simply plot $\fd{x}{t}$ against $x$ (known as plotting the \emph{phase space}) and make some observations. 
+
+\begin{figure}%
+	\centering
+	\input{images/logistic-growth-deriv.pgf}
+	\caption[Plot of $\fd{x}{t}$ against $x$ for logistic growth]{Plotting $\fd{x}{t}$ against $x$ for logistic growth allows us to make some observations without solving the equation}
+	\label{fig:logistic-growth-deriv}
+\end{figure}%	
+
+Look at \cref{fig:logistic-growth-deriv}. Our two equilibria are marked. If you start at a value of $x$ where $\fd{x}{t}$ is positive, we know that $x$ increases in time, so you move to the right over time (indicated by the forward-pointing red arrow). And where $\fd{x}{t}$ is negative, you move to the left (the backward-pointing red arrow). This instinctively tells us that you will, at $t=\infty$, always end up at $x=K$ unless you start exactly at $x=0$. Do you agree?
+
+\bibliography{references.bib}
+
+\end{document}

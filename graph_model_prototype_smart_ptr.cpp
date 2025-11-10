@@ -4,8 +4,8 @@
 #include <vector>
 #include <stdlib.h>
 
-#define WIDTH 10
-#define HEIGHT 10
+#define WIDTH 1000
+#define HEIGHT 1000
 
 struct Vertex {
         char state;
@@ -119,6 +119,7 @@ int main()
 
 
         // Output all vertex info
+        /*
         for (int i = 0; i < HEIGHT; i++) {
                 for (int j = 0; j < WIDTH; j++) {
                         std::cout << "Vertex (" << i << ", " << j << "): "
@@ -126,9 +127,9 @@ int main()
                         std::cout << *lattice[i][j];
                 }
         }
-
-        draw_graph(std::cout, lattice);
-
+        */
+        // draw_graph(std::cout, lattice);
+        std::cout << "hello";
 
         /* leftover deletion code from raw pointer implementation
         for (int i = 0; i < 4; i++) {

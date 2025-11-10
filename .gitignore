@@ -12,3 +12,4 @@ testing.cpp
 *.gz
 *.pdf
 /images
+/try_scipy

@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import networkx as nx
 
 
-SIZE = 1000  # Side length of lattice
+SIZE = 100  # Side length of lattice
 
 
 def draw_graph(M):
@@ -47,5 +47,5 @@ for edge in edgesout:
     A[edge[1], edge[0]] = 0  # Also set lower triangle entry to 0
 A.eliminate_zeros()
 
-plt.show()
-# draw_graph(A)
+
+draw_graph(A)

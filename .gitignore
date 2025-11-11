@@ -13,3 +13,4 @@ testing.cpp
 *.pdf
 /images
 /try_scipy
+/rnotes

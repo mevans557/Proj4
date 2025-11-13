@@ -276,17 +276,25 @@ Now the effects of the COVID-19 pandemic are waning, and so it is important to b
 
 \chapter{Background}
 
-Many approaches utilise a compartmental model, which in the years following the COVID-19 pandemic have become known to a much wider section of the general public than before. Many are therefore familiar with terms such as "R-value", as this was often reported in the media, for example \citet{bbcCoronavirusWhatNumber2020}. The models the public are familiar with are generally of the SIR type, where the population are grouped into three compartments: Susceptible, Infected, and Removed. However, this model is part of a larger family of compartmental models, the simplest being the SI model which does not have the Removed section. There are also more complex versions, such as the MSEIRS model, which models passive immunity, latency periods, and temporary immunity, which have existed for quite some time \citep{menonModellingSimulationCOVID192020}.
+Many approaches to disease modelling utilise a compartmental model, which in the years following the COVID-19 pandemic have become known to a much wider section of the general public than before. Many are therefore familiar with terms such as "R-value", as this was often reported in the media, for example \citet{bbcCoronavirusWhatNumber2020}. The models the public are familiar with are generally of the SIR type, where the population are grouped into three compartments: Susceptible, Infected, and Removed. However, this model is part of a larger family of compartmental models, the simplest being the SI model which does not have the Removed section. There are also more complex versions, such as the MSEIRS model, which models passive immunity, latency periods, and temporary immunity, which have existed for quite some time \citep{menonModellingSimulationCOVID192020}.
 
 These models generally make an assumption of spatial homogeneity, and so more complex models have been developed to address this shorcoming. These include reaction-diffusion models \citep{davydovychReactionDiffusionEquations2023}, and models with interacing subpopulations \citep{keeling17MetapopulationDynamics2004}. However, these still make an assumption that the disease spread can be modelled in a continuous space; logically though, we know that disease spread is fundamentally a discretised process, as an individual is either infected or not.
 
-To address this deficiency, some work has been done modelling diseases on various networks. Some of these are reminiscent of percolation theory results, such as giant components, on random graphs \citep{browneInfectionPercolationDynamic2021}. Another recent approach modelled random walkers on random graphs, to mimic human movement patterns and model vector-born diseases \citep{grangerStochasticCompartmentModel2024}. In \citet{croccoloSpreadingInfectionsRandom2020}, the authors applied percolation-theoretic methods and results to a model of the COVID-19 pandemic in the USA, and explored the effects of lockdowns on disease spread.
+There has therefore been some work put into stochastic simulations of these systems, in order to more accurately model the discrete nature of the populations \citep{stollenwerkMasterEquationSolution2000}. However, these also unfortunately lack the capacity to examine the effects of connections between individuals directly, and generally assume a well-mixed population.
+
+To address this deficiency, a large amount of work has been done modelling diseases on various networks. Some of these are reminiscent of percolation theory results, such as giant component formation on random graphs \citep{browneInfectionPercolationDynamic2021}. Another recent approach modelled random walkers on random graphs, to mimic human movement patterns and model vector-born diseases \citep{grangerStochasticCompartmentModel2024}. In \citet{croccoloSpreadingInfectionsRandom2020}, the authors applied percolation-theoretic methods and results to a model of the COVID-19 pandemic in the USA, and explored the effects of lockdowns on disease spread.
+
+I seek here to expand on this previous work, by creating a model of disease spread on a random network, and observing how changes both to the network structure and to the disease parameters qualitatively affect the epidemic. These results are compared to stochastic simulations based on a Chemical Master Equation approach to the population modelling, using the Gillespie SSA.
+
+\chapter{The Chemical Master Equation Model}
 
 \chapter{Creating the Model}
 
 \chapter{Implementing the Model}
 
 \chapter{Analysis of Criticality}
+
+\chapter{Comparison between the networked and CME model}
 
 \bibliography{mybib.bib}
 

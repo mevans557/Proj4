@@ -20,10 +20,10 @@ def iterate(t, I, N, kI, alpha):
 
 t0 = 0
 I0 = 1
-N0 = 200
-kI0 = 0.02
+N0 = 400
+kI0 = 0.001
 alpha0 = kI0*I0*(N0-I0)
-iters = 50
+iters = 10
 
 tcollect = np.zeros([iters, N0])
 Icollect = np.zeros([iters, N0])
@@ -37,10 +37,9 @@ for i in range(iters):
     plt.plot(tcollect[i], Icollect[i])
 
 
-td = np.arange(0, 5, 0.1)
-Id = N0/(1+(N0-1)*np.exp(-N0*kI0*td))
-
-plt.plot(td, Id, linestyle='dashed', color='black', label="Deterministic")
+# td = np.arange(0, 5, 0.1)
+# Id = N0/(1+(N0-1)*np.exp(-N0*kI0*td))
+# plt.plot(td, Id, linestyle='dashed', color='black', label="Deterministic")
 
 
 plt.title("SSA of SI model Infecteds over Time")

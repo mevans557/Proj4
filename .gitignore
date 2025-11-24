@@ -1,6 +1,7 @@
 how_big_is_my_vertex
 test
 graph_model_prototype_smart_ptr
+TODO.txt
 .vscode
 testing.cpp
 *.bbl

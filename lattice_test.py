@@ -5,8 +5,8 @@ import networkx as nx
 
 
 SIZE = 20  # Side length of lattice
-prob = 0.7  # Probability of edge existence
-iters = 10   # Number of iterations to carry out
+prob = 1  # Probability of edge existence
+iters = 1   # Number of iterations to carry out
 kInf = 0.5  # Chance of an infection along an edge in some time unit
 
 # For graph plotting purposes
@@ -152,13 +152,13 @@ def Gillespie_iterateSI(M, Si, Ii, kI):
         Is = np.append(Is, np.sum(Ii))
         Ss = np.append(Ss, np.sum(Si))
         # Draw the graph
-        # draw_graph(M, states)
+        draw_graph(M, states)
         # break loop if no updates occurred
         if (np.array_equal(Ii, oldIi)):
             break
     statevec = Si + 2*Ii
     states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
-    # draw_graph(M, states)
+    draw_graph(M, states)
     # Return the tracked data
     return ts, Is, Ss
 
@@ -182,7 +182,7 @@ for i in range(iters):
     tmpt, tmpI, tmpS = Gillespie_iterateSI(newLattice, suscepts, infects, kInf)
     tcollect.append(tmpt)
     Icollect.append(tmpI)
-    Scollect.append(tmpS)
+    # Scollect.append(tmpS)
 
 
 # Plot data

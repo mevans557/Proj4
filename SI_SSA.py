@@ -20,17 +20,19 @@ def iterate(t, I, N, kI, alpha):
 
 t0 = 0
 I0 = 1
-N0 = 400
-kI0 = 0.001
+N0 = 10000
+kI0 = 0.00002
 alpha0 = kI0*I0*(N0-I0)
 iters = 10
 
-tcollect = np.zeros([iters, N0])
-Icollect = np.zeros([iters, N0])
+tcollect = []
+Icollect = []
 
 
 for i in range(iters):
-    tcollect[i], Icollect[i] = iterate(t0, I0, N0, kI0, alpha0)
+    tmpt, tmpI = iterate(t0, I0, N0, kI0, alpha0)
+    tcollect.append(tmpt)
+    Icollect.append(tmpI)
 
 
 for i in range(iters):

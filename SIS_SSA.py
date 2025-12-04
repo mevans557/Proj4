@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 def iterate(t, I, N, kI, kR, alpha):
     Is = np.array([])
     ts = np.array([])
-    while ((t < 10) and (alpha != 0)):
+    while ((t < 100) and (alpha != 0)):
         ts = np.append(ts, t)
         Is = np.append(Is, I)
         r1 = np.random.rand()
@@ -24,9 +24,9 @@ def iterate(t, I, N, kI, kR, alpha):
 
 t0 = 0
 I0 = 1
-N0 = 200
-kI0 = 0.02
-kR0 = 1
+N0 = 10000
+kI0 = 0.00002
+kR0 = 0.05
 alpha0 = kR0*I0 + kI0*I0*(N0-I0)
 iters = 10
 

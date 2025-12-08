@@ -1,19 +1,12 @@
 import numpy as np
 import scipy as sp
-from matplotlib import pyplot as plt
-import networkx as nx
 
 
-from graph_handling import draw_lattice, make_perc_graph
+from graph_handling import draw_lattice
 
 
-SIZE = 100  # Side length of lattice
-prob = 0.3  # Probability of edge existence
-iters = 1   # Number of iterations to carry out
-kInf = 0.5  # Chance of an infection along an edge in some time unit
-KUninf = 0.3  # Chance of an infected becoming susceptible again in some time unit
-
-# For passing to draw_lattice()
+# For passing to draw_lattice() to easily convert the multiple state vectors
+# into one structure for memory efficiency
 state_dict = {0: 'H', 1: 'S', 2: 'I'}
 
 
@@ -35,7 +28,7 @@ def naive_iterateSI(M, Si, Ii):
         oldIi = np.copy(Ii)
         # Set up state vectors to display correctly. NOTE: Only used for display
         statevec = Si + 2*Ii
-        states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
+        states = {x: state_dict[statevec[x]] for x in range(Ii.size)}
         # Infect neighbours
         Ii = Ii + ((M @ Ii) * Si)
         # These style of expression reset all entries to 1 or 0
@@ -50,13 +43,13 @@ def naive_iterateSI(M, Si, Ii):
         Is = np.append(Is, np.sum(Ii))
         Ss = np.append(Ss, np.sum(Si))
         # Draw the graph
-        # draw_lattice(M, states)
+        # draw_lattice(M, states, np.sqrt(Ii.size).astype(int))
         # break loop if no updates occurred
         if (np.array_equal(Ii, oldIi)):
             break
     statevec = Si + 2*Ii
-    states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
-    # draw_lattice(M, states)
+    states = {x: state_dict[statevec[x]] for x in range(Ii.size)}
+    # draw_lattice(M, states, np.sqrt(Ii.size).astype(int))
     # Return the tracked data
     return ts, Is, Ss
 
@@ -73,8 +66,8 @@ def Gillespie_iterateSI(M, Si, Ii, kI):
     '''
     # Draw initial graph
     statevec = Si + 2*Ii
-    states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
-    # draw_lattice(M, states)
+    states = {x: state_dict[statevec[x]] for x in range(Ii.size)}
+    # draw_lattice(M, states, np.sqrt(Ii.size).astype(int))
     # Track populations over time
     Is = np.array([np.sum(Ii)])
     Ss = np.array([np.sum(Si)])
@@ -84,7 +77,7 @@ def Gillespie_iterateSI(M, Si, Ii, kI):
         oldIi = np.copy(Ii)
         # Set up state vectors to display correctly. NOTE: Only used for display
         statevec = Si + 2*Ii
-        states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
+        states = {x: state_dict[statevec[x]] for x in range(Ii.size)}
         # Get infectable nodes
         Iable = (M @ Ii) * Si
         # Calculate next reaction time
@@ -102,13 +95,13 @@ def Gillespie_iterateSI(M, Si, Ii, kI):
         Is = np.append(Is, np.sum(Ii))
         Ss = np.append(Ss, np.sum(Si))
         # Draw the graph
-        draw_lattice(M, states)
+        draw_lattice(M, states, np.sqrt(Ii.size).astype(int))
         # break loop if no updates occurred
         if (np.array_equal(Ii, oldIi)):
             break
     statevec = Si + 2*Ii
-    states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
-    draw_lattice(M, states)
+    states = {x: state_dict[statevec[x]] for x in range(Ii.size)}
+    draw_lattice(M, states, np.sqrt(Ii.size).astype(int))
     # Return the tracked data
     return ts, Is, Ss
 
@@ -126,8 +119,8 @@ def Gillespie_iterateSIS(M, Si, Ii, kI, kS):
     '''
     # Draw initial graph
     # statevec = Si + 2*Ii
-    # states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
-    # draw_lattice(M, states)
+    # states = {x: state_dict[statevec[x]] for x in range(Ii.size)}
+    # draw_lattice(M, states, np.sqrt(Ii.size).as_type(int))
     # Track populations over time
     Is = np.array([np.sum(Ii)])
     Ss = np.array([np.sum(Si)])
@@ -137,7 +130,7 @@ def Gillespie_iterateSIS(M, Si, Ii, kI, kS):
             break
         # Set up state vectors to display correctly. NOTE: Only used for display
         # statevec = Si + 2*Ii
-        # states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
+        # states = {x: state_dict[statevec[x]] for x in range(Ii.size)}
         # Get infectable nodes
         Iable = (M @ Ii) * Si
         # Calculate next reaction time
@@ -159,49 +152,9 @@ def Gillespie_iterateSIS(M, Si, Ii, kI, kS):
         Is = np.append(Is, np.sum(Ii))
         Ss = np.append(Ss, np.sum(Si))
         # Draw the graph
-        # draw_lattice(M, states)
+        # draw_lattice(M, states, np.sqrt(Ii.size).astype(int))
     statevec = Si + 2*Ii
-    states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
-    draw_lattice(M, states)
+    states = {x: state_dict[statevec[x]] for x in range(Ii.size)}
+    draw_lattice(M, states, np.sqrt(Ii.size).astype(int))
     # Return the tracked data
     return ts, Is, Ss
-
-
-# Track all data over iterations
-tcollect = []
-Icollect = []
-Scollect = []
-
-
-# Iterate
-for i in range(iters):
-    # Initialise SI vectors
-    suscepts = np.ones(SIZE**2)
-    infects = np.zeros(SIZE**2)
-    # Begin with an infected
-    infects[SIZE**2//2 + SIZE//2] = 1
-    suscepts[SIZE**2//2 + SIZE//2] = 0
-    # Make a lattice
-    newLattice = make_perc_graph()
-    tmpt, tmpI, tmpS = Gillespie_iterateSIS(newLattice, suscepts, infects,
-                                            kInf, KUninf)
-    tcollect.append(tmpt)
-    Icollect.append(tmpI)
-    print(i)
-    # Scollect.append(tmpS)
-
-
-# Plot data
-for i in range(iters):
-    plt.plot(tcollect[i], Icollect[i])
-    # plt.plot(tcollect[i], Scollect[i])
-
-# tlog = np.arange(0, 120, 0.1)
-# Ilog = 9890/(1+np.e**(-(tlog-50)/12))
-# plt.plot(tlog, Ilog, label="logistic")
-
-plt.title("Graph SIS model Infecteds over Time")
-plt.xlabel("Time t")
-plt.ylabel("Infecteds I(t)")
-plt.legend()
-plt.show()

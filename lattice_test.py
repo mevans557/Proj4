@@ -4,68 +4,17 @@ from matplotlib import pyplot as plt
 import networkx as nx
 
 
-SIZE = 100  # Side length of lattic
+from graph_handling import draw_lattice, make_perc_graph
+
+
+SIZE = 100  # Side length of lattice
 prob = 0.3  # Probability of edge existence
 iters = 1   # Number of iterations to carry out
 kInf = 0.5  # Chance of an infection along an edge in some time unit
 KUninf = 0.3  # Chance of an infected becoming susceptible again in some time unit
 
-# For graph plotting purposes
+# For passing to draw_lattice()
 state_dict = {0: 'H', 1: 'S', 2: 'I'}
-colour_dict = {'H': "black", 'S': "green", 'I': "red"}
-
-
-def draw_graph(M, sts):
-    '''
-    Draws the graph given in an adjacency matrix
-    Params:
-    M: An adjacency matrix of a graph
-    sts: A dictionary of nodes with states of the graph
-    No return types
-    '''
-    rows, cols, vals = sp.sparse.find(M)
-    edges = zip(rows.tolist(), cols.tolist())
-    gr = nx.Graph()
-    toadd = [i for i in range(SIZE**2)]
-    gr.add_nodes_from(toadd)
-    gr.add_edges_from(edges)
-    offset = np.array([0, 0])
-    pos = nx.circular_layout(gr)
-    nx.set_node_attributes(gr, sts, name="state")
-    node_colour = [colour_dict[nx.get_node_attributes(gr, "state")[i]]
-                   for i in range(SIZE**2)]
-    for i in range(SIZE**2):
-        pos[i] = offset + np.array([i % SIZE, (i//SIZE)])
-    plt.figure(figsize=(7, 7))
-    nx.draw(gr, pos, node_size=20, node_color=node_colour)
-    plt.show()
-
-
-def make_perc_graph():
-    '''
-    Create a simple lattice graph
-    Returns a percolation-type lattice graph, using global prob
-    '''
-    base_row = [0, 1]
-    for i in range(2, SIZE):
-        base_row.append(0)
-    offdi = sp.linalg.toeplitz(base_row)
-    I = sp.sparse.eye_array(SIZE)
-    A = sp.sparse.kron(offdi, I, format='csr') \
-        + sp.sparse.kron(I, offdi, format='csr')
-    # plt.matshow(A)
-    # plt.show()
-
-    # Randomly remove edges
-    rowsout, colsout, vals = sp.sparse.find(
-        sp.sparse.triu(A))  # Only upper tri
-    edgesout = [edge for edge in zip(rowsout.tolist(), colsout.tolist())
-                if prob < np.random.rand()]
-    for edge in edgesout:
-        A[edge[0], edge[1]] = 0
-        A[edge[1], edge[0]] = 0
-    A.eliminate_zeros()
-    return A
 
 
 def naive_iterateSI(M, Si, Ii):
@@ -101,13 +50,13 @@ def naive_iterateSI(M, Si, Ii):
         Is = np.append(Is, np.sum(Ii))
         Ss = np.append(Ss, np.sum(Si))
         # Draw the graph
-        # draw_graph(M, states)
+        # draw_lattice(M, states)
         # break loop if no updates occurred
         if (np.array_equal(Ii, oldIi)):
             break
     statevec = Si + 2*Ii
     states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
-    # draw_graph(M, states)
+    # draw_lattice(M, states)
     # Return the tracked data
     return ts, Is, Ss
 
@@ -125,7 +74,7 @@ def Gillespie_iterateSI(M, Si, Ii, kI):
     # Draw initial graph
     statevec = Si + 2*Ii
     states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
-    # draw_graph(M, states)
+    # draw_lattice(M, states)
     # Track populations over time
     Is = np.array([np.sum(Ii)])
     Ss = np.array([np.sum(Si)])
@@ -153,13 +102,13 @@ def Gillespie_iterateSI(M, Si, Ii, kI):
         Is = np.append(Is, np.sum(Ii))
         Ss = np.append(Ss, np.sum(Si))
         # Draw the graph
-        draw_graph(M, states)
+        draw_lattice(M, states)
         # break loop if no updates occurred
         if (np.array_equal(Ii, oldIi)):
             break
     statevec = Si + 2*Ii
     states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
-    draw_graph(M, states)
+    draw_lattice(M, states)
     # Return the tracked data
     return ts, Is, Ss
 
@@ -178,7 +127,7 @@ def Gillespie_iterateSIS(M, Si, Ii, kI, kS):
     # Draw initial graph
     # statevec = Si + 2*Ii
     # states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
-    # draw_graph(M, states)
+    # draw_lattice(M, states)
     # Track populations over time
     Is = np.array([np.sum(Ii)])
     Ss = np.array([np.sum(Si)])
@@ -210,10 +159,10 @@ def Gillespie_iterateSIS(M, Si, Ii, kI, kS):
         Is = np.append(Is, np.sum(Ii))
         Ss = np.append(Ss, np.sum(Si))
         # Draw the graph
-        # draw_graph(M, states)
+        # draw_lattice(M, states)
     statevec = Si + 2*Ii
     states = {x: state_dict[statevec[x]] for x in range(SIZE**2)}
-    draw_graph(M, states)
+    draw_lattice(M, states)
     # Return the tracked data
     return ts, Is, Ss
 

@@ -13,6 +13,27 @@ kInf = 0.5  # Chance of an infection along an edge in some time unit
 KUninf = 0.3  # Chance of an infected becoming susceptible again in some time unit
 
 
+def get_data(iteror, lattice, sus, inf, kI, kU, tc, Ic, Sc=[]):
+    '''
+    Runs a single iteration of a simulation algorithm
+    params:
+    iteror: simulation algorithm single iteration function to use
+    lattice: lattice to pass to iteror
+    sus: initial susceptible array to pass to iteror
+    inf: intiial infected array to pass to iteror
+    kI: chance of infection to pass to iteror
+    kU: chance of non-immune recovery to pass to iteror
+    tc: list to collect times in
+    Ic: list to collect infected pops in
+    Sc: list to collect susceptible pops in
+    no return, appends to tc, Ic, Sc
+    '''
+    tmpt, tmpI, tmpS = iteror(lattice, sus, inf, kI, kU)
+    tc.append(tmpt)
+    Ic.append(tmpI)
+    Sc.append(tmpS)
+
+
 # Track all data over iterations
 tcollect = []
 Icollect = []
@@ -29,22 +50,13 @@ for i in range(iters):
     suscepts[SIZE**2//2 + SIZE//2] = 0
     # Make a lattice
     newLattice = make_perc_graph(SIZE, prob)
-    tmpt, tmpI, tmpS = Gillespie_iterateSIS(newLattice, suscepts, infects,
-                                            kInf, KUninf)
-    tcollect.append(tmpt)
-    Icollect.append(tmpI)
-    print(i)
-    # Scollect.append(tmpS)
-
+    get_data(Gillespie_iterateSIS, newLattice, suscepts, infects, kInf, KUninf,
+             tcollect, Icollect)
 
 # Plot data
 for i in range(iters):
     plt.plot(tcollect[i], Icollect[i])
     # plt.plot(tcollect[i], Scollect[i])
-
-# tlog = np.arange(0, 120, 0.1)
-# Ilog = 9890/(1+np.e**(-(tlog-50)/12))
-# plt.plot(tlog, Ilog, label="logistic")
 
 plt.title("Graph SIS model Infecteds over Time")
 plt.xlabel("Time t")

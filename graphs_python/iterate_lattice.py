@@ -3,7 +3,7 @@ import scipy as sp
 from matplotlib import pyplot as plt
 import networkx as nx
 
-from graph_handling import make_perc_graph
+from graphs_python.perc_graph import make_perc_graph
 from single_discrete_lattice_iterates import Gillespie_iterateSIS
 
 SIZE = 20  # Side length of lattice

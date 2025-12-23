@@ -44,31 +44,27 @@ def Gillespie(A, I, N, kI, delta):
     r2 = np.random.random()
     inf_cum = np.cumulative_sum((alpha_inf_in + alpha_inf_bet)/alpha)
     rec_cum = np.cumulative_sum(alpha_rec/alpha)
+    Inew = I
     # Evolve in case first infection reaction
     if (r2 < inf_cum[0]):
-        Inew = I
         Inew[0] = Inew[0] + 1
         return Inew, tau
     # Evolve in case one of the other infection reactions
     for i in range(np.size(I)-2):
         if ((r2 >= inf_cum[i]) and (r2 < inf_cum[i+1])):
-            Inew = I
             Inew[i+1] = Inew[i+1] + 1
             return Inew, tau
     # Evolve in case final infection reaction
     if ((r2 >= inf_cum[-2]) and (r2 < inf_cum[-1])):
-        Inew = I
         Inew[-1] = Inew[-1] + 1
         return Inew, tau
     # Evolve in case first recovery reaction
     if ((r2 >= inf_cum[-1]) and (r2 < inf_cum[-1] + rec_cum[0])):
-        Inew = I
         Inew[0] = Inew[0] - 1
         return Inew, tau
     # Evolve in case one of the other recovery reactions
     for i in range(np.size(I)-1):
         if ((r2 >= inf_cum[-1] + rec_cum[i]) and (r2 < inf_cum[-1] + rec_cum[i+1])):
-            Inew = I
             Inew[i+1] = Inew[i+1] - 1
             return Inew, tau
     # Shouldn't get here

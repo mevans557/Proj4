@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sp
 
 
-from graph_handling import draw_lattice
+from graphs_python.perc_graph import draw_lattice
 
 
 # For passing to draw_lattice() to easily convert the multiple state vectors

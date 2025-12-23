@@ -22,6 +22,25 @@ def evolve(A, I, N, kI, delta):
     return newI
 
 
+def Gillespie(A, I, N, kI, delta):
+    '''
+    Runs discrete metapop SIS on a graph for use with Gillespie iterator
+    Params:
+    A: An adjacency matrix of a graph
+    I: State vector storing infected populations on a graph
+    N: vector of node populations
+    kI: infection rate
+    delta: recovery rate (no immunity)
+    Returns a tuple of a state vector storing new infected populations on the graph, and a time elapsed for the reaction
+    '''
+    intras = sum(I * (N-I))
+    inters = sum((A @ I) * (N-I))
+    alpha = kI * (intras + inters) + (delta * sum(I))
+    r1 = np.random.random()
+    tau = 1/alpha * np.log(1/r1)
+    # TODO: work out which reaction takes place
+
+
 def iterate(G, I, N, kI, delta, stop=100, step=0.1, draw=False):
     '''
     Iterates discrete metapop SIS on a graph using a naïve time-step algorithm

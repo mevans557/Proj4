@@ -280,65 +280,7 @@ Disease modelling has the potential to impact governmental policy with regards t
 
 Now the effects of the COVID-19 pandemic are waning, and so it is important to build upon the huge amount of work that was done at the time, to develop more accurate and useful models for other diseases with different attributes, such as passive immunity from birth. These models can help to shape public policy surrounding not just pandemics and outbreaks, but also vaccination programmes, and other forms of aid globally.
 
-\chapter{Background and Project Scope}
-
-\section{Compartmental Models}
-
-Many approaches to disease modelling utilise a compartmental model, which in the years following the COVID-19 pandemic have become known to a much wider section of the general public than before. Many are therefore familiar with terms such as ``R-value'', as this was often reported in the media, for example in \citet{bbcCoronavirusWhatNumber2020}. The models the public are familiar with are generally of the SIR type, where the population are grouped into three compartments: Susceptible, Infected, and Removed. However, this model is part of a larger family of compartmental models, the simplest being the SI model which does not have the Removed section. There are also more complex versions, such as the MSEIRS model, which models passive immunity, latency periods, and temporary immunity, which have existed for quite some time \citep{menonModellingSimulationCOVID192020}.
-
-These models generally make an assumption of spatial homogeneity, and so more complex models have been developed to address this shorcoming. These include reaction-diffusion models \citep{davydovychReactionDiffusionEquations2023}, and models with interacing subpopulations \citep{keeling17MetapopulationDynamics2004}. However, these still make an assumption that the disease spread can be modelled in a continuous space; logically though, we know that disease spread is fundamentally a discretised process, as an individual is either infected or not.
-
-There has therefore been some work put into stochastic simulations of these systems, in order to more accurately model the discrete nature of the populations \citep{stollenwerkMasterEquationSolution2000}. However, these also unfortunately lack the capacity to examine the effects of connections between individuals directly, and generally assume a well-mixed population.
-
-To address this deficiency, a large amount of work has been done modelling diseases on various networks. Some of these are reminiscent of percolation theory results, such as giant component formation on random graphs \citep{browneInfectionPercolationDynamic2021}. Another recent approach modelled random walkers on random graphs, to mimic human movement patterns and model vector-born diseases \citep{grangerStochasticCompartmentModel2024}. In \citet{croccoloSpreadingInfectionsRandom2020}, the authors applied percolation-theoretic methods and results to a model of the COVID-19 pandemic in the USA, and explored the effects of lockdowns on disease spread.
-
-\section{Percolation}
-
-Percolation is a long-researched process, largely focussing on giant-component formation \citep{weissteinBondPercolation}, \citep{duminil-copinSixtyYearsPercolation2017}. Here I refer to a percolation-type graph as one constructed according to the bond-percolation process, where a lattice is reduced such that each edge has an independent probability $p$ of existing. Much work has been done on finding the critical probabilities, $p_c$ associated with various lattices. These are the probabilities at which giant components are formed, where for values of $p < p_c$, giant components have a $0$ probabilty of forming (on an infinite lattice), and for $p > p_c$ giant component formation occurs almost surely. Bond-percolation is a less general case than site-percolation, however exploring all different kinds of percolation, on different base lattices, would be beyond the scope of this project. In \citet{browneInfectionPercolationDynamic2021}, the authors discoverd that a site-based model of disease spread demonstrated cricicality effects very similar to that of site-percolation. They also demonstrated how the critical threshold for percolation impacted the overall critical threshold for disease to spread throughout the population, and how the recovery time affected the critical infectivity. However, one limitation of this model was the choice to use a fixed recovery time - though this in reality would follow some kind of distribution, as the underlying process is a Markov jump process.
-
-\section{Project Scope}
-
-We seek here to expand on this previous work, by creating a stochastic model of disease spread on a random (percolation-type) network, and observing how changes both to the network structure and to the disease parameters qualitatively affect the epidemic. These results are compared to stochastic simulations using the Gillespie SSA. Where interesting differences are found, we explore these in more depth. We calculate, in different cases, the mean times for different parts of the process, such as recovery and the transition in SEIR models from Exposed to Infectious, and compare these to simulation results. We explore the effect of the graph structure, parameterised by the edge probability $p$, on epidemic extent and speed. We also explore a variety of qualitative effects, arising as a result of the graph structure.
-
 \chapter{The SI Model}
-
-\section{Generating the Adjacency Matrix}
-
-Much of this was inspired by some comments on a stack overflow thread \citep{guillefixAnswerHowCan2017}, although the explanation given in the discussion was very terse, and not clear exactly how the method suggested worked. We expand on this and explain where the different stages in the process come from.
-
-We consider the lattice as arranged by rows. Then the adjacency matrix can be considered as a matrix of matrices, where those on the diagonal encode how the vertices within a row are connected, and those on the adjacent diagonals encode the connection of each vertex in a row with each vertex in the adjacent row (\ref{AdjMatCons}). Thus, as each vertex in a row is connected to only one of the vertices in the next row, that being the vertex in the same column, these offset-diagonal matrices are all the identity matrix. Essentially this encodes that the vertex in row $i$ and column $j$ is connected to the vertices in rows $i+1$ and $i-1$, and column $j$. It thus only remains to construct the matrices describing the in-row connections of the vertices, and due to the rows all being identical, a copy of this sub-matrix will be placed in every place along the diagonal of the overall adjacency matrix.
-
-\begin{equation} \label{AdjMatCons}
-	\m{A}=
-	\begin{pNiceMatrix}[first-row, first-col]
-		& r1 & r2 & r3 & r4 \\
-		r1 & \m{R} & \m{I} & 0 & 0 \\
-		r2 & \m{I} & \m{R} & \m{I} & 0 \\
-		r3 & 0 & \m{I} & \m{R} & \m{I} \\
-		r4 & 0 & 0 & \m{I} & \m{R}
-	\end{pNiceMatrix}
-\end{equation}
-
-\begin{equation} \label{RowMatCons}
-	\m{R}=
-	\begin{pNiceMatrix}[first-row, first-col]
-		& c1 & c2 & c3 & c4 \\
-		c1 & 0 & 1 & 0 & 0 \\
-		c2 & 1 & 0 & 1 & 0 \\
-		c3 & 0 & 1 & 0 & 1 \\
-		c4 & 0 & 0 & 1 & 0 
-	\end{pNiceMatrix}
-\end{equation}
-
-Within a row, each vertex is connected only to its neighbours. That is, a vertex in row $i$ and column $j$ is connected only to the vertices in row $i$ and columns $j-1$, $j+1$. This is a matrix with $1$s on the diagonals adjacent to the leading diagonal, and $0$ s everywhere else (\ref{RowMatCons}). Clearly this pattern is also the macro structure of the adjacency matrix describing where the identity matrices sit. Hence, for a square lattice, we can simply generate this matrix, and then use the Kronecker product to first place an identity matrix in all of the positions adjacent to the diagonal, and then take the Kronecker product the other way around, to place the adjacent-diagonals matrix along the diagonal of the overall adjacency matrix. This obviously only works for square lattices, but that is fine for our purposes, and the process could be relatively simply adapted for a rectangular lattice.
-
-\begin{equation}
-	\m{A} = \m{I} \otimes \m{R} + \m{R} \otimes \m{I}
-\end{equation}
-
-It is worth noting also, that the matrix $\m{R}$, is clearly a Toeplitz matrix. We therefore generate the first row of this matrix, before using \verb|scipy.linalg.toeplitz| to generate the matrix $\m{R}$. The identity matrix is generated using \verb|scipy.sparse.eye_array|, utilising the \verb|sparse| part of the library to ensure memory efficiency. The matrices are then combined using \verb|scipy.sparse.kron| to perform the Kronecker product. It is important that sparse matrices are used, as the size of the matrix goes up with the square of the size of the underlying lattice. So for a $10000$ node lattice, as we often use here, an implementation not using sparse matrices would require upwards of $400$MB of memory simply to store the adjacency matrix.
-
-This process generates the matrix representing a 2D lattice, with all edges existing. In order to carry out bond percolation \citep{weissteinBondPercolation}, we must remove some of these edges, with probability $p$ of an edge existing. In order to ensure accuracy here, the various $(i, j)$ pairs corresponding to the non-zero entries in the uppper triangle of the adjacency matrix are found, using \verb|scipy.sparse.find| and \verb|scipy.sparse.triu|. These are then filtered according to the probability $p$, and the entries of the adjacency matrix corresponding to the edges to be removed are set to $0$. These are then removed entirely (to save memory) using \verb|scipy.sparse.csr_matrix.eliminate_zeros|. This results in an adjacency matrix describing a lattice where each edge exists with probability $p$. This algorithm is used in all of the models to efficiently generate such matrices. Alternative methods of generating the Adjacency matrix are possible, and could potentially be more time- or space-efficient. However, splitting the lattice generation and the conversion into a percolation-type graph allows different structures to be potentially investigated, giving greater flexibility.
 
 \section{Naïve SSA}
 
@@ -363,41 +305,11 @@ This is the very simple and naïve process whereby the infection simply spreads 
 
 \section{Gillespie SI}
 
-Next, a graph-based implementation of the Gillespie algorithm for the simple SI model was made. This was done by interpreting the SI model as the following reaction:
-
-\begin{equation}
-	\ce{S + I ->[k_I] 2I}
-\end{equation}
-
-A modification of the standard Gillespie algorithm to implement this is as follows:
-
-\begin{enumerate}
-	\item Generate a random number, $r_1$.
-	\item Obtain a vector of "infectable" nodes, $\v{I}_{pos}(t)$ those which are susceptible and adjacent to an infectious node, according to the formula
-	\begin{equation}
-		\v{I}_{pos}(t) = \m{A} \cdot \v{I}(t) * \v{S}(t).
-	\end{equation}
-	If at this stage, $\v{I}_{pos}(t) = \v{0}$, the simulation ends as there are no nodes left to infect.
-	\item The propensity function is then calculated
-	\begin{equation}
-		\alpha(t) = k_I \sum_i I_{pos, i}.
-	\end{equation}
-	Where $I_{pos, i}$ is the $i$th element of $\v{I}_{pos}$, and $k_I$ is the infection rate, interpreted as the probability that a given connection between an infected and susceptible node results in the infection spreading from the infected node to the susceptible node in a given time step. Thus every such connection has an equal chance of spreading the infection, and node degree has no bearing on the probability of a given edge spreading the infection.
-	\item The sojourn time is calculated
-	\begin{equation}
-		\tau = \frac 1 {\alpha(t)} \log(\frac 1 {r_1}).
-	\end{equation}
-	\item The time of reaction, $t + \tau$ is recorded.
-	\item One of the "infectable" nodes is selected randomly (such that each "infectable" node has an equal chance of selection), this node is denoted $i$.
-	\item The infection is carried out, setting $S_i(t + \tau) = 0$, $I_i(t + \tau) = 1$.
-	\item This process is repeated until the exit condition of no change is met.
-\end{enumerate}
-
-\section{Comparison of networked SI to well-mixed SI}
+\section{Comparison of networked SI models to well-mixed SI}
 
 Having implemented this algorithm, we can now compare the networked implementation of the SI model to a standard Gillespie SSA simulation of a well-mixed SI model. Notably, this should be equivalent to the network Gillespie on the $K_N$ graph, where $N$ is the total population. To ensure relatively easy comparison, the population size was set at 10000, or a $100 \times 100$ lattice. Each algorithm was iterated $20$ times, tracking the infected populations. All of the trajectories thus generated were then plotted. We set the parameters at $p \in \{0.3, 0.5, 0.7 \}$ as the chance of an edge existing in the graph, and $k_I = 0.5$ as the infection rate. For the well-mixed algorithm, we chose $k_I = 0.00002$. This was to ensure the plots were more easily comparable, as the low average degree of a percolation-type graph greatly reduces the effective infection rate relative to the well-mixed version.
 
-As one would expect, the well-mixed SI model shows logistic-curve-like behaviour, and all individuals eventually become infected (\ref{fig:mixSI}). However, for the graph-based model, we see qualitatively different behaviour, with very different results for different values of $p$. For the subcritical graph with $p = 0.3$, we see approximately linear behaviour, and a considerably smaller fraction of the total population is infected (\ref{fig:SI3}). This is due to the low connectivity of the graph resulting in the infection being confined to small connected components of the graph (\ref{fig:SI3end}). For the critical graph, with $p = 0.5$, we again see approximately linear behaviour, with some trailing off near the end of most infectionsv (\ref{fig:SI5}). We also observe a far greater proportion of the overall population becoming infected, corresponding to a large connected component of the graph existing (\ref{fig:SI5end}). In some cases, the component containing the initial infection is small, and so a far smaller proportion of the population are infected. Finally, in the supercritical case where $p = 0.7$, we see again almost the entire population are eventually infected (\ref{fig:SI7}). There is also some trace of logistic-like properties, with the infection rate being highest when approximately half of the population is infected. However, the slower initial and final rates are less pronounced than in the well-mixed case, and the lines are more easily approximated with a linear best fit than the traces resulting from the well-mixed model. In this condition, the eventual spread (\ref{fig:SI7end}) looks similar to the case on a complete lattice (where every edge exists).
+As one would expect, the well-mixed SI model shows logistic-curve-like behaviour, and all individuals eventually become infected. However, for the graph-based model, we see qualitatively different behaviour, with very different results for different values of $p$. For the subcritical graph with $p = 0.3$, we see approximately linear behaviour, and a considerably smaller fraction of the total population is infected. This is due to the low connectivity of the graph resulting in the infection being confined to small connected components of the graph. For the critical graph, with $p = 0.5$, we again see approximately linear behaviour, with some trailing off near the end of most infectionsv. We also observe a far greater proportion of the overall population becoming infected, corresponding to a large connected component of the graph existing. In some cases, the component containing the initial infection is small, and so a far smaller proportion of the population are infected. Finally, in the supercritical case where $p = 0.7$, we see again almost the entire population are eventually infected. There is also some trace of logistic-like properties, with the infection rate being highest when approximately half of the population is infected. However, the slower initial and final rates are less pronounced than in the well-mixed case, and the lines are more easily approximated with a linear best fit than the traces resulting from the well-mixed model. In this condition, the eventual spread. looks similar to the case on a complete lattice (where every edge exists).
 
 This difference in behaviour is partially a result of the approximately circular wavefront of the infection. Clearly the rate of infection is proportional to the length of the perimeter, which is proportional to the square root of the number of infected individuals, where in the mixed model the infection rate is proportional to the square of the number of infected (in the central region). This results in much slower growth of the infected population relative to the well-mixed model. The other factor impacting the qualitative behaviour of the different simulations is the breaks in the graph where sub populations are isolated from one another, and so the spread cannot propagate as rapidly or as far through the total population.
 
@@ -406,57 +318,6 @@ This difference in behaviour is partially a result of the approximately circular
 	\includegraphics[width=0.7\textwidth]{figs/mixSI.png}
 	\caption{Well-mixed simulation}
 	\label{fig:mixSI}
-\end{figure}
-\begin{figure}
-	\centering
-	\begin{subfigure}[b]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figs/graphSI0.3.png}
-		\caption{$p = 0.3$}
-		\label{fig:SI3}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[b]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figs/graphSI0.5.png}
-		\caption{$p = 0.5$}
-		\label{fig:SI5}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[b]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figs/graphSI0.7.png}
-		\caption{$p = 0.7$}
-		\label{fig:SI7}
-	\end{subfigure}
-	\caption{Graph SI for different $p$, infection over time, 20 iterations}
-	\label{fig:GraphSI}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\begin{subfigure}[b]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figs/graphSI0.3end.png}
-		\caption{$p = 0.3$}
-		\label{fig:SI3end}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[b]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figs/graphSI0.5end.png}
-		\caption{$p = 0.5$}
-		\label{fig:SI5end}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[b]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figs/graphSI0.7end.png}
-		\caption{$p = 0.7$}
-		\label{fig:SI7end}
-	\end{subfigure}
-	\caption{Graph SI for different $p$, end state}
-	\label{fig:GraphSIends}
 \end{figure}
 
 \chapter{Exploring other models}
@@ -473,7 +334,7 @@ The next most simple model is the SIS model, which is an accurate portrayal of v
 	\ce{S + I ->[k_I] 2I} \qquad \ce{I ->[k_U] S}.
 \end{equation}
 
-Here, $k_I$ is still the infection rate, and $k_U$ is the rate of recovery without immunity. Once again, we implemented a well-mixed Gillespie SSA as well as the graph-based models. This was again on a square lattice with side length $100$, with $k_I = 0.5$ and $k_U = 0.3$ for the graph-based model. The parameters in the well-mixed model were scaled appropriately to give comparable results on the same population.
+Here, $k_I$ is still the infection rate, and $k_U$ is the rate of recovery without immunity. Once again, we implemented a well-mixed Gillespie SSA as well as the graph-based models. 
 
 \begin{figure}
 	\centering
@@ -481,68 +342,6 @@ Here, $k_I$ is still the infection rate, and $k_U$ is the rate of recovery witho
 	\caption{Well-mixed simulation}
 	\label{fig:mixSIS}
 \end{figure}
-
-\begin{figure}
-	\centering
-	\begin{subfigure}[b]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figs/graphSIS0.3.png}
-		\caption{$p = 0.3$}
-		\label{fig:SIS3}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[b]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figs/graphSIS0.5.png}
-		\caption{$p = 0.5$}
-		\label{fig:SIS5}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[b]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figs/graphSIS0.7.png}
-		\caption{$p = 0.7$}
-		\label{fig:SIS7}
-	\end{subfigure}
-	\caption{Graph SIS for different $p$}
-	\label{fig:GraphSIS}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\begin{subfigure}[b]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figs/graphSIS0.3end.png}
-		\caption{$p = 0.3$}
-		\label{fig:SIS3end}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[b]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figs/graphSIS0.5end.png}
-		\caption{$p = 0.5$}
-		\label{fig:SIS5end}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[b]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{figs/graphSIS0.7end.png}
-		\caption{$p = 0.7$}
-		\label{fig:SIS7end}
-	\end{subfigure}
-	\caption{Graph SIS for different $p$, end state}
-	\label{fig:GraphSISends}
-\end{figure}
-
-\subsection{Analysis}
-
-Here we begin to see some strong qualitative differences between the well-mixed and graph-based simulations, as well as striking differences between critical, subcritical, and supercritical graphs. For the sub-critical graph ($p = 0.3$), the low level of connectivity leads most infection outbreaks to die out very rapidly. Only a few outbreaks last for a significant amount of time, and these experience large relative fluctuations in the number of infected individuals. The extent of the epidemic is also much lower, as we expect from the small connected components of such a graph. In the critical ($p = 0.5$) case, the infected populations follow an almost linear trajectory, with the exception of the scenarios where the infection happens to begin in a small connected component of the graph, and thus very quickly becomes endemic in that region, and does not spread beyond it. The supercritical ($p = 0.7$) case is far closer to the well-mixed model, and roughly follows the logistic-like curves that we also see in the SI model. Looking at the graph plots at the end of various simulation runs, the overall shapes seem very similar, though they appear somewhat ``holey'' or porous. This is as a result of some of the infected population becoming susceptible again.
-
-\appendix
-
-\chapter{Well-Mixed Gillespie SSA Algorithms}
-
-\section{SI model}\label{appGillSI}
 
 \bibliography{mybib.bib}
 

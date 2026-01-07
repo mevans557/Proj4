@@ -35,6 +35,9 @@
 % Chemical Formulae
 \usepackage{mhchem}
 
+% Pseudocode
+\usepackage{algpseudocodex}
+
 % Theorems, definitions, etc.
 \usepackage{amsthm} 
 \newtheorem{theorem}{Theorem}[chapter] % Number theorem per chapter
@@ -272,7 +275,7 @@
 
 \mainmatter
 
-\chapter{Introduction}
+\chapter{Introduction - REDO THIS}
 
 Throughout human history, disease has been one of the greatest societal challenges. From the black death, to COVID-19, widespread infection has disrupted society, caused economic recessions, and caused suffering to millions of people \citep{prabhuHistorysSevenDeadliest}. It is therefore no surprise that Epidemiology has a rich and vaired history, as we have tried to understand diseases from their chemical functions, to their effect on the human body, to how they spread through a population. It is this last problem which this report is concerned with.
 
@@ -280,45 +283,153 @@ Disease modelling has the potential to impact governmental policy with regards t
 
 Now the effects of the COVID-19 pandemic are waning, and so it is important to build upon the huge amount of work that was done at the time, to develop more accurate and useful models for other diseases with different attributes, such as passive immunity from birth. These models can help to shape public policy surrounding not just pandemics and outbreaks, but also vaccination programmes, and other forms of aid globally.
 
-\chapter{The SI Model}
+\chapter{The SIS Model}
 
-\section{Naïve SSA}
+Here we outline a variety of different approaches to implementing a discrete SI model, consisting of a well-mixed model; a networked discrete metapopulation model (where each node has a population generally greater than $1$); and a networked individuals model (where each node represents an individual, and has a state of either infected or susceptible).
 
-A Naïve approach was first implemented in order to evaluate whether the spreading algorithm would behave as expected. This was achieved by defining a set of state vectors, which for the most basic SI model we denote $\v{S}(t)$ and $\v{I}(t)$. The state vectors behave such that $S_i = 1$ if node $i$ is in the Susceptible compartment, and $I_i = 1$ if node $i$ is in the Infectious compartment. Further, we define $S_i = 0$ or $I_i = 0$ for node $i$ not in the Susceptible or Infectious compartments, respectively. We therefore have as a result that $S_i + I_i = 1 \quad \forall \, i$. The time $t$ is also logged. On each step, the value of $\v{I}(t)$ is stored in a temporary vector, for comparison later. The infection is then spread according to the formulae
+\section{Well-mixed model}
+
+We consider the population to behave like a chemical reaction, and so leverage the mathematical tools relevant to that field here. The reactions we consider are:
+
+\begin{equation}
+	\ce{S + I ->[k_I] 2 I} \qquad \ce{I ->[k_S] S}.
+\end{equation}
+
+Where $k_I$ is the rate of infection, and $k_S$ the rate of recovery, without immunity. As both reactions contain the same number of reactants, no normalisation for the volume (or, more accurately for disease spread, the population area) is required. We can simulate this reaction system with the following Gillespie SSA algorithm:
+
+\begin{algorithmic}
+	\State $r_1 \gets$ \Call{Rand}{}
+	\State $r_2 \gets$ \Call{Rand}{}
+	\Comment{Get two random numbers uniform in $[0, 1]$}
+	\State $\alpha(t) \gets k_I S(t) + k_S I(t)$
+	\Comment{Compute the propensity function}
+	\State $\tau \gets \frac 1 {\alpha(t)} \log(1/r_1)$
+	\Comment{Compute the time until next reaction}
+	\If{$r_2 < \frac {k_I S(t)} {\alpha(t)}$}
+		\State $I(t + \tau) = I(t) + 1$
+		\State $S(t + \tau) = S(t) - 1$
+	\Else
+		\State $I(t + \tau) = I(t) - 1$
+		\State $S(t + \tau) = S(t) + 1$
+	\EndIf
+\end{algorithmic}
+
+This allows us to simulate the system, but we also attempt to analyse the system. We can make a simple approximation utilising the law of mass action and treating the populations as continuous functions on time. First, we consider only $I(t)$, the number of infected individuals at time $t$, and take $S(t) = N - I(t)$ the number of susceptible individuals at time $t$ is the total population, minus the number of infected individuals at time $t$. We are also assuming here that the population size does not change over time, so no births or deaths take place over the time period considered. We can then approximate the behaviour of the system with the equation
+
+\begin{equation}
+	\fd {I} {t} = k_I (N - I(t)) I(t) - k_S I(t).
+\end{equation}
+
+This is not easily solved analytically, but can be calculated numerically, given starting conditions. However, the principle of mass action only works for large numbers of infected individuals, and is an approximation.
+
+To gain a more accurate analysis, we leverage the Chemical Master Equation (CME). We begin by considering $P_n (t) = \mathbb{P}(I(t) = n)$. We also have that $P_k (t) \equiv 0$ for $k < 0$ and $k > N$. Then
 
 \begin{align}
-	\v{I}(t + \Delta t) &= \Theta(\v{I}(t) + \m{A} \cdot \v{I}(t) * \v{S}(t)), \\
-	\v{S}(t + \Delta t) &= \Theta(\v{S}(t) - \v{I}(t + \Delta t)),
+	P_n(t + dt) &= k_S (n+1) P_{n+1}(t) dt + k_I (n-1) (N- (n-1)) P_{n-1}(t) dt \\
+	&\qquad + P_n(t) (1 - (k_s n + k_I n (N-n)) dt) \\
+	\iff \fd {} {t} P_n(t) &= k_S (n+1) P_{n+1}(t) + k_I (n-1) (N- (n-1)) P_{n-1}(t) \\
+	&\qquad - (k_S n + k_I n (N-n)) P_n(t).
 \end{align}
 
-where $*$ denotes component-wise multiplication between vectors and $\Theta$ is the discrete Heaviside function applied to each component where
+This is not easily solvable analytically, and so we instead examine the mean and variance processes, and the stationary distribution.
 
-\begin{equation*}
-	\Theta =
-	\begin{cases*}
-		0 & \text{if} n $\leq$ 0, \\
-		1 & \text{if} n > 0.
-	\end{cases*}
-\end{equation*}
+We define the mean as $M(t) = \sum_{n = 0}^N n P_n(t)$ and the Variance as $V(t) = \sum_{n = 0}^N (n - M(t))^2 P_n(t)$. We then proceed as follows
 
-This is the very simple and naïve process whereby the infection simply spreads from all infected nodes to any susceptible neighbours, in a discrete time step $\Delta t$. The simulation ends when $\v{I}(t + \Delta t) = \v{I}(t)$. This was enough to be able to demonstrate the effectiveness of the code and confirm that the graph generation and spreading worked.
+\begin{align}
+	\fd {M} {t} &= \fd {} {t} \sum_{n = 0}^N n P_n(t) \\
+	&= \sum_{n = 0}^N n \fd {} {t} P_n(t) \\
+	&= \sum_{n = 0}^N n k_S (n+1) P_{n+1} (t) + n k_I (n-1)(N - (n-1)) P_{n-1} (t) - n (k_S n + k_I n (N-n)) P_n(t) \\
+	&= \sum_{n = 1}^{N+1} (n-1) k_S n P_n(t) + \sum_{n=-1}^{N-1} (n+1) k_I n (N-n) P_n(t) - \sum_{n=0}^N n (k_S n + k_I n (N-n)) P_n(t) \\
+	&= \sum_{n=0}^N (n-1) k_S n P_n(t) + (n+1) k_I n (N-n) P_n(t) - n (k_S n + k_I n (N-n)) P_n(t) \\
+	&= \sum_{n=0}^N k_I n (N-n) P_n(t)-n k_S P_n(t) \\
+	&= k_I N \sum_{n=0}^N n P_n(t) - k_S \sum_{n=0}^N n P_n(t) - k_I \sum_{n=0}^N n^2 P_n(t) \\
+	&= k_I N M(t) - k_S M(t) + k_I \sum_{n=0}^N n^2 P_n(t).
+\end{align}
 
-\section{Gillespie SI}
+This aligns roughly with what we would expect from the mass action approximation, however the final sum provides some difficulty. Expandin and rearranging the equation for the variance, we get
 
-\section{Comparison of networked SI models to well-mixed SI}
+\begin{equation}
+	V(t) = \sum_{n=0}^N n^2 P_n(t) - M(t)^2.
+\end{equation}
 
-Having implemented this algorithm, we can now compare the networked implementation of the SI model to a standard Gillespie SSA simulation of a well-mixed SI model. Notably, this should be equivalent to the network Gillespie on the $K_N$ graph, where $N$ is the total population. To ensure relatively easy comparison, the population size was set at 10000, or a $100 \times 100$ lattice. Each algorithm was iterated $20$ times, tracking the infected populations. All of the trajectories thus generated were then plotted. We set the parameters at $p \in \{0.3, 0.5, 0.7 \}$ as the chance of an edge existing in the graph, and $k_I = 0.5$ as the infection rate. For the well-mixed algorithm, we chose $k_I = 0.00002$. This was to ensure the plots were more easily comparable, as the low average degree of a percolation-type graph greatly reduces the effective infection rate relative to the well-mixed version.
+Therefore, we have that
 
-As one would expect, the well-mixed SI model shows logistic-curve-like behaviour, and all individuals eventually become infected. However, for the graph-based model, we see qualitatively different behaviour, with very different results for different values of $p$. For the subcritical graph with $p = 0.3$, we see approximately linear behaviour, and a considerably smaller fraction of the total population is infected. This is due to the low connectivity of the graph resulting in the infection being confined to small connected components of the graph. For the critical graph, with $p = 0.5$, we again see approximately linear behaviour, with some trailing off near the end of most infectionsv. We also observe a far greater proportion of the overall population becoming infected, corresponding to a large connected component of the graph existing. In some cases, the component containing the initial infection is small, and so a far smaller proportion of the population are infected. Finally, in the supercritical case where $p = 0.7$, we see again almost the entire population are eventually infected. There is also some trace of logistic-like properties, with the infection rate being highest when approximately half of the population is infected. However, the slower initial and final rates are less pronounced than in the well-mixed case, and the lines are more easily approximated with a linear best fit than the traces resulting from the well-mixed model. In this condition, the eventual spread. looks similar to the case on a complete lattice (where every edge exists).
+\begin{equation}
+	\fd {M} {t} = k_I(N - M(t)) M(t) - k_S M(t) + k_I V(t).
+\end{equation}
 
-This difference in behaviour is partially a result of the approximately circular wavefront of the infection. Clearly the rate of infection is proportional to the length of the perimeter, which is proportional to the square root of the number of infected individuals, where in the mixed model the infection rate is proportional to the square of the number of infected (in the central region). This results in much slower growth of the infected population relative to the well-mixed model. The other factor impacting the qualitative behaviour of the different simulations is the breaks in the graph where sub populations are isolated from one another, and so the spread cannot propagate as rapidly or as far through the total population.
+So for non-zero variance, we see that this is not the same as the mass action approximation.
 
-\begin{figure}
-	\centering
-	\includegraphics[width=0.7\textwidth]{figs/mixSI.png}
-	\caption{Well-mixed simulation}
-	\label{fig:mixSI}
-\end{figure}
+We define the stationary distribution as
+
+\begin{equation}
+	\phi(n) := \lim_{t \rightarrow \infty} P_n(t).
+\end{equation}
+
+To compute this, we consider the steady-state CME
+
+\begin{equation}
+	k_S (n+1) P_{n+1}(t) + k_I (n-1) (N-(n-1)) P_{n-1}(t) - (k_S n + k_I n (N-n)) P_n(t) = 0.
+\end{equation}
+
+We derive the $\phi$ by induction.
+
+\section{Metapopulation model}
+
+We consider a graph with: a state vector $\v{I(t)}$, where $I_i(t)$ is the number of infected individuals at node $i$ and at time $t$; adjacency matrix $\m{A}$; and population vector $\v{N}$, where $N_i$ is the number of individuals (in any compartment) at node $i$. We take the population at each node to be fixed over the time interval considered (so there is no birth or death in this model). We also by extension then have the susceptible population in each node at time $t$ as $S_i(t) = N_i - I_i(t)$. If we represent an infected individual in node $i$ as $\ce{I_i}$, and a susceptible individual in node $i$ as $\ce{S_i}$, then we can represent the model with the following system:
+
+\begin{equation}
+	\ce{I_i + S_i ->[k_I] 2 I_i} \qquad
+	\ce{I_i ->[k_S] S_i} \qquad
+	\ce{S_i + I_j ->[A_{ij} k_I] I_i + I_j}.
+\end{equation}
+
+Here the first equation corresponds to infection within node $i$, the second to recovery of an infected person in node $i$, and the third infection of an individual in node $i$ by an individual in node $j$.
+
+From these equations, we can see that the mass-action approximation would be of the form
+
+\begin{equation}
+	\fd{I_i}{t} = k_I I_i(t) (N_i - I_i(t)) + k_I (N_i - I_i(t)) (\sum_j A_{ij} \frac {I_j(t)} {N_j}) - k_S I_i(t).
+\end{equation}
+
+We can use the chemical master equations to represent the behaviour of this system as follows:
+
+First, let $p_i(n, t) = \mathbb{P}(I_i(t) = n)$, with $p_i(k, t) = 0$ for $k < 0$ or $k > N_i$. We trivially note that $\sum_{n=0}^{N_i} p_i(n, t) = 1$. Then:
+
+\begin{equation}
+\begin{split}
+	p_i(n, t + \Delta t) &= k_I (N_i - (n-1)) p_i(n-1, t) \sum_j A_{ij} \frac {I_j(t)} {N_j} \Delta t \\
+	&+ k_I (N_i - (n-1)) (n-1) p_i(n-1, t) \Delta t \\
+	&+ k_S (n+1) p_i(n+1, t) \Delta t \\
+	&+ \left[ 1 - \left[ k_I (N_i - n) \sum_j A_ij \frac {I_j(t)} {N_j} + k_I (N_i - n) n + k_S n \right] \Delta t \right] p_i(n, t).
+\end{split}
+\end{equation}
+
+By rearranging and taking the limit as $\Delta t \rightarrow 0$, we obtain:
+
+\begin{equation}
+\begin{split}
+	\fd {p_i} {t} (n, t) &= (N_i - (n-1)) \sum_j A_{ij} \frac {I_j(t)} {N_j} p_i(n-1, t) + k_I(N_i - (n-1))(n-1) p_i(n-1, t)\\
+	&+ k_S (n+1) p_i(n+1, t) - \left(k_I (N_i - n) \sum_j A_{ij} \frac {I_j(t)} {N_j} + k_I (N_i - n) n+ k_S n \right) p_i(n, t).
+\end{split}
+\end{equation}
+
+By setting $M_i(t) = \sum_{n=0}^{N_i} n p_i (n, t)$ to be the average infected individuals at node $i$ at time $t$, we can use the chemical master equations to derive the following:
+
+\begin{align}
+	\fd {M_i} {t} &= \sum_{n = 0}^{N_i} k_I n (N_i - (n-1)) \sum_j A_{ij} \frac {I_j(t)} {N_j} p_i(n-1, t) + n k_I(N_i - (n-1))(n-1) p_i(n-1, t) \notag \\
+	&\qquad + n k_S (n+1) p_i(n+1, t) - n \left( k_I (N_i - n) \sum_j A_{ij} \frac {I_j(t)} {N_j} + k_I (N_i - n) n + k_S n \right) p_i(n, t) \\
+	&= \sum_{n = 0}^{N_i} k_I (n+1) (N_i - n) \sum_j A_{ij} \frac {I_j(t)} {N_j} p_i(n, t) + \sum_{n = 0}^{N_i} (n+1) k_I (N_i - n) n p_i(n, t)\notag \\
+	&\qquad + \sum_{n = 0}^{N_i} (n-1) k_S n p_i(n, t) - \sum_{n = 0}^{N_i} n \left( k_I (N_i - n) \left( \sum_j A_{ij} \frac {I_j(t)} {N_j} + n \right)+ k_S n \right) p_i(n, t) \\
+	&= \sum_{n = 0}^{N_i} k_I (N_i - n) \sum_j A_{ij} \frac {I_j(t)} {N_j} p_i(n, t) + k_I (N_i - n) n p_i(n, t)- k_S n p_i(n ,t) \\
+	&= k_I \left(\sum_j A_{ij} \frac {I_j(t)} {N_j} \right) \left( \sum_{n = 0}^{N_i} N_i p_i(n ,t) - \sum_{n = 0}^{N_i} n p_i(n, t) \right) \notag \\
+	&\qquad + k_I \left(N_i \sum_{n = 0}^{N_i} n p_i(n, t) - \sum_{n = 0}^{N_i} n^2 p_i(n, t) \right) - k_S \sum_{n = 0}^{N_i} n p_i(n, t) \\
+	&= k_I \left( \sum_j A_{ij} \frac {I_j(t)} {N_j} \right) \left( N_i - M_i \right) + k_I \left( N_i M_i - V_i(t) \right) - k_S M_i.
+\end{align}
+
+Where $V_i(t) = \sum_{n = 0}^{N_i} n^2 p_i(n, t)$.
+
+\section{Networked individuals model}
 
 \chapter{Exploring other models}
 
@@ -335,13 +446,6 @@ The next most simple model is the SIS model, which is an accurate portrayal of v
 \end{equation}
 
 Here, $k_I$ is still the infection rate, and $k_U$ is the rate of recovery without immunity. Once again, we implemented a well-mixed Gillespie SSA as well as the graph-based models. 
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.7\textwidth]{figs/mixSIS.png}
-	\caption{Well-mixed simulation}
-	\label{fig:mixSIS}
-\end{figure}
 
 \bibliography{mybib.bib}
 

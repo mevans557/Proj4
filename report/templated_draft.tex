@@ -317,10 +317,10 @@ Where $k_I$ is the rate of infection, and $k_S$ the rate of recovery, without im
 This allows us to simulate the system, but we also attempt to analyse the system. We can make a simple approximation utilising the law of mass action and treating the populations as continuous functions on time. First, we consider only $I(t)$, the number of infected individuals at time $t$, and take $S(t) = N - I(t)$ the number of susceptible individuals at time $t$ is the total population, minus the number of infected individuals at time $t$. We are also assuming here that the population size does not change over time, so no births or deaths take place over the time period considered. We can then approximate the behaviour of the system with the equation
 
 \begin{equation}
-	\fd {I} {t} = k_I (N - I(t)) I(t) - k_S I(t).
+	\fd {I} {t} = k_I (N - I(t)) I(t) - k_S I(t). \label{SIScts}
 \end{equation}
 
-This is not easily solved analytically, but can be calculated numerically, given starting conditions. However, the principle of mass action only works for large numbers of infected individuals, and is an approximation.
+This is not easily solved analytically, but can be calculated numerically, given starting conditions. We can also perform a linear stability analysis to predict the expected behaviour of the system. By plotting $\fd {I} {t}$ against $I(t)$, we can see that there is an unstable equilibrium at $I(t) = 0$, the extinction scenario, and a stable equilibrium at $I(t) = N - \frac {k_S} {k_I}$. From this it is clear that with no recovery ($k_S = 0$), the stable equilibrium is total infection of the population. However, the mass action model is only an approximation and works best for large numbers of infected individuals.
 
 To gain a more accurate analysis, we leverage the Chemical Master Equation (CME). We begin by considering $P_n (t) = \mathbb{P}(I(t) = n)$. We also have that $P_k (t) \equiv 0$ for $k < 0$ and $k > N$. Then
 
@@ -343,13 +343,15 @@ We define the mean as $M(t) = \sum_{n = 0}^N n P_n(t)$ and the Variance as $V(t)
 	&= \sum_{n=0}^N (n-1) k_S n P_n(t) + (n+1) k_I n (N-n) P_n(t) - n (k_S n + k_I n (N-n)) P_n(t) \\
 	&= \sum_{n=0}^N k_I n (N-n) P_n(t)-n k_S P_n(t) \\
 	&= k_I N \sum_{n=0}^N n P_n(t) - k_S \sum_{n=0}^N n P_n(t) - k_I \sum_{n=0}^N n^2 P_n(t) \\
-	&= k_I N M(t) - k_S M(t) + k_I \sum_{n=0}^N n^2 P_n(t).
+	&= k_I N M(t) - k_S M(t) - k_I \sum_{n=0}^N n^2 P_n(t). \label{SISmixmean}
 \end{align}
 
-This aligns roughly with what we would expect from the mass action approximation, however the final sum provides some difficulty. Expandin and rearranging the equation for the variance, we get
+Where the change in indices is justified by the factors of $(n \pm 1)$ and $(N-n)$ in the sums, and the definition of $P_n(t)$.
+
+This aligns roughly with what we would expect from the mass action approximation, however the final sum provides some difficulty. Expanding and rearranging the equation for the variance, we get
 
 \begin{equation}
-	V(t) = \sum_{n=0}^N n^2 P_n(t) - M(t)^2.
+	V(t) = \sum_{n=0}^N n^2 P_n(t) - M(t)^2. \label{variancesquare}
 \end{equation}
 
 Therefore, we have that
@@ -369,10 +371,26 @@ We define the stationary distribution as
 To compute this, we consider the steady-state CME
 
 \begin{equation}
-	k_S (n+1) P_{n+1}(t) + k_I (n-1) (N-(n-1)) P_{n-1}(t) - (k_S n + k_I n (N-n)) P_n(t) = 0.
+	k_S (n+1) \phi(n+1) + k_I (n-1) (N-(n-1)) \phi(n-1) - (k_S n + k_I n (N-n)) \phi(n) = 0.
 \end{equation}
 
-We derive the $\phi$ by induction.
+Setting $n=0$, we get $k_S \phi(1) = 0$.
+
+We then see, setting $n=1$, that
+
+\begin{equation}
+	2 k_S \phi(2) - (k_S + k_I(N-1)) \phi(1) = 0.
+\end{equation}
+
+Again this gives $\phi(2) = 0$, from which it is clear that $\phi(k) = 0$ for all $k > 0$. As $\sum_{k=0}^N \phi(k) = 1$, we get $\phi(0) = 1$. This seems initally surprising, although on further consideration, it is clear what is happening here. If at some time $t_0$ we have $I(t_0) = 0$, then we also have $I(t) = 0$ for all $t > t_0$. As we take the limit of time going to infinity, the probability of any given realisation hitting $0$ infected population goes to $1$, and so the stationary distribution takes this form, where only the extinction scenario remains. This is in contrast to the comparable continuous system (\ref{SIScts}), where the extinction scenario is unstable, and the stable equilibrium is one where some fraction of the population is infected. This behaviour is therefore a direct result of the discretised nature of this model, and captures a behaviour not seen in the continuous model.
+
+We can also consider the recovery-free (SI) model, by setting $k_S - 0$. This gives the modified steady-state CME
+
+\begin{equation}
+	k_I (n-1)(N-(n-1)) \phi(n-1) - k_I n (N-n) \phi(n) = 0.
+\end{equation}
+
+Now setting $n = 0$ clearly gives $\phi(0) = 0$, as we would expect. In fact, it is then clear that all $\phi(n) = 0$, for all $n < N$. For $n = N$, the steady-state CME gives us no information, but again using $\sum_{k = 0}^N \phi(k) = 1$, we see that $\phi(N) = 1$. Again this makes sense, as with no recovery, we expect the whole population to become infected.
 
 \section{Metapopulation model}
 
@@ -384,7 +402,7 @@ We consider a graph with: a state vector $\v{I(t)}$, where $I_i(t)$ is the numbe
 	\ce{S_i + I_j ->[A_{ij} k_I] I_i + I_j}.
 \end{equation}
 
-Here the first equation corresponds to infection within node $i$, the second to recovery of an infected person in node $i$, and the third infection of an individual in node $i$ by an individual in node $j$.
+Here the first equation corresponds to infection within node $i$, the second to recovery of an infected person in node $i$, and the third infection of an individual in node $i$ by an individual in node $j$. We take the infection and recovery rates $k_I$, $k_S$ to be constant. This corresponds to an assumption that both infection and recovery are purely based on the disease in question, and unaffected by differences between the different metapopulations.
 
 From these equations, we can see that the mass-action approximation would be of the form
 
@@ -409,7 +427,7 @@ By rearranging and taking the limit as $\Delta t \rightarrow 0$, we obtain:
 
 \begin{equation}
 \begin{split}
-	\fd {p_i} {t} (n, t) &= (N_i - (n-1)) \sum_j A_{ij} \frac {I_j(t)} {N_j} p_i(n-1, t) + k_I(N_i - (n-1))(n-1) p_i(n-1, t)\\
+	\fd {p_i} {t} (n, t) &= k_I (N_i - (n-1)) \sum_j A_{ij} \frac {I_j(t)} {N_j} p_i(n-1, t) + k_I(N_i - (n-1))(n-1) p_i(n-1, t)\\
 	&+ k_S (n+1) p_i(n+1, t) - \left(k_I (N_i - n) \sum_j A_{ij} \frac {I_j(t)} {N_j} + k_I (N_i - n) n+ k_S n \right) p_i(n, t).
 \end{split}
 \end{equation}
@@ -424,28 +442,57 @@ By setting $M_i(t) = \sum_{n=0}^{N_i} n p_i (n, t)$ to be the average infected i
 	&= \sum_{n = 0}^{N_i} k_I (N_i - n) \sum_j A_{ij} \frac {I_j(t)} {N_j} p_i(n, t) + k_I (N_i - n) n p_i(n, t)- k_S n p_i(n ,t) \\
 	&= k_I \left(\sum_j A_{ij} \frac {I_j(t)} {N_j} \right) \left( \sum_{n = 0}^{N_i} N_i p_i(n ,t) - \sum_{n = 0}^{N_i} n p_i(n, t) \right) \notag \\
 	&\qquad + k_I \left(N_i \sum_{n = 0}^{N_i} n p_i(n, t) - \sum_{n = 0}^{N_i} n^2 p_i(n, t) \right) - k_S \sum_{n = 0}^{N_i} n p_i(n, t) \\
-	&= k_I \left( \sum_j A_{ij} \frac {I_j(t)} {N_j} \right) \left( N_i - M_i \right) + k_I \left( N_i M_i - V_i(t) \right) - k_S M_i.
+	&= k_I \left( \sum_j A_{ij} \frac {I_j(t)} {N_j} \right) (N_i - M_i) + k_I(N_i M_i + M_i^2 - V_i) - k_S M_i
 \end{align}
 
-Where $V_i(t) = \sum_{n = 0}^{N_i} n^2 p_i(n, t)$.
+Using \ref{variancesquare} in the last step, where $V_i = \sum_{n=0}^{N_i} (n-M_i)^2 p_i(n, t)$. We have also suppressed the index switching, as again this is justified by factors in the sums, and the definition of $p_i(n, t)$. We have also used the fact that, as a probability distribution, $\sum_{n=0}^{N_i} p_i(n, t) \equiv 1$.
 
 \section{Networked individuals model}
 
-\chapter{Exploring other models}
+To give even more depth to the spatial aspect of this model, we can apply it to a networked population where rather than each node representing a smaller population, each node represents an individual in the overall population. In this kind of model, the precise network structure chosen has a large impact on the behaviour of the model. We focus on a few kinds. Firstly, the complete graph. This should entirely reproduce the results of the well-mixed model, as every individual is in contact with every other individual. Second, we shall consider graphs with low maximum node degree, which may provide sensible models for diseases spread only through specific contact, such as exclusively blood-borne, or sexually-transmitted diseases. These will be the cycle graph, where each individual is connected to exactly $2$ others; and the lattice graph, with each individual connected to (generally) $4$ neighbours. We will also examine how random percolation on this lattice graph may affect the disease spread characteristics, as well as how the disease itself may have percolation-like effects. Finally, we will look at random graphs more closely mimicking social networks, specifically Barabasi-Albert, Watts-Strogatz, and Erdos-Renyi networks, the former being of particular interest due to being a scale-free network. This is a characteristic which is observed to be common to many social networks. The Watts-Strogatz networks demonstrate high clustering, and specifically the small-world property, which are also observed in a variety of real-world networks. These can all be generated easily using the NetworkX package for Python.
 
-We wanted to see how the criticality effects of different $p$ values on the percolation-type graphs were affected differently by different models, and so the Gillespie SSA was implemented for a variety of different models, utilising a similar process to the SI model to explore the evolution of the epidemic.
+Adopting the notation from the metapopulation model, we let $\v{I}$ be the vector storing whether a given node is infected or not, by setting $I_i = 1$ if node $i$ is infected, and $I_i = 0$ otherwise. We set $\m{A}$ to be the adjacency matrix for the graph under examination. We also set the infection rate at $k_I$, and the recovery rate at $k_S$.
 
-\section{The SIS Model}
-
-\subsection{The Model}
-
-The next most simple model is the SIS model, which is an accurate portrayal of various STIs, wherein an individual can be infected by another infected individual, and can later become uninfected, but they do not ever become immune to the disease. This is represented by the system
+We then define $p_i(t) = \mathbb{P}(I_i(t) = 1)$ to be the probability that node $i$ is infected at time $t$. Considering a small timestep $\Delta t$ then gives use
 
 \begin{equation}
-	\ce{S + I ->[k_I] 2I} \qquad \ce{I ->[k_U] S}.
+	p_i(t + \Delta t) = (1 - p_i(t)) k_I \sum_j A_{ij} p_j(t) \Delta(t) + p_i(t) (1 - k_S \Delta t).
 \end{equation}
 
-Here, $k_I$ is still the infection rate, and $k_U$ is the rate of recovery without immunity. Once again, we implemented a well-mixed Gillespie SSA as well as the graph-based models. 
+The first term here is the chance of node $i$ being infected in a time step $\Delta t$, with $(1 - p_i(t))$ being the probability of node $i$ being uninfected at time $t$. The chance of infection is also higher if node $i$ has more neighbours. This is a deliberate choice of the model, to represent most social interactions better, where the majority of individuals any given person interacts with have a similar chance of spreading a disease to them. Particularly for the low-degree networks, representing more difficult to spread diseases, it is reasonable to suggest that the interactions between individuals are roughly comparable. The second term in this expression is simply the probability that node $i$ was already infected, and has not recovered in the considered time step.
+
+Taking the limit as $\Delta t \rightarrow 0$ gives
+
+\begin{align}
+	\fd {p_i} {t} &= k_I (1 - p_i(t)) \sum_j A_{ij} p_j(t) - k_S p_i(t) \\
+	&= k_I \sum_j A_{ij} p_j(t) - \left( k_I \sum_j A_{ij} p_j(t) + k_S \right) p_i(t).
+\end{align}
+
+This can then be rewritten in vector notation
+
+\begin{equation}
+	\fd {\v{p}} {t} = k_I \m{A} \v{p}(t) - k_I (\m{A} \v{p}(t)) \odot \v{p}(t) - k_S \v{p}(t).
+\end{equation}
+
+Where $\odot$ is the component-wise vector product.
+
+By setting the average number of infected individuals to $M(t) = \sum_{i} p_i(t)$, we can show the following
+
+\begin{align}
+	\fd {M} {t} &= \sum_{i} \fd {p_i} {t} \\
+	&= \sum_i \left( k_I \sum_j A_{ij} p_j(t) - \left( k_I \sum_j A_{ij} p_j(t) + k_S \right) p_i(t) \right) \\
+	&= \sum_i \left( (1-p_i(t)) k_I \sum_j A_{ij} p_j(t) - k_S p_i(t) \right) \\
+	&= \sum_i (1-p_i(t)) k_I \sum_j A_{ij} p_j(t) - k_S M(t) \\
+	&= k_I \sum_{i, j} (1-p_i(t)) A_{ij} p_j(t) - k_S M(t).
+\end{align}
+
+It is clear from the equation that the structure of the network in question has a major impact on the spread of the disease. This is therefore difficult to directly analyse for an arbitrary network, so we will look at only the complete graph, due to its simple adjacency matrix. For this graph, the equation reduces to
+
+\begin{equation}
+	\fd {M} {t} = k_I N M(t) - k_I \sum_{i \neq j} p_i p_j - k_S M(t).
+\end{equation}
+
+This is highly reminiscent of the well-mixed mean (\ref{SISmixmean}), as we would expect.
 
 \bibliography{mybib.bib}
 

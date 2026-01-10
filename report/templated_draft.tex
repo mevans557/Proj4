@@ -398,7 +398,60 @@ Therefore, we have that
 	\fd {M} {t} = k_I(N - M(t)) M(t) - k_S M(t) + k_I V(t).
 \end{equation}
 
-So for non-zero variance, we see that this is not the same as the mass action approximation.
+So for non-zero variance, we see that this is not the same as the mass action approximation. Unfortunately we can't write a closed-form solution for the mean or variance, as we are just going to get dependence on higher-order terms. In order to sidestep this problem, we attempt to analyse the process using the probability generating function
+
+\begin{equation}
+	G: [-1, 1] \times (0, \infty) \mapsto \mathbb{R}: \qquad G(x, t) = \sum_{n=0}^\infty x^n P_n(t).
+\end{equation}
+
+We can then derive the following:
+
+\begin{align}
+	\pd{}{t} \sum_{n=0}^\infty x^n P_n(t) &= k_S \sum_{n = 0}^\infty (n+1) x^n P_{n+1}(t) + k_I \sum_{n=0}^\infty (n-1)(N - (n-1)) x^n P_{n-1}(t) \\
+	&\qquad - \sum_{n=0}^\infty (k_S + k_I (N - n))n x^n P_n(t).
+\end{align}
+
+We note the following:
+
+\begin{align}
+	\pd {} {x} G(x, t) &= \sum_{n=1}^\infty n x^{n-1} P_n(t) \\
+	\pdd{} {x} G(x, t) &= \sum_{n=2}^\infty n (n-1) x^{n-2} P_n(t).
+\end{align}
+
+Changing indices in the above then gives
+
+\begin{align}
+	\pd {} {t} \sum_{n = 0}^\infty x^n P_n(t) &= k_S \sum_{n = 1}^\infty n x^{n-1} P_n(t) + k_I \sum_{n = 0}^\infty n (N-n) x^{n+1} P_n(t) \\
+	&\qquad - \sum_{n=0}^\infty (k_S + k_I (N-n))n x^n P_n(t) \\
+	\pd {} {t} G(x, t) &= k_S \pd {} {x} G(x, t) + k_I (N-1) x^2 \pd {} {x} G(x, t) - k_I x^3 \pdd {} {x} G(x, t) \\
+	&\qquad - k_S x \pd {} {x} G(x, t) - k_I N x \pd {} {x} G(x, t) + k_I x^2 \pdd {} {x} G(x, t) + k_I x \pd {} {x} G(x, t) \\
+	\pd {} {t} G(x, t) &= (k_S - k_S x - k_I N x + k_I x) \pd {} {x} G(x, t) + (k_I x^2 - k_I x^3) \pdd {} {x} G(x, t).
+\end{align}
+
+We can define the initial condition
+
+\begin{equation}
+	G(x, 0) = \sum_{n = 0}^\infty x^n P_n(0) = x,
+\end{equation}
+
+as the starting infected population is $1$. We can also easily get one of the boundary conditions
+
+\begin{equation}
+	G(1, t) = \sum_{n = 0}^\infty P_n(t) = 1.
+\end{equation}
+
+Unfortunately the boundary condition at $x = -1$ is considerably more difficult to derive, as the PDE yields
+
+\begin{equation}
+	\pd {} {t} G(-1, t) = (2 k_S + k_I (N-1)) \pd {} {x} G(-1, t) + 2 k_I \pdd {} {x} G(-1, t).
+\end{equation}
+
+We can numerically solve this equation if we can find an appropriate boundary condition here. We choose $G(-1, t) = 1$, for symmetry. This then gives us numerical estimates for the mean and variance of the system, using
+
+\begin{equation}
+	\mathbb{E} [I(t)] = \pd {} {x} G(x, t) \Big|_{x = 1} \qquad
+	\mathrm{Var} [I(t)] = \left( \pdd {} {x} G(x, t) + \pd {} {x} G(x, t) - \left( \pd {} {x} G(x, t) \right)^2 \right) \Big|_{x = 1}.
+\end{equation}
 
 We define the stationary distribution as
 

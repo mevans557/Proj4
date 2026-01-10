@@ -141,7 +141,7 @@ def draw_graph(G, I, N, colours=plt.cm.viridis):
     plt.show()
 
 
-G = nx.cycle_graph(5)
+G = nx.turan_graph(5, 2)
 Ii = np.zeros(5)
 Ni = np.array([100, 200, 300, 400, 500])
 Ii[0] = 1

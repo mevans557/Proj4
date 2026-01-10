@@ -301,11 +301,11 @@ Where $k_I$ is the rate of infection, and $k_S$ the rate of recovery, without im
 	\State $r_1 \gets$ \Call{Rand}{}
 	\State $r_2 \gets$ \Call{Rand}{}
 	\Comment{Get two random numbers uniform in $[0, 1]$}
-	\State $\alpha(t) \gets k_I S(t) + k_S I(t)$
+	\State $\alpha(t) \gets k_I S(t) I(t) + k_S I(t)$
 	\Comment{Compute the propensity function}
 	\State $\tau \gets \frac 1 {\alpha(t)} \log(1/r_1)$
 	\Comment{Compute the time until next reaction}
-	\If{$r_2 < \frac {k_I S(t)} {\alpha(t)}$}
+	\If{$r_2 < \frac {k_I S(t) I(t)} {\alpha(t)}$}
 		\State $I(t + \tau) = I(t) + 1$
 		\State $S(t + \tau) = S(t) - 1$
 	\Else
@@ -320,7 +320,45 @@ This allows us to simulate the system, but we also attempt to analyse the system
 	\fd {I} {t} = k_I (N - I(t)) I(t) - k_S I(t). \label{SIScts}
 \end{equation}
 
-This is not easily solved analytically, but can be calculated numerically, given starting conditions. We can also perform a linear stability analysis to predict the expected behaviour of the system. By plotting $\fd {I} {t}$ against $I(t)$, we can see that there is an unstable equilibrium at $I(t) = 0$, the extinction scenario, and a stable equilibrium at $I(t) = N - \frac {k_S} {k_I}$. From this it is clear that with no recovery ($k_S = 0$), the stable equilibrium is total infection of the population. However, the mass action model is only an approximation and works best for large numbers of infected individuals.
+This can be solved by separation of variables, as follows
+
+\begin{align}
+	\fd {I} {t} &= (k_I N - k_S - k_I I(t)) I(t) \\
+	\int dt &= \int \frac {1} {k_I N - k_S - k_I I(t)} \frac {1} {I(t)} \\
+	\int dt &= \int \frac {1} {(k_I N - k_S) I(t)} + \frac {k_I} {(k_I N - k_S) ((k_I N - k_S) k_I I(t))} \\
+	t + C &= \frac {1} {k_I N - k_S} \big( \ln (I(t)) - \ln ((k_I N - k_S) - k_I I(t)) \big) \\
+	\ln \left( \frac {I(t)} {(k_I N - k_S) - k_I I(t)} \right) &= (k_I N - k_S) (t + C) \\
+	\frac {(k_I N - k_S) - k_I I(t)} {I(t)} &= A \exp ((k_S - k_I N) t) \\
+	k_I N - k_S &= (k_I + A \exp((k_S - k_I N) t)) I(t) \\
+	I(t) &= \frac {k_I N - k_S} {k_I + A \exp((k_S - k_I N) t)}.
+\end{align}
+
+Setting the initial condition $I(0) = 1$ allows us to specify the constant
+
+\begin{align}
+	1 &= \frac {k_I N - k_S} {k_I + A} \\
+	A &= k_I N - k_S - k_I.
+\end{align}
+
+Giving
+
+\begin{equation}
+	I(t) = \frac {N - \frac {k_S} {k_I}} {1 + \left( N - \frac {k_S} {k_I} - 1 \right) \exp((k_S - k_I N)t)}.
+\end{equation}
+
+We can also perform a linear stability analysis to predict the expected behaviour of the system. By plotting $\fd {I} {t}$ against $I(t)$, we can see that there is an unstable equilibrium at $I(t) = 0$, the extinction scenario, and a stable equilibrium at $I(t) = N - \frac {k_S} {k_I}$. From this it is clear that with no recovery ($k_S = 0$), the stable equilibrium is total infection of the population. However, the mass action model is only an approximation and works best for large numbers of infected individuals.
+
+\begin{figure}
+	\centering
+	\includegraphics[width = \linewidth]{figs/SISmixStab.png}
+	\caption{The stability plot for the mass action approximation. The unstable extinction equilibrium and stable endemic equilibrium are shown. The parameters used were $k_I = 0.002$, $k_S = 0.1$, $N = 500$.}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width = \linewidth]{figs/SISmix.png}
+	\caption{A plot of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted black line is the deterministic mean calculated using the mass action approximation. Only $19$ traces are visible, as $1$ realisation hit extinction - an example of the effects of discretisation on the system.}
+\end{figure}
 
 To gain a more accurate analysis, we leverage the Chemical Master Equation (CME). We begin by considering $P_n (t) = \mathbb{P}(I(t) = n)$. We also have that $P_k (t) \equiv 0$ for $k < 0$ and $k > N$. Then
 
@@ -391,6 +429,10 @@ We can also consider the recovery-free (SI) model, by setting $k_S - 0$. This gi
 \end{equation}
 
 Now setting $n = 0$ clearly gives $\phi(0) = 0$, as we would expect. In fact, it is then clear that all $\phi(n) = 0$, for all $n < N$. For $n = N$, the steady-state CME gives us no information, but again using $\sum_{k = 0}^N \phi(k) = 1$, we see that $\phi(N) = 1$. Again this makes sense, as with no recovery, we expect the whole population to become infected.
+
+\subsection{Simulation results}
+
+We find that the simulated results from the model align with the behaviour we expect, and that the deterministic mean from the mass action approximation appears to align roughly with the Gillespie simulations.
 
 \section{Metapopulation model}
 

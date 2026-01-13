@@ -2,6 +2,7 @@ import networkx as nx
 import numpy as np
 import scipy as sp
 from matplotlib import pyplot as plt
+from multiprocessing import Process, Pipe
 
 
 def evolve(A, I, N, kI, delta):
@@ -39,6 +40,9 @@ def Gillespie(A, I, N, kI, delta):
     # ith element is propensity for ith node infects++ externally
     alpha_inf_bet = kI * (A @ I) * (N-I)
     alpha = sum(alpha_inf_bet + alpha_inf_in + alpha_rec)  # Overall propensity
+    if (alpha == 0):
+        Inew = 0*I
+        return Inew, 1
     r1 = np.random.random()
     tau = 1/alpha * np.log(1/r1)
     r2 = np.random.random()
@@ -113,7 +117,7 @@ def iterate_Gillespie(G, I, N, kI, delta, stop=100, step=0.1, draw=False):
     stop: optional, time to stop simulating at
     step: optional, time steps to take
     draw: optional, whether the graph should be drawn (if so, drawn every 50 loops)
-    Returns two lists, one storing times, the other storing state vectors of infected population
+    Returns two lists, one storing times, the other storing infected populations
     '''
     t = 0
     ts = [t]
@@ -133,6 +137,25 @@ def iterate_Gillespie(G, I, N, kI, delta, stop=100, step=0.1, draw=False):
     return ts, Isum
 
 
+def mult_Gillespie(G, I, N, kI, delta, connect, stop=100, step=0.1, draw=False):
+    '''
+    Iterates discrete metapop SIS on a graph using the Gillespie Algorithm and outputs to a pipe
+    Params:
+    G: A networkx graph
+    I: State vector of initial infected populations on a graph
+    N: vector of node populations
+    kI: infection rate
+    delta: recovery rate (no immunity)
+    connect: the pipe to output to
+    stop: optional, time to stop simulating at
+    step: optional, time steps to take
+    draw: optional, whether the graph should be drawn (if so, drawn every 50 loops)
+    Sends a tuple to the pipe, of two lists, the first storing times, the other infected populations
+    '''
+    ts, Isum = iterate_Gillespie(G, I, N, kI, delta, stop, step, draw)
+    connect.send((ts, Isum))
+
+
 def draw_graph(G, I, N, colours=plt.cm.viridis):
     p = I/N
     nx.set_node_attributes(G, "green", name="node_color")
@@ -141,13 +164,41 @@ def draw_graph(G, I, N, colours=plt.cm.viridis):
     plt.show()
 
 
-G = nx.turan_graph(5, 2)
+G = nx.lollipop_graph(3, 2)
 Ii = np.zeros(5)
 Ni = np.array([100, 200, 300, 400, 500])
 Ii[0] = 1
 
+iters = 20
+k_I = 0.002
+k_S = 0.1
 
-ts, Isum = iterate_Gillespie(G, Ii, Ni, 0.0002, 0.02, draw=False)
+tcollect = []
+Icollect = []
+conns = []
+processes = []
 
-plt.plot(ts, Isum)
+for i in range(iters):
+    par_conn, child_conn = Pipe()
+    process = Process(target=mult_Gillespie, args=(
+        G, Ii, Ni, k_I, k_S, child_conn, 10,))
+    processes.append(process)
+    conns.append(par_conn)
+    process.start()
+
+for conn in conns:
+    ts, Is = conn.recv()
+    tcollect.append(ts)
+    Icollect.append(Is)
+
+for proc in processes:
+    proc.join()
+
+for i in range(iters):
+    plt.plot(tcollect[i], Icollect[i])
+
+
+plt.title("SSA of SIS metapopulation model on Graph Infecteds over Time")
+plt.xlabel("Time t")
+plt.ylabel("Infecteds I(t)")
 plt.show()

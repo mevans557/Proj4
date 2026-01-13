@@ -357,7 +357,7 @@ We can also perform a linear stability analysis to predict the expected behaviou
 \begin{figure}
 	\centering
 	\includegraphics[width = \linewidth]{figs/SISmix.png}
-	\caption{A plot of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted black line is the deterministic mean calculated using the mass action approximation. Only $19$ traces are visible, as $1$ realisation hit extinction - an example of the effects of discretisation on the system.}
+	\caption{A plot of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted black line is the deterministic mean calculated using the mass action approximation. Only $19$ traces are visible, as $1$ realisation hit extinction - an example of the effects of discretisation on the system.} \label{SISmixfig}
 \end{figure}
 
 To gain a more accurate analysis, we leverage the Chemical Master Equation (CME). We begin by considering $P_n (t) = \mathbb{P}(I(t) = n)$. We also have that $P_k (t) \equiv 0$ for $k < 0$ and $k > N$. Then
@@ -395,7 +395,7 @@ This aligns roughly with what we would expect from the mass action approximation
 Therefore, we have that
 
 \begin{equation}
-	\fd {M} {t} = k_I(N - M(t)) M(t) - k_S M(t) + k_I V(t).
+	\fd {M} {t} = k_I(N - M(t)) M(t) - k_S M(t) - k_I V(t).
 \end{equation}
 
 So for non-zero variance, we see that this is not the same as the mass action approximation. Unfortunately we can't write a closed-form solution for the mean or variance, as we are just going to get dependence on higher-order terms. In order to sidestep this problem, we attempt to analyse the process using the probability generating function
@@ -446,12 +446,14 @@ Unfortunately the boundary condition at $x = -1$ is considerably more difficult 
 	\pd {} {t} G(-1, t) = (2 k_S + k_I (N-1)) \pd {} {x} G(-1, t) + 2 k_I \pdd {} {x} G(-1, t).
 \end{equation}
 
-We can numerically solve this equation if we can find an appropriate boundary condition here. We choose $G(-1, t) = 1$, for symmetry. This then gives us numerical estimates for the mean and variance of the system, using
+We could numerically solve this equation if we could find an appropriate boundary condition here. This then would give us numerical estimates for the mean and variance of the system, using
 
 \begin{equation}
 	\mathbb{E} [I(t)] = \pd {} {x} G(x, t) \Big|_{x = 1} \qquad
 	\mathrm{Var} [I(t)] = \left( \pdd {} {x} G(x, t) + \pd {} {x} G(x, t) - \left( \pd {} {x} G(x, t) \right)^2 \right) \Big|_{x = 1}.
 \end{equation}
+
+However, due to the difficulty in determining a good boundary condition at $x = -1$, and of then numerically calculating the PGF, we will not do this here, and will instead move onto an analysis of the stationary distribution.
 
 We define the stationary distribution as
 
@@ -483,9 +485,97 @@ We can also consider the recovery-free (SI) model, by setting $k_S - 0$. This gi
 
 Now setting $n = 0$ clearly gives $\phi(0) = 0$, as we would expect. In fact, it is then clear that all $\phi(n) = 0$, for all $n < N$. For $n = N$, the steady-state CME gives us no information, but again using $\sum_{k = 0}^N \phi(k) = 1$, we see that $\phi(N) = 1$. Again this makes sense, as with no recovery, we expect the whole population to become infected.
 
+The final approach we can consider to obtain more information about the system, is to approximate it as a Stochastic Differential Equation. We define two functions
+
+\begin{equation}
+	h_1(n, t) = k_S n P_n(t), \qquad h_2(n, t) = k_I n (N-n) P_n(t).
+\end{equation}
+
+These allow us to rewrite the the CME as
+
+\begin{equation}
+	\fd {} {t} P_n(t) = h_1 (n+1, t) + h_2 (n-1, t) - h_1 (n, t) - h_2 (n, t).
+\end{equation}
+
+Approximating for large $n$, we consider a large fixed $\omega$ such that $n = \eta \omega$, for some continuous $\eta > 0$, and we set $P_n(t) = P(\eta, t)$. We thus have
+
+\begin{equation}
+	h_1(\eta, t) = k_S \eta \omega P(\eta, t), \qquad h_2(\eta, t) = k_I \eta \omega (N- \eta \omega) P(\eta, t).
+\end{equation}
+
+And the CME is now
+
+\begin{equation}
+	\pd {} {t} P(\eta, t) = h_1 (\eta + \frac 1 \omega, t) + h_2 (\eta - \frac 1 \omega, t) - h_1 (\eta, t) - h_2 (\eta, t).
+\end{equation}
+
+We then Taylor expand in powers of $\omega$
+
+\begin{align}
+	h_1 (\eta + \frac 1 \omega, t) &\approx h_1 (\eta, t) + \frac 1 \omega \pd {} {\eta} h_1 (\eta, t) + \frac 1 {2 \omega^2} \pdd {} {\eta} h_1 (\eta, t) + \mathcal{O} (\frac {h_1} {\omega^3}), \\
+	h_2 (\eta + \frac 1 \omega, t) &\approx h_2 (\eta, t) - \frac 1 \omega \pd {} {\eta} h_2 (\eta, t) + \frac 1 {2 \omega^2} \pdd {} {\eta} h_2 (\eta, t) + \mathcal{O} (\frac {h_2} {\omega^3}).
+\end{align}
+
+Truncating at $\mathcal{O} (\frac 1 {\omega^2})$ then lets us write
+
+\begin{equation}
+	\pd {} {t} P(\eta, t) = \frac 1 \omega \pd {} {\eta} h_1(\eta, t) + \frac {1} {2 \omega^2} \pdd {} {\eta} h_1(\eta, t) - \frac 1 \omega \pd {} {\eta} h_2(\eta, t) + \frac 1 {2 \omega^2} \pdd {} {\eta} h_2(\eta, t).
+\end{equation}
+
+We now let $x = \eta \omega$ for ease, so
+
+\begin{equation}
+	\pd {} {t} P(x, t) = \pd {} {x} h_1(x, t) + \frac 1 2 \pdd {} {x} h_1(x, t) - \pd {} {x} h_2(x, t) + \frac 1 2 \pdd {} {x} h_2(x, t).
+\end{equation}
+
+Where
+
+\begin{equation}
+	h_1(x, t) = k_S x P(x, t), \qquad h_2(x, t) = k_I x (N-x) P(x, t).
+\end{equation}
+
+So we have
+
+\begin{align}
+	\pd {} {t} P(x, t) &= \pd {} {x} \big((k_S x - k_I x (N-x)) P(x, t)\big) + \pdd {} {x} \left(\frac {1} {2}(k_S x + k_I x (N-x)) P(x, t)\right) \\
+	&= - \pd {} {x} (f(x) P(x, t)) + \pdd {} x (d(x) P(x, t)).
+\end{align}
+
+Where, in the usual Fokker-Planck notation,
+
+\begin{equation}
+	f(x) = (k_I x (N-x) - k_S x), \qquad d(x) = \frac {k_S x + k_I x (N-x)} {2} = \frac {g(x)^2} 2.
+\end{equation}
+
+This is therefore the Chemical Fokker-Planck equation for this system. We now use the following "computational definition" of SDEs:
+
+\begin{equation}
+	X(t + \Delta t) = X(t) + f(X(t)) \Delta t + g(X(t)) \sqrt{\Delta t} \xi.
+\end{equation}
+
+Setting the mean $M(t) = \mathbb{E} (X(t))$ and the variance $V(t) = \mathrm{Var} (X(t))$, we derive the following:
+
+\begin{align}
+	M(t + \Delta t) &= \mathbb{E} (X(t + \Delta t)) \\
+	&= \mathbb{E} (X(t) + f(X(t)) \Delta t + g(X(t)) \sqrt{\Delta t} \xi) \\
+	&= \mathbb{E} (X(t)) + \Delta t \mathbb{E} (f(X(t))) + \sqrt{\Delta t}\mathbb{E} (g(X(t))) \mathbb{E} (\xi) \\
+	&= M(t) + \Delta t \mathbb{E} (f(X(t))).
+\end{align}
+
+So
+
+\begin{align}
+	\fd M t &= \mathbb{E} (f(X(t))) \\
+	&= \mathbb{E} (k_I X (N-X) - k_S X) \\
+	&= (k_I N - k_S) \mathbb{E} (X) - k_I \mathbb{E} (X^2) \\
+	&= (k_I N - k_S - k_I M(t)) M(t) - k_I V(t).
+\end{align}
+
+Which is the same result we gained from analysing the CME directly, so is unfortunately again intractable. 
+
 \subsection{Simulation results}
 
-We find that the simulated results from the model align with the behaviour we expect, and that the deterministic mean from the mass action approximation appears to align roughly with the Gillespie simulations.
+We find that the simulated results (\ref{SISmixfig}) from the model align with the behaviour we expect, and that the deterministic mean from the mass action approximation appears to align roughly with the Gillespie simulations.
 
 \section{Metapopulation model}
 
@@ -504,6 +594,14 @@ From these equations, we can see that the mass-action approximation would be of 
 \begin{equation}
 	\fd{I_i}{t} = k_I I_i(t) (N_i - I_i(t)) + k_I (N_i - I_i(t)) (\sum_j A_{ij} \frac {I_j(t)} {N_j}) - k_S I_i(t).
 \end{equation}
+
+If we set $I(t) = \sum_i I_i(t)$ to be the total infected population, and $\sum_i N_i = N$ to be the total population, we get
+
+\begin{align}
+	\fd {I} {t} &= k_I \sum_i (I_i(t) N_i) - k_I \sum_i (I_i(t)^2) + k_I \sum_{ij} A_{ij} \frac {I_j(t) N_i} {N_j} - k_I \sum_{ij} A_{ij} \frac {I_j(t) I_i(t)} {N_j} - k_S \sum_i I_i(t) \\
+	&= k_I \sum_i (I_i(t) N_i) - k_I \sum_i (I_i(t)^2) + k_I (N - I(t)) \sum_{j} a_{ij} \frac {I_j(t)} {N_j} - k_S I(t) \\
+	&=
+\end{align}
 
 We can use the chemical master equations to represent the behaviour of this system as follows:
 
@@ -537,16 +635,69 @@ By setting $M_i(t) = \sum_{n=0}^{N_i} n p_i (n, t)$ to be the average infected i
 	&= \sum_{n = 0}^{N_i} k_I (N_i - n) \sum_j A_{ij} \frac {I_j(t)} {N_j} p_i(n, t) + k_I (N_i - n) n p_i(n, t)- k_S n p_i(n ,t) \\
 	&= k_I \left(\sum_j A_{ij} \frac {I_j(t)} {N_j} \right) \left( \sum_{n = 0}^{N_i} N_i p_i(n ,t) - \sum_{n = 0}^{N_i} n p_i(n, t) \right) \notag \\
 	&\qquad + k_I \left(N_i \sum_{n = 0}^{N_i} n p_i(n, t) - \sum_{n = 0}^{N_i} n^2 p_i(n, t) \right) - k_S \sum_{n = 0}^{N_i} n p_i(n, t) \\
-	&= k_I \left( \sum_j A_{ij} \frac {I_j(t)} {N_j} \right) (N_i - M_i) + k_I(N_i M_i + M_i^2 - V_i) - k_S M_i
+	&= k_I \left( \sum_j A_{ij} \frac {I_j(t)} {N_j} \right) (N_i - M_i) + k_I(N_i M_i + M_i^2 - V_i) - k_S M_i \label{SISmetameans}
 \end{align}
 
 Using \ref{variancesquare} in the last step, where $V_i = \sum_{n=0}^{N_i} (n-M_i)^2 p_i(n, t)$. We have also suppressed the index switching, as again this is justified by factors in the sums, and the definition of $p_i(n, t)$. We have also used the fact that, as a probability distribution, $\sum_{n=0}^{N_i} p_i(n, t) \equiv 1$.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISmetak5.png}
+		\caption{$k_5$}
+		\label{fig:SISmetak5}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISmetacycle5.png}
+		\caption{$C_5$}
+		\label{fig:SISmetacycle5}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISmetalollipop3_2.png}
+		\caption{$\mathrm{lollipop}(3, 2)$}
+		\label{fig:SISmetalollipop3}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISmetaTuran5_2.png}
+		\caption{$\mathrm{Turan}(5, 2)$}
+		\label{fig:SISmetaTuran5}
+	\end{subfigure}
+	\caption{A set of metapopulation SIS simulations on different graphs, all with $5$ nodes, each figure showing $20$ realisations. \ref{fig:SISmetak5} shows the realisations on the complete graph with $5$ nodes, $k_5$. \ref{fig:SISmetacycle5} shows the realisations on the cycle graph with $5$ nodes, $C_5$. \ref{fig:SISmetalollipop3} shows the realisations on the lollipop graph consisting of $k_3$ joined to path graph of $2$ nodes. \ref{fig:SISmetaTuran5} shows the realisations on the Turán graph with $5$ nodes, split into $2$ groups, so a bipartite complete graph, with partitions of $2$ and $3$ nodes. The same starting conditions were applied to each graph, where we set node $0$ to have a single infected individual, and all other nodes to have $0$ infected. The populations of the nodes were $(100, 200, 300, 400, 500)$, and the model coefficients were $k_I = 0.002$ and $k_S = 0.1$, as in the well-mixed model. The flat traces in the latter $3$ plots are those in which the infection died out.}
+\end{figure}
+
+It is clear from the plots that the nature of the graph in question has a large impact on the disease spread. While all of the scenarios followed a similar logistic curve-like behaviour, they vary greatly in the speed of the infection, as well as in the variance between the traces. As we would expect from \ref{SISmetameans}, the more well connected graphs have a generally faster rate of spread than the sparser graphs. The variance also appears to be tied to the connectedness of the different graph structures, as \ref{fig:SISmetacycle5} and \ref{fig:SISmetalollipop3} appear, visually, to have a higher variance than \ref{fig:SISmetak5} and \ref{fig:SISmetaTuran5}, and they correspond to graphs with a lower average node degree.
 
 \section{Networked individuals model}
 
 To give even more depth to the spatial aspect of this model, we can apply it to a networked population where rather than each node representing a smaller population, each node represents an individual in the overall population. In this kind of model, the precise network structure chosen has a large impact on the behaviour of the model. We focus on a few kinds. Firstly, the complete graph. This should entirely reproduce the results of the well-mixed model, as every individual is in contact with every other individual. Second, we shall consider graphs with low maximum node degree, which may provide sensible models for diseases spread only through specific contact, such as exclusively blood-borne, or sexually-transmitted diseases. These will be the cycle graph, where each individual is connected to exactly $2$ others; and the lattice graph, with each individual connected to (generally) $4$ neighbours. We will also examine how random percolation on this lattice graph may affect the disease spread characteristics, as well as how the disease itself may have percolation-like effects. Finally, we will look at random graphs more closely mimicking social networks, specifically Barabasi-Albert, Watts-Strogatz, and Erdos-Renyi networks, the former being of particular interest due to being a scale-free network. This is a characteristic which is observed to be common to many social networks. The Watts-Strogatz networks demonstrate high clustering, and specifically the small-world property, which are also observed in a variety of real-world networks. These can all be generated easily using the NetworkX package for Python.
 
 Adopting the notation from the metapopulation model, we let $\v{I}$ be the vector storing whether a given node is infected or not, by setting $I_i = 1$ if node $i$ is infected, and $I_i = 0$ otherwise. We set $\m{A}$ to be the adjacency matrix for the graph under examination. We also set the infection rate at $k_I$, and the recovery rate at $k_S$.
+
+The infection is spread according to the following modified Gillespie SSA:
+
+\begin{algorithmic}
+	\State $r_1 \gets$ \Call{Rand}{}.
+	\State $r_2 \gets$ \Call{Rand}{}.
+	\Comment{Get two random numbers uniform in $[0, 1]$}.
+	\State $\alpha(t) \gets k_I (\v{1} - \v{I}(t)) \cdot (\m{A} \times \v{I}(t)) + k_S \sum_i I_i(t)$.
+	\Comment{Compute the propensity function}.
+	\State $\tau \gets \frac 1 {\alpha(t)} \log(1/r_1)$.
+	\Comment{Compute the time until next reaction}.
+	\If {$r_2 < k_I (\v{1} - \v{I}(t)) \cdot (\m{A} \times \v{I}(t))$}
+		\State find $j$ such that $r_2 \geq \frac 1 {\alpha(t)} \sum_{i = 1}^{j-1} k_I (1 - I_i(t)) (\m{A} \times \v{I}(t))_i$ and $r_2 < \frac 1 {\alpha(t)} \sum_{i = 1}^j (1 - I_i(t)) (\m{A} \times \v{I}(t))_i$.
+		Set $I_j(t + \tau) = 1$, and $I_i(t + \tau) = I_i(t)$ for all $i \neq j$.
+	\Else
+		\State $r_3 \gets r_2 - \frac {k_I} {\alpha(t)} (\v{1} - \v{I}(t)) \cdot (\m{A} \times \v{I}(t))$.
+		\State find $j$ such that $r_3 \geq \frac 1 {\alpha(t)} \sum_{i = 1}^{j-1} k_S I_i(t)$ and $r_3 < \frac 1 {\alpha(t)} \sum_{i = 1}^j k_S I_i(t)$.
+		Set $I_j(t + \tau) = 0$ and $I_i(t + \tau) = I_i(t)$ for all $i \neq j$.
+	\EndIf
+\end{algorithmic}
+
+Where $\v{1}$ is the vector where each element is $1$, so that $\v{1} - \v{I}(t)$ is the vector containing a $0$ for each infected node, and a $1$ for each uninfected node. It is then clear that $(\v{1} - \v{I}(t)) * (\m{A} \times \v{I}(t))_i$, where $*$ is the component-wise product, is $1$ if the infection could possibly spread to node $i$, and $0$ if not. The above algorithm therefore carries out a single reaction step.
 
 We then define $p_i(t) = \mathbb{P}(I_i(t) = 1)$ to be the probability that node $i$ is infected at time $t$. Considering a small timestep $\Delta t$ then gives use
 

@@ -3,11 +3,11 @@ import scipy as sp
 from matplotlib import pyplot as plt
 import networkx as nx
 
-from graphs_python.perc_graph import make_perc_graph
+from perc_graph import make_perc_graph
 from single_discrete_lattice_iterates import Gillespie_iterateSIS
 
 SIZE = 20  # Side length of lattice
-prob = 0.3  # Probability of edge existence
+prob = 0.55  # Probability of edge existence
 iters = 1   # Number of iterations to carry out
 kInf = 0.5  # Chance of an infection along an edge in some time unit
 KUninf = 0.3  # Chance of an infected becoming susceptible again in some time unit

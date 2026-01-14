@@ -20,7 +20,7 @@ def evolve_graph(A, I, k_I, k_S):
     r_2 = np.random.random()
     alpha = sum(k_I * (1 - I) * (A @ I) + k_S * I)
     if (alpha == 0):
-        return I, 10
+        return I, 5
     tau = 1/alpha * np.log(1/r_1)
     Isum = np.cumulative_sum(k_I * (1-I) * (A @ I) / alpha)
     Rsum = np.cumulative_sum(k_S * I/alpha)
@@ -97,13 +97,13 @@ def draw_graph(G, I, colours=plt.cm.viridis):
     plt.show()
 
 
-G = nx.barbell_graph(20, 1)
-I = np.zeros(41)
+G = nx.barabasi_albert_graph(500, 7)
+I = np.zeros(500)
 I[0] = 1
-k_I = 0.05
+k_I = 0.02
 k_S = 0.1
 
-iters = 10
+iters = 20
 
 tcollect = []
 Icollect = []
@@ -113,7 +113,7 @@ processes = []
 for i in range(iters):
     par_conn, child_conn = Pipe()
     process = Process(target=mult_Gillespie, args=(
-        G, I, k_I, k_S, child_conn, 100, 0.1, False))
+        G, I, k_I, k_S, child_conn, 50, 0.1, False))
     processes.append(process)
     conns.append(par_conn)
     process.start()

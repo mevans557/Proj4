@@ -352,12 +352,13 @@ We can also perform a linear stability analysis to predict the expected behaviou
 	\centering
 	\includegraphics[width = \linewidth]{figs/SISmixStab.png}
 	\caption{The stability plot for the mass action approximation. The unstable extinction equilibrium and stable endemic equilibrium are shown. The parameters used were $k_I = 0.002$, $k_S = 0.1$, $N = 500$.}
+	\label{fig:SISMAstab}
 \end{figure}
 
 \begin{figure}
 	\centering
 	\includegraphics[width = \linewidth]{figs/SISmix.png}
-	\caption{A plot of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted black line is the deterministic mean calculated using the mass action approximation. Only $19$ traces are visible, as $1$ realisation hit extinction - an example of the effects of discretisation on the system.} \label{SISmixfig}
+	\caption{A plot of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted black line is the deterministic mean calculated using the mass action approximation. Only $19$ traces are visible, as $1$ realisation hit extinction - an example of the effects of discretisation on the system.} \label{fig:SISmix}
 \end{figure}
 
 To gain a more accurate analysis, we leverage the Chemical Master Equation (CME). We begin by considering $P_n (t) = \mathbb{P}(I(t) = n)$. We also have that $P_k (t) \equiv 0$ for $k < 0$ and $k > N$. Then
@@ -667,6 +668,7 @@ Using \ref{variancesquare} in the last step, where $V_i = \sum_{n=0}^{N_i} (n-M_
 		\label{fig:SISmetaTuran5}
 	\end{subfigure}
 	\caption{A set of metapopulation SIS simulations on different graphs, all with $5$ nodes, each figure showing $20$ realisations. \ref{fig:SISmetak5} shows the realisations on the complete graph with $5$ nodes, $k_5$. \ref{fig:SISmetacycle5} shows the realisations on the cycle graph with $5$ nodes, $C_5$. \ref{fig:SISmetalollipop3} shows the realisations on the lollipop graph consisting of $k_3$ joined to path graph of $2$ nodes. \ref{fig:SISmetaTuran5} shows the realisations on the Turán graph with $5$ nodes, split into $2$ groups, so a bipartite complete graph, with partitions of $2$ and $3$ nodes. The same starting conditions were applied to each graph, where we set node $0$ to have a single infected individual, and all other nodes to have $0$ infected. The populations of the nodes were $(100, 200, 300, 400, 500)$, and the model coefficients were $k_I = 0.002$ and $k_S = 0.1$, as in the well-mixed model. The flat traces in the latter $3$ plots are those in which the infection died out.}
+	\label{figs:SISmeta}
 \end{figure}
 
 It is clear from the plots that the nature of the graph in question has a large impact on the disease spread. While all of the scenarios followed a similar logistic curve-like behaviour, they vary greatly in the speed of the infection, as well as in the variance between the traces. As we would expect from \ref{SISmetameans}, the more well connected graphs have a generally faster rate of spread than the sparser graphs. The variance also appears to be tied to the connectedness of the different graph structures, as \ref{fig:SISmetacycle5} and \ref{fig:SISmetalollipop3} appear, visually, to have a higher variance than \ref{fig:SISmetak5} and \ref{fig:SISmetaTuran5}, and they correspond to graphs with a lower average node degree.
@@ -738,8 +740,94 @@ It is clear from the equation that the structure of the network in question has 
 	\fd {M} {t} = k_I N M(t) - k_I \sum_{i \neq j} p_i p_j - k_S M(t).
 \end{equation}
 
-This is highly reminiscent of the well-mixed mean (\ref{SISmixmean}), as we would expect.
+This is highly reminiscent of the well-mixed mean (\ref{SISmixmean}), as we would expect, and the similarity of \ref{fig:SISindvcomp} to \ref{fig:SISmix} is apparent.
 
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{figs/SISindvcomp.png}
+	\caption{A plot of $20$ realisations of the modified Gillespie SSA on the complete graph $k_{500}$, where each node is an individual. Parameters used were $k_I = 0.002$, $k_S = 0.1$.}
+	\label{fig:SISindvcomp}
+\end{figure}
+
+We now simulate the infection on a variety of graph structures. We begin with a few simple types of graph, in order to demonstrate some important effects. These are the Cycle graph, Tadpole graph, Lollipop graph, and Barbell graph. We then move on to some more complex random-generated graphs, these being the Erdos-Renyi, Barabasi-Albert, and Watts-Strogatz. We then simulate on a small selection of percolation-type lattices, with differing percolation coefficients.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvcycle.png}
+		\caption{$C_{500}$}
+		\label{fig:SISindvcycle}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvtadpole.png}
+		\caption{$\mathrm{tadpole}(300, 200)$}
+		\label{fig:SISindvtadpole}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvloll.png}
+		\caption{$\mathrm{lollipop}(300, 200)$}
+		\label{fig:SISindvloll}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvbar.png}
+		\caption{$\mathrm{Barbell}(249, 2)$}
+		\label{fig:SISindvbar}
+	\end{subfigure}
+	\caption{A collection of simulations on various simple and composite graphs. \ref{fig:SISindvcycle} shows $20$ realisations on the cycle graph with $500$ nodes, $C_{500}$. This demonstrates how the graph structure significantly impacts the spreading behaviour, as there is a clear linear trend, due to the structure preventing most nodes from being exposed to the disease for a long period of time. This also results in the disease taking much longer to spread. The parameters used were $k_I = 0.7$, $k_S = 0.1$. This is also of note, as for significantly smaller ratios of $k_I$ to $k_S$, the disease became extinct extremely rapidly. \ref{fig:SISindvtadpole} shows $20$ realisations on the $\mathrm{tadpole}(300, 200)$ graph, the graph of $C_{300}$ connected to $P_{200}$, using the same parameters. This again demonstrates a generally linear growth. However, the growth here is faster. This is because, for the majority of the time, the growth is effectively along three branches, rather than effectively along two. \ref{fig:SISindvloll} shows $20$ realisations on the lollipop graph, made up of the complete graph $K_{300}$ connected to the path graph $P_{200}$, using the same parameters again. This shows a very sharp rise at the start, as the high rate of infection causes the disease to rapidly spread through the population of the connected graph. However, the growth slows down massively as the disease spreads roughly linearly along the path section of the graph. \ref{fig:SISindvbar} demonstrates this even more clearly, showing $20$ realisations on the Barbell graph made up of two copies of the complete graph $k_{249}$ connected by the path graph $P_{2}$. The disease rapidly spreads through the large connected populations, but takes much longer to spread along the path between them. However, once the disease reaches the second connected population, it again spreads extremely rapidly, giving this step effect. The parameters used for this graph were $k_I = k_S = 0.1$.}
+	\label{figs:SISindvsimp}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvER3.png}
+		\caption{Erdos-Renyi $p=0.3$}
+		\label{fig:SISindvER3}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvER5.png}
+		\caption{Erdos-Renyi $p=0.5$}
+		\label{fig:SISindvER5}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvER7.png}
+		\caption{Erdos-Renyi $p=0.7$}
+		\label{fig:SISindvER7}
+	\end{subfigure}
+	\caption{A set of simulations of the SIS model on Erdos-Renyi networks with $500$ nodes. In each plot, the realisations were all performed on the same network. We clearly see that in increasing the edge creation probability, we greatly speed up the overall disease spread, as well as decreasing the variation between different realisations. This lines up with our expectations of how the connectedness of different graphs impacts the spread, from the metapopulation model \ref{figs:SISmeta}. All simulations here used $k_I = 0.002$, $k_S = 0.1$.}
+	\label{figs:SISindvER}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvBA3.png}
+		\caption{Attachment $=3$}
+		\label{fig:SISindvBA3}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvBA5.png}
+		\caption{Attachment $=5$}
+		\label{fig:SISindvBA5}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvBA7.png}
+		\caption{Attachment $=7$}
+		\label{fig:SISindvBA7}
+	\end{subfigure}
+	\caption{A set of simulations of the SIS model on Barabasi-Albert random networks with $500$ nodes, all using $k_I = 0.02$, $k_S = 0.1$. Each figure shows $20$ realisations on the same network. The number of edges each newly attached node has is given. We see clearly that again, the more connected graphs result in a faster disease spread. However, we also see that the more connected networks have a higher infected population, as the disease struggles to spread to poorly-connected nodes. We also see a more logarithmic disease spread curve, compard to the logistic curve-like behaviour of the Erdos-Renyi graphs.}
+	\label{figs:SISindvBA}
+\end{figure}
 \bibliography{mybib.bib}
 
 \end{document}

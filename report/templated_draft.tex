@@ -351,14 +351,15 @@ We can also perform a linear stability analysis to predict the expected behaviou
 \begin{figure}
 	\centering
 	\includegraphics[width = \linewidth]{figs/SISmixStab.png}
-	\caption{The stability plot for the mass action approximation. The unstable extinction equilibrium and stable endemic equilibrium are shown. The parameters used were $k_I = 0.002$, $k_S = 0.1$, $N = 500$.}
+	\caption{The stability plot for the mass action approximation, showing $\fd I t$ against $I(t)$. The unstable extinction equilibrium and stable endemic equilibrium are shown. The parameters used were $k_I = 0.002$, $k_S = 0.1$, $N = 500$.}
 	\label{fig:SISMAstab}
 \end{figure}
 
 \begin{figure}
 	\centering
 	\includegraphics[width = \linewidth]{figs/SISmix.png}
-	\caption{A plot of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted black line is the deterministic mean calculated using the mass action approximation. Only $19$ traces are visible, as $1$ realisation hit extinction - an example of the effects of discretisation on the system.} \label{fig:SISmix}
+	\caption{A plot of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted black line is the deterministic mean calculated using the mass action approximation. Only $19$ traces are visible, as $1$ realisation hit extinction - an example of the effects of discretisation on the system. We see that as expected, the mass action approximation appears to be an approximate average of the realisations. We also see that when stopping after some finite time, the solutions are all close to the endemic equilibrium, as predicted by our work with the SDE for the system.}
+	\label{fig:SISmix}
 \end{figure}
 
 To gain a more accurate analysis, we leverage the Chemical Master Equation (CME). We begin by considering $P_n (t) = \mathbb{P}(I(t) = n)$. We also have that $P_k (t) \equiv 0$ for $k < 0$ and $k > N$. Then
@@ -514,7 +515,7 @@ We then Taylor expand in powers of $\omega$
 
 \begin{align}
 	h_1 (\eta + \frac 1 \omega, t) &\approx h_1 (\eta, t) + \frac 1 \omega \pd {} {\eta} h_1 (\eta, t) + \frac 1 {2 \omega^2} \pdd {} {\eta} h_1 (\eta, t) + \mathcal{O} (\frac {h_1} {\omega^3}), \\
-	h_2 (\eta + \frac 1 \omega, t) &\approx h_2 (\eta, t) - \frac 1 \omega \pd {} {\eta} h_2 (\eta, t) + \frac 1 {2 \omega^2} \pdd {} {\eta} h_2 (\eta, t) + \mathcal{O} (\frac {h_2} {\omega^3}).
+	h_2 (\eta - \frac 1 \omega, t) &\approx h_2 (\eta, t) - \frac 1 \omega \pd {} {\eta} h_2 (\eta, t) + \frac 1 {2 \omega^2} \pdd {} {\eta} h_2 (\eta, t) + \mathcal{O} (\frac {h_2} {\omega^3}).
 \end{align}
 
 Truncating at $\mathcal{O} (\frac 1 {\omega^2})$ then lets us write
@@ -572,15 +573,65 @@ So
 	&= (k_I N - k_S - k_I M(t)) M(t) - k_I V(t).
 \end{align}
 
-Which is the same result we gained from analysing the CME directly, so is unfortunately again intractable. 
+Which is the same result we gained from analysing the CME directly, so is unfortunately again intractable.
 
-\subsection{Simulation results}
+We can attempt to get an expression for the stationary distribution from the SDE here. Clearly, if we impose the absorbing boundary condition at $x=0$, we will just get the distribution $p_s(x) = 0$, as all trajectories will eventually hit $0$ and be absorbed. However, we are able to extract some useful information by not applying this boundary condition. This will give us a stationary distribution more closely approximating the behaviour we see stopping the simulation after finite time, as the probability of trajectories hitting $0$ in (relatively small) finite time is very low. We use the standard formula
 
-We find that the simulated results (\ref{SISmixfig}) from the model align with the behaviour we expect, and that the deterministic mean from the mass action approximation appears to align roughly with the Gillespie simulations.
+\begin{equation}
+	p_s(x) = \frac C {d(x)} \mathrm{exp} \left( \int_0^x \frac {f(y)} {d(y)} dy \right).
+\end{equation}
+
+Substituting our functions in gives the following
+
+\begin{align}
+	p_s(x) &= \frac {2C} {k_S x + k_I x (N-x)} \mathrm{exp} \left( \int_0^x \frac {2 (k_I y (N-y) - k_S y)} {k_S y + k_I y (N-y)}dy \right) \\
+	&= \frac {2C} {k_S x + k_I x (N-x)} \mathrm{exp} \left( \int_0^x 2 - \frac {4k_S} {k_S + k_I (N-y)} dy \right) \\
+	&= \frac {2C} {k_S x + k_I x (N-x)} \mathrm{exp} \left( 2x + \frac {4k_S} {k_I} \ln \left( 1 - \frac {k_I x} {k_S + k_I N} \right) \right) \\
+	&= \frac {2C} {k_S + k_I x (N-x)} e^{2x} \left( 1 - \frac {k_I x} {k_S + k_I N} \right)^{\frac {4k_S} {k_I}}.
+\end{align}
+
+This is a somewhat complicated function, and difficult to see the behaviour of. Plotting it on an appropriate scale, we can clearly see that it looks similar to a Gaussian, and seems to be centred roughly on the value of $x = N- \frac {k_S} {k_I}$, as we would expect from the equilibrium of the mass action approximation. To quantify this, we can differentiate with respect to $x$, and find the $x$ value of the peak of the distribution.
+
+\begin{align}
+	\fd {p_s} x &= - \frac {2C} {x^2 (k_S + k_I (N-x))} e^{2x} \left( 1 - \frac {k_I x} {k_S + k_I N} \right)^{\frac {4k_S} {k_I}} \\
+	&\qquad + \frac {2C k_I} {x(k_S + k_I (N-x))^2} e^{2x} \left( 1 - \frac {k_I x} {k_S + k_I N} \right)^{\frac {4k_S} {k_I}} \\
+	&\qquad + \frac {4C} {k_S + k_I x (N-x)} e^{2x} \left( 1 - \frac {k_I x} {k_S + k_I N} \right)^{\frac {4k_S} {k_I}} \\
+	&\qquad + \frac {2C} {k_S + k_I x (N-x)} e^{2x} \frac {4k_S} {k_I} \left( 1 - \frac {k_I x} {k_S + k_I N} \right)^{\frac {4k_S - k_I} {k_I}} \left( - \frac {k_I} {k_S + k_I N} \right) \\
+	&= p_s(x) \left[ - \frac 1 x + \frac {k_I} {k_S + k_I (N-x)} + 2 - \frac {4 k_S} {k_S + k_I (N-x)} \right] \\
+	&= p_s(x) \left[ \frac {k_I - 4k_S} {k_S + K_I (N-x)} - \frac 1 x + 2 \right].
+\end{align}
+
+Clearly we aren't interested about an area where $p_s(x) = 0$, so we only care about where the second part is $0$. Rearranging and applying the quadratic formula gives the (somewhat unweildy) result
+
+\begin{align}
+	x &= \frac {2k_S - 2 k_I - 2k_I N \pm \sqrt{4k_S^2 + 4k_I^2 + 4k_I^2 N^2 - 16 k_I k_S - 8 k_I k_S N}} {-4 k_I} \\
+	&= \frac N 2 + \frac 1 2 - \frac {k_S} {2 k_I} \mp \frac 1 2 \sqrt{ \left( \frac {k_S} {k_I} \right)^2 + 1 + N^2 - 4 \frac {k_S} {k_I} - 2 \frac {k_S} {k_I} N}.
+\end{align}
+
+While this seems unhelpful, we observe that we can write
+
+\begin{equation}
+	N - \frac {k_S} {k_I} = \frac N 2 + \frac 1 2 + \frac {k_S} {2 k_I} - \sqrt{N^2 + 1 + \left( \frac {k_S} {k_I} \right)^2 - 2 N - 2 \frac {k_S} {k_I} N + 2 \frac {k_S} {k_I}}.
+\end{equation}
+
+Clearly these expressions are very close together, and we can attempt to quantify the difference. The difference is
+
+\begin{equation}
+	6 \frac {k_S} {k_I} - 2N
+\end{equation}
+
+and dividing this by the expression under the square root gives
+
+\begin{align}
+	\frac {6 \frac {k_S} {k_I} - 2N} {\left( N - 1 - \frac {k_S} {k_I} \right)^2} &\approx \frac {6 \frac {k_S} {k_I} - 2N} {\left(N - \frac {k_S} {k_I} \right)^2} \\
+	&= \frac {6 \frac {k_S} {k_I} - 2N} {N^2 - \frac {k_S} {k_I} N + \left( \frac {k_S} {k_I} \right)^2}.
+\end{align}
+
+We then have three possible cases. If $\frac {k_S} {k_I}$ and $N$ are similar in magnitude, then this expression is of magnitude $\frac 1 N \ll 1$. If $\frac {k_S} {k_I}$ is of significantly smaller magnitude than $N$, then the expression is again of magnitude $\frac 1 N \ll 1$. And finally, if $\frac {k_S} {k_I}$ is significantly larger than $N$, then the magnitude of the expression is $\frac {k_I} {k_S} \ll 1$. In all cases, this expression is much smaller than $1$, and as the difference is effectively square rooted, the difference between this peak and the ODE equilibrium $N - \frac {k_S} {k_I}$ should be less than $1$. When we substitute a range of values for $\frac {k_S} {k_I}$ and $N$, this is in fact what we do find. We have therefore shown that we expect, for finite durations of time, for the stochastic simulations to approximate the endemic equilibrium from the mass action approximation, which is what we see.
 
 \section{Metapopulation model}
 
-We consider a graph with: a state vector $\v{I(t)}$, where $I_i(t)$ is the number of infected individuals at node $i$ and at time $t$; adjacency matrix $\m{A}$; and population vector $\v{N}$, where $N_i$ is the number of individuals (in any compartment) at node $i$. We take the population at each node to be fixed over the time interval considered (so there is no birth or death in this model). We also by extension then have the susceptible population in each node at time $t$ as $S_i(t) = N_i - I_i(t)$. If we represent an infected individual in node $i$ as $\ce{I_i}$, and a susceptible individual in node $i$ as $\ce{S_i}$, then we can represent the model with the following system:
+We consider a graph with: a state vector $\v{I}(t)$, where $I_i(t)$ is the number of infected individuals at node $i$ and at time $t$; adjacency matrix $\m{A}$; and population vector $\v{N}$, where $N_i$ is the number of individuals (in any compartment) at node $i$. We take the population at each node to be fixed over the time interval considered (so there is no birth or death in this model). We also by extension then have the susceptible population in each node at time $t$ as $S_i(t) = N_i - I_i(t)$. If we represent an infected individual in node $i$ as $\ce{I_i}$, and a susceptible individual in node $i$ as $\ce{S_i}$, then we can represent the model with the following system:
 
 \begin{equation}
 	\ce{I_i + S_i ->[k_I] 2 I_i} \qquad
@@ -599,9 +650,9 @@ From these equations, we can see that the mass-action approximation would be of 
 If we set $I(t) = \sum_i I_i(t)$ to be the total infected population, and $\sum_i N_i = N$ to be the total population, we get
 
 \begin{align}
-	\fd {I} {t} &= k_I \sum_i (I_i(t) N_i) - k_I \sum_i (I_i(t)^2) + k_I \sum_{ij} A_{ij} \frac {I_j(t) N_i} {N_j} - k_I \sum_{ij} A_{ij} \frac {I_j(t) I_i(t)} {N_j} - k_S \sum_i I_i(t) \\
-	&= k_I \sum_i (I_i(t) N_i) - k_I \sum_i (I_i(t)^2) + k_I (N - I(t)) \sum_{j} a_{ij} \frac {I_j(t)} {N_j} - k_S I(t) \\
-	&=
+	\fd {I} {t} &= k_I \sum_i (I_i(t) N_i) - k_I \sum_i (I_i(t)^2) + k_I \sum_{i, j} A_{ij} \frac {I_j(t) N_i} {N_j} - k_I \sum_{i, j} A_{ij} \frac {I_j(t) I_i(t)} {N_j} - k_S \sum_i I_i(t) \\
+	&= k_I \sum_i (I_i(t) N_i) - k_I \sum_i (I_i(t)^2) + k_I \sum_{j} A_{ij} \frac {I_j(t) (N_i - I_i(t))} {N_j} - k_S I(t) \\
+	&= k_I \sum_{i,j} (\m A + \m I)_{ij} \frac {I_j(t) (N_i - I_i(t))} {N_j} - k_S I(t).
 \end{align}
 
 We can use the chemical master equations to represent the behaviour of this system as follows:
@@ -828,6 +879,55 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 	\caption{A set of simulations of the SIS model on Barabasi-Albert random networks with $500$ nodes, all using $k_I = 0.02$, $k_S = 0.1$. Each figure shows $20$ realisations on the same network. The number of edges each newly attached node has is given. We see clearly that again, the more connected graphs result in a faster disease spread. However, we also see that the more connected networks have a higher infected population, as the disease struggles to spread to poorly-connected nodes. We also see a more logarithmic disease spread curve, compard to the logistic curve-like behaviour of the Erdos-Renyi graphs.}
 	\label{figs:SISindvBA}
 \end{figure}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvWS3.png}
+		\caption{$\beta = 0.3$}
+		\label{fig:SISindvWS3}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvWS5.png}
+		\caption{$\beta = 0.5$}
+		\label{fig:SISindvWS5}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvWS7.png}
+		\caption{$\beta = 0.7$}
+		\label{fig:SISindvWS7}
+	\end{subfigure}
+	\caption{A set of simulations of the SIS model on Watts-Strogatz networks, with $N=500$, $K = 30$, and varying $\beta$ as stated. We once again see the usual logistic-curve style of disease spread.}
+	\label{figs:SISindvWS}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvperc45.png}
+		\caption{$p = 0.45$}
+		\label{fig:SISindvperc45}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvperc50.png}
+		\caption{$p = 0.5$}
+		\label{fig:SISindvperc50}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvperc55.png}
+		\caption{$p = 0.55$}
+		\label{fig:SISindvperc55}
+	\end{subfigure}
+	\caption{A set of simulations of the SIS model on percolation graphs, these being $2$D lattices where each edge is removed, so that edges exist with probability $p$, as given in the captions. We see clearly the drastic effect on the disease dynamics. For the subcritical graph, with $p < 0.5$, only a small number of individuals are infected, and the initial growth is roughly linear. For the critical graph, where $p = 0.5$, a reasonable proportion of the population are infected, but the infection spreads fairly linearly at a similar rate to the subcritical case, and is limited to this connected pocket. For the supercritical graph, where $p > 0.5$, we see that a much larger fraction of the total population is infected, and the pattern of infection more closely resembles the usual logistic curve. For all simulations, the population was $600$, on a $30 \times 20$ lattice. The parameters were $k_I = 0.2$, $k_S = 0.05$.}
+	\label{figs:SISindvperc}
+\end{figure}
+
 \bibliography{mybib.bib}
 
 \end{document}

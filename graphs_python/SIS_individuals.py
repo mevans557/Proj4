@@ -16,8 +16,9 @@ def evolve_graph(A, I, k_I, k_S):
     k_S: The recovery rate (without immunity)
     Returns a tuple of time until reaction, and state after the reaction as tau, Inew
     '''
-    r_1 = np.random.random()
-    r_2 = np.random.random()
+    gen = np.random.default_rng()
+    r_1 = gen.uniform()
+    r_2 = gen.uniform()
     alpha = sum(k_I * (1 - I) * (A @ I) + k_S * I)
     if (alpha == 0):
         return I, 5
@@ -41,7 +42,7 @@ def evolve_graph(A, I, k_I, k_S):
     return Inew, tau
 
 
-def iterate_Gillespie(G, I, kI, kS, stop=100, step=0.1, draw=False):
+def iterate_Gillespie(G, I, kI, kS, stop=100, step=0.1, drawer=None):
     '''
     Iterates individual SIS on a graph using the Gillespie Algorithm
     Params:
@@ -62,8 +63,8 @@ def iterate_Gillespie(G, I, kI, kS, stop=100, step=0.1, draw=False):
     A = nx.to_scipy_sparse_array(G)
     while (t <= stop):
         loop += 1
-        if (draw and (loop % 50 == 0)):
-            draw_graph(G, I)
+        if ((drawer != None) and (loop % 50 == 0)):
+            drawer(G, I)
         I, tau = evolve_graph(A, I, kI, kS)
         t += tau
         ts.append(t)
@@ -72,7 +73,7 @@ def iterate_Gillespie(G, I, kI, kS, stop=100, step=0.1, draw=False):
     return ts, Isum
 
 
-def mult_Gillespie(G, I, kI, kS, connect, stop=100, step=0.1, draw=False):
+def mult_Gillespie(G, I, kI, kS, connect, stop=100, step=0.1, drawer=None):
     '''
     Iterates individual SIS on a graph using the Gillespie Algorithm and outputs to a pipe
     Params:
@@ -86,24 +87,63 @@ def mult_Gillespie(G, I, kI, kS, connect, stop=100, step=0.1, draw=False):
     draw: optional, whether the graph should be drawn (if so, drawn every 50 loops)
     Sends a tuple to the pipe, of two lists, the first storing times, the other infected populations
     '''
-    ts, Isum = iterate_Gillespie(G, I, kI, kS, stop, step, draw=draw)
+    ts, Isum = iterate_Gillespie(G, I, kI, kS, stop, step, drawer=drawer)
     connect.send((ts, Isum))
 
 
 def draw_graph(G, I, colours=plt.cm.viridis):
+    '''
+    Draws a given graph, with colouring based on infection
+    Params:
+    G: A networkx graph
+    I: State vector of infected populations on graph
+    colours (optional): the colourmap to use
+    '''
     nx.set_node_attributes(G, "green", name="node_color")
     nx.draw_circular(G, node_color=I, node_size=100,
-                     vmin=0, vmax=1, cmap=plt.cm.plasma)
+                     vmin=0, vmax=1, cmap=colours)
     plt.show()
 
 
-G = nx.barabasi_albert_graph(500, 7)
-I = np.zeros(500)
-I[0] = 1
-k_I = 0.02
-k_S = 0.1
+def make_perc_graph(width, length, pr):
+    '''
+    Creates a networkx lattice graph, on which percolation has been performed.
+    Params:
+    width: the width of the lattice
+    length: the length of the lattice
+    pr: the probability of a given edge existing
+    Returns a networkx graph
+    '''
+    G = nx.grid_2d_graph(width, length)
+    remove = [edge for edge in G.edges if (np.random.random() > pr)]
+    G.remove_edges_from(remove)
+    return G
 
-iters = 20
+
+def draw_perc(gr, I, colours=plt.cm.viridis):
+    '''
+    Draws a percolation graph, with correct positioning
+    Params:
+    gr: A networkx lattice graph, on which percolation has been performed.
+    '''
+    pos = nx.circular_layout(gr)
+    for k in pos:
+        pos[k] = np.array(k)
+    plt.figure(figsize=(7, 7))
+    nx.draw(gr, pos=pos, node_color=I, node_size=20,
+            vmin=0, vmax=1, cmap=colours)
+    plt.show()
+
+
+WIDTH = 20
+LENGTH = 30
+mid = WIDTH*LENGTH//2 + WIDTH//2
+G = make_perc_graph(20, 30, 0.55)
+I = np.zeros(600)
+I[mid] = 1
+k_I = 0.2
+k_S = 0.05
+iters = 1
 
 tcollect = []
 Icollect = []
@@ -113,7 +153,7 @@ processes = []
 for i in range(iters):
     par_conn, child_conn = Pipe()
     process = Process(target=mult_Gillespie, args=(
-        G, I, k_I, k_S, child_conn, 50, 0.1, False))
+        G, I, k_I, k_S, child_conn, 300, 0.1, draw_perc))
     processes.append(process)
     conns.append(par_conn)
     process.start()

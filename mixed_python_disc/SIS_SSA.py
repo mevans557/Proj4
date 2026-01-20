@@ -25,7 +25,7 @@ def iterate(t, I, N, kI, kR, alpha, conn):
 
 t0 = 0
 I0 = 1
-N0 = 500
+N0 = 100
 kI0 = 0.002
 kR0 = 0.1
 alpha0 = kR0*I0 + kI0*I0*(N0-I0)
@@ -59,7 +59,7 @@ for i in range(iters):
     # plt.plot(tcollect[i], Scollect[i])
 
 
-td = np.arange(0, 10, 0.1)
+td = np.arange(0, 30, 0.1)
 Id = (N0-kR0/kI0)/(1+(N0-kR0/kI0-1)*np.exp(kR0*td-N0*kI0*td))
 
 plt.plot(td, Id, linestyle='dashed', color='black', label="Deterministic")

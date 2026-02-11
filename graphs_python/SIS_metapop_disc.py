@@ -122,7 +122,8 @@ def iterate_Gillespie(G, I, N, kI, delta, stop=100, step=0.1, draw=False):
     t = 0
     ts = [t]
     Is = [I]
-    Isum = [1]
+    Isum = []
+    Isum.append(np.sum(I))
     loop = 0
     A = nx.to_scipy_sparse_array(G)
     while (t <= stop):
@@ -164,14 +165,15 @@ def draw_graph(G, I, N, colours=plt.cm.viridis):
     plt.show()
 
 
-G = nx.lollipop_graph(3, 2)
+G = nx.path_graph(5)
 Ii = np.zeros(5)
-Ni = np.array([100, 200, 300, 400, 500])
-Ii[0] = 1
+Ni = np.array([500, 500, 500, 500, 500])
+Ii[0] = 20
 
-iters = 20
+iters = 50
+END = 5
 k_I = 0.002
-k_S = 0.1
+k_S = 0.2
 
 tcollect = []
 Icollect = []
@@ -181,7 +183,7 @@ processes = []
 for i in range(iters):
     par_conn, child_conn = Pipe()
     process = Process(target=mult_Gillespie, args=(
-        G, Ii, Ni, k_I, k_S, child_conn, 10,))
+        G, Ii, Ni, k_I, k_S, child_conn, END,))
     processes.append(process)
     conns.append(par_conn)
     process.start()
@@ -197,8 +199,14 @@ for proc in processes:
 for i in range(iters):
     plt.plot(tcollect[i], Icollect[i])
 
+linet = [0, END]
+extinct = [0, 0]
+endemic = 1500*(1 - k_S/(k_I * 1500)) + 1000*(1 - k_S/(k_I * 1000))
+lineI = [endemic, endemic]
 
-plt.title("SSA of SIS metapopulation model on Graph Infecteds over Time")
+plt.plot(linet, lineI, '--b')
+plt.plot(linet, extinct, '--b')
+
 plt.xlabel("Time t")
-plt.ylabel("Infecteds I(t)")
+plt.ylabel("Total Infecteds I(t)")
 plt.show()

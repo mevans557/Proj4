@@ -346,7 +346,7 @@ Giving
 	I(t) = \frac {N - \frac {k_S} {k_I}} {1 + \left( N - \frac {k_S} {k_I} - 1 \right) \exp((k_S - k_I N)t)}.
 \end{equation}
 
-We can also perform a linear stability analysis to predict the expected behaviour of the system. By plotting $\fd {I} {t}$ against $I(t)$, we can see that there is an unstable equilibrium at $I(t) = 0$, the extinction scenario, and a stable equilibrium at $I(t) = N - \frac {k_S} {k_I}$. From this it is clear that with no recovery ($k_S = 0$), the stable equilibrium is total infection of the population. However, the mass action model is only an approximation and works best for large numbers of infected individuals.
+We can also perform a linear stability analysis to predict the expected behaviour of the system. By plotting $\fd {I} {t}$ against $I(t)$, we can see that there is an unstable equilibrium at $I(t) = 0$, the extinction scenario, and a stable equilibrium at $I(t) = N - \frac {k_S} {k_I}$. From this it is clear that with no recovery ($k_S = 0$), the stable equilibrium is total infection of the population. It is also clear that in the (quite extreme) situation of $\frac {k_S} {k_I} = N$, extinction is the only equilibrium, and is stable (as the infected population cannot be negative). However, the mass action model is only an approximation and works best for large numbers of infected individuals.
 
 \begin{figure}
 	\centering
@@ -427,7 +427,7 @@ Changing indices in the above then gives
 	&\qquad - \sum_{n=0}^\infty (k_S + k_I (N-n))n x^n P_n(t) \\
 	\pd {} {t} G(x, t) &= k_S \pd {} {x} G(x, t) + k_I (N-1) x^2 \pd {} {x} G(x, t) - k_I x^3 \pdd {} {x} G(x, t) \\
 	&\qquad - k_S x \pd {} {x} G(x, t) - k_I N x \pd {} {x} G(x, t) + k_I x^2 \pdd {} {x} G(x, t) + k_I x \pd {} {x} G(x, t) \\
-	\pd {} {t} G(x, t) &= (k_S - k_S x - k_I N x + k_I x) \pd {} {x} G(x, t) + (k_I x^2 - k_I x^3) \pdd {} {x} G(x, t).
+	\pd {} {t} G(x, t) &= (k_S - k_S x + k_I (N-1) (x^2 - x)) \pd {} {x} G(x, t) + (k_I x^2 - k_I x^3) \pdd {} {x} G(x, t).
 \end{align}
 
 We can define the initial condition
@@ -445,10 +445,19 @@ as the starting infected population is $1$. We can also easily get one of the bo
 Unfortunately the boundary condition at $x = -1$ is considerably more difficult to derive, as the PDE yields
 
 \begin{equation}
-	\pd {} {t} G(-1, t) = (2 k_S + k_I (N-1)) \pd {} {x} G(-1, t) + 2 k_I \pdd {} {x} G(-1, t).
+	\pd {} {t} G(-1, t) = (2 k_S + 2 k_I (N-1)) \pd {} {x} G(-1, t) + 2 k_I \pdd {} {x} G(-1, t).
 \end{equation}
 
-We could numerically solve this equation if we could find an appropriate boundary condition here. This then would give us numerical estimates for the mean and variance of the system, using
+Clearly to compute this boundary condition, we would already require knowledge of the function on the boundary. We could enforce a Dirichlet boundary condition, and define $G(-1, t)$ to be constant. We might consider that the probability of an odd number of molecules should be approximately equal to the probability of having an even number of molecules, which gives us
+
+\begin{align}
+	\frac {G(1, t) + G(-1, t)} {2} &= \sum_{k = 0}^\infty P_{2k}(t) = \frac 1 2\\
+	\frac {G(1, t) - G(-1, t)} {2} &= \sum_{k = 0}^\infty P_{2k+1}(t) = \frac 1 2.
+\end{align}
+
+This then simply gives that $G(-1, t) = 0$. This also then gives, from the above equation, that the first $x$ derivatives of $G$, evaluated at $-1$, are also $0$.
+
+Attempting to solve this numerically, using tools such as VisualPDE, does not seem to work, potentially due to the complex nature of the equations involved. If we could, this then would give us numerical estimates for the mean and variance of the system, using
 
 \begin{equation}
 	\mathbb{E} [I(t)] = \pd {} {x} G(x, t) \Big|_{x = 1} \qquad
@@ -614,7 +623,7 @@ While this seems unhelpful, we observe that we can write
 	N - \frac {k_S} {k_I} = \frac N 2 + \frac 1 2 + \frac {k_S} {2 k_I} - \sqrt{N^2 + 1 + \left( \frac {k_S} {k_I} \right)^2 - 2 N - 2 \frac {k_S} {k_I} N + 2 \frac {k_S} {k_I}}.
 \end{equation}
 
-Clearly these expressions are very close together, and we can attempt to quantify the difference. The difference is
+Clearly these expressions are very close together, and we can attempt to quantify the difference. The difference in the expressions under the square root is
 
 \begin{equation}
 	6 \frac {k_S} {k_I} - 2N
@@ -639,21 +648,23 @@ We consider a graph with: a state vector $\v{I}(t)$, where $I_i(t)$ is the numbe
 	\ce{S_i + I_j ->[A_{ij} k_I] I_i + I_j}.
 \end{equation}
 
-Here the first equation corresponds to infection within node $i$, the second to recovery of an infected person in node $i$, and the third infection of an individual in node $i$ by an individual in node $j$. We take the infection and recovery rates $k_I$, $k_S$ to be constant. This corresponds to an assumption that both infection and recovery are purely based on the disease in question, and unaffected by differences between the different metapopulations.
+Here the first equation corresponds to infection within node $i$, the second to recovery of an infected person in node $i$, and the third infection of an individual in node $i$ by an individual in node $j$. We take the infection and recovery rates $k_I$, $k_S$ to be constant. This corresponds to an assumption that both infection and recovery are purely based on the disease in question, and unaffected by differences between the different metapopulations. We also are imagining the disease spreads across the graph by some interaction between any of the inhabitants of node $i$ with an inhabitant of node $j$.
 
 From these equations, we can see that the mass-action approximation would be of the form
 
 \begin{equation}
-	\fd{I_i}{t} = k_I I_i(t) (N_i - I_i(t)) + k_I (N_i - I_i(t)) (\sum_j A_{ij} \frac {I_j(t)} {N_j}) - k_S I_i(t).
+	\fd{I_i}{t} = k_I I_i(t) (N_i - I_i(t)) + k_I (N_i - I_i(t)) (\sum_j A_{ij} I_j(t)) - k_S I_i(t).
 \end{equation}
 
 If we set $I(t) = \sum_i I_i(t)$ to be the total infected population, and $\sum_i N_i = N$ to be the total population, we get
 
 \begin{align}
-	\fd {I} {t} &= k_I \sum_i (I_i(t) N_i) - k_I \sum_i (I_i(t)^2) + k_I \sum_{i, j} A_{ij} \frac {I_j(t) N_i} {N_j} - k_I \sum_{i, j} A_{ij} \frac {I_j(t) I_i(t)} {N_j} - k_S \sum_i I_i(t) \\
-	&= k_I \sum_i (I_i(t) N_i) - k_I \sum_i (I_i(t)^2) + k_I \sum_{j} A_{ij} \frac {I_j(t) (N_i - I_i(t))} {N_j} - k_S I(t) \\
-	&= k_I \sum_{i,j} (\m A + \m I)_{ij} \frac {I_j(t) (N_i - I_i(t))} {N_j} - k_S I(t).
+	\fd {I} {t} &= k_I \sum_i (I_i(t) N_i) - k_I \sum_i (I_i(t)^2) + k_I \sum_{i, j} A_{ij} I_j(t) N_i - k_I \sum_{i, j} A_{ij} I_j(t) I_i(t) - k_S \sum_i I_i(t) \\
+	&= k_I \sum_i (I_i(t) N_i) - k_I \sum_i (I_i(t)^2) + k_I \sum_{j} A_{ij} I_j(t) (N_i - I_i(t)) - k_S I(t) \\
+	&= k_I \sum_{i,j} (\m A + \m I)_{ij} I_j(t) (N_i - I_i(t)) - k_S I(t).
 \end{align}
+
+This sum is difficult to simplify for a generic graph. However, this equation does bear a strong resemblance to the non-spatial SI equation, but with the spreading term modified by the graph interactions.
 
 We can use the chemical master equations to represent the behaviour of this system as follows:
 
@@ -661,10 +672,10 @@ First, let $p_i(n, t) = \mathbb{P}(I_i(t) = n)$, with $p_i(k, t) = 0$ for $k < 0
 
 \begin{equation}
 \begin{split}
-	p_i(n, t + \Delta t) &= k_I (N_i - (n-1)) p_i(n-1, t) \sum_j A_{ij} \frac {I_j(t)} {N_j} \Delta t \\
+	p_i(n, t + \Delta t) &= k_I (N_i - (n-1)) p_i(n-1, t) \sum_j A_{ij} I_j(t) \Delta t \\
 	&+ k_I (N_i - (n-1)) (n-1) p_i(n-1, t) \Delta t \\
 	&+ k_S (n+1) p_i(n+1, t) \Delta t \\
-	&+ \left[ 1 - \left[ k_I (N_i - n) \sum_j A_ij \frac {I_j(t)} {N_j} + k_I (N_i - n) n + k_S n \right] \Delta t \right] p_i(n, t).
+	&+ \left[ 1 - \left[ k_I (N_i - n) \sum_j A_ij I_j(t) + k_I (N_i - n) n + k_S n \right] \Delta t \right] p_i(n, t).
 \end{split}
 \end{equation}
 
@@ -672,57 +683,317 @@ By rearranging and taking the limit as $\Delta t \rightarrow 0$, we obtain:
 
 \begin{equation}
 \begin{split}
-	\fd {p_i} {t} (n, t) &= k_I (N_i - (n-1)) \sum_j A_{ij} \frac {I_j(t)} {N_j} p_i(n-1, t) + k_I(N_i - (n-1))(n-1) p_i(n-1, t)\\
-	&+ k_S (n+1) p_i(n+1, t) - \left(k_I (N_i - n) \sum_j A_{ij} \frac {I_j(t)} {N_j} + k_I (N_i - n) n+ k_S n \right) p_i(n, t).
+	\fd {p_i} {t} (n, t) &= k_I (N_i - (n-1)) \sum_j A_{ij} I_j(t) p_i(n-1, t) + k_I(N_i - (n-1))(n-1) p_i(n-1, t)\\
+	&+ k_S (n+1) p_i(n+1, t) - \left(k_I (N_i - n) \sum_j A_{ij} I_j(t) + k_I (N_i - n) n+ k_S n \right) p_i(n, t).
 \end{split}
 \end{equation}
 
 By setting $M_i(t) = \sum_{n=0}^{N_i} n p_i (n, t)$ to be the average infected individuals at node $i$ at time $t$, we can use the chemical master equations to derive the following:
 
 \begin{align}
-	\fd {M_i} {t} &= \sum_{n = 0}^{N_i} k_I n (N_i - (n-1)) \sum_j A_{ij} \frac {I_j(t)} {N_j} p_i(n-1, t) + n k_I(N_i - (n-1))(n-1) p_i(n-1, t) \notag \\
-	&\qquad + n k_S (n+1) p_i(n+1, t) - n \left( k_I (N_i - n) \sum_j A_{ij} \frac {I_j(t)} {N_j} + k_I (N_i - n) n + k_S n \right) p_i(n, t) \\
-	&= \sum_{n = 0}^{N_i} k_I (n+1) (N_i - n) \sum_j A_{ij} \frac {I_j(t)} {N_j} p_i(n, t) + \sum_{n = 0}^{N_i} (n+1) k_I (N_i - n) n p_i(n, t)\notag \\
-	&\qquad + \sum_{n = 0}^{N_i} (n-1) k_S n p_i(n, t) - \sum_{n = 0}^{N_i} n \left( k_I (N_i - n) \left( \sum_j A_{ij} \frac {I_j(t)} {N_j} + n \right)+ k_S n \right) p_i(n, t) \\
-	&= \sum_{n = 0}^{N_i} k_I (N_i - n) \sum_j A_{ij} \frac {I_j(t)} {N_j} p_i(n, t) + k_I (N_i - n) n p_i(n, t)- k_S n p_i(n ,t) \\
-	&= k_I \left(\sum_j A_{ij} \frac {I_j(t)} {N_j} \right) \left( \sum_{n = 0}^{N_i} N_i p_i(n ,t) - \sum_{n = 0}^{N_i} n p_i(n, t) \right) \notag \\
+	\fd {M_i} {t} &= \sum_{n = 0}^{N_i} k_I n (N_i - (n-1)) \sum_j A_{ij} I_j(t) p_i(n-1, t) + n k_I(N_i - (n-1))(n-1) p_i(n-1, t) \notag \\
+	&\qquad + n k_S (n+1) p_i(n+1, t) - n \left( k_I (N_i - n) \sum_j A_{ij} I_j(t) + k_I (N_i - n) n + k_S n \right) p_i(n, t) \\
+	&= \sum_{n = 0}^{N_i} k_I (n+1) (N_i - n) \sum_j A_{ij} I_j(t) p_i(n, t) + \sum_{n = 0}^{N_i} (n+1) k_I (N_i - n) n p_i(n, t)\notag \\
+	&\qquad + \sum_{n = 0}^{N_i} (n-1) k_S n p_i(n, t) - \sum_{n = 0}^{N_i} n \left( k_I (N_i - n) \left( \sum_j A_{ij} I_j(t) + n \right)+ k_S n \right) p_i(n, t) \\
+	&= \sum_{n = 0}^{N_i} k_I (N_i - n) \sum_j A_{ij} I_j(t) p_i(n, t) + k_I (N_i - n) n p_i(n, t)- k_S n p_i(n ,t) \\
+	&= k_I \left(\sum_j A_{ij} I_j(t) \right) \left( \sum_{n = 0}^{N_i} N_i p_i(n ,t) - \sum_{n = 0}^{N_i} n p_i(n, t) \right) \notag \\
 	&\qquad + k_I \left(N_i \sum_{n = 0}^{N_i} n p_i(n, t) - \sum_{n = 0}^{N_i} n^2 p_i(n, t) \right) - k_S \sum_{n = 0}^{N_i} n p_i(n, t) \\
-	&= k_I \left( \sum_j A_{ij} \frac {I_j(t)} {N_j} \right) (N_i - M_i) + k_I(N_i M_i + M_i^2 - V_i) - k_S M_i \label{SISmetameans}
+	&= k_I \left( \sum_j A_{ij} I_j(t) \right) (N_i - M_i) + k_I(N_i M_i + M_i^2 - V_i) - k_S M_i. \label{SISmetameans}
 \end{align}
 
 Using \ref{variancesquare} in the last step, where $V_i = \sum_{n=0}^{N_i} (n-M_i)^2 p_i(n, t)$. We have also suppressed the index switching, as again this is justified by factors in the sums, and the definition of $p_i(n, t)$. We have also used the fact that, as a probability distribution, $\sum_{n=0}^{N_i} p_i(n, t) \equiv 1$.
 
+We also note that this is really the distribution of $\mathbb{E}(I_i(t) | I_j(t), j \neq i)$, so taking the expectation over $I_j(t)$ as well gives
+
+\begin{equation}
+	\fd {M_i} {t} = k_I \left( \sum_j A_{ij} M_j(t) \right) (N_i - M_i) + k_I (N_i M_i + M_i^2 - V_i) - k_S M_i.
+\end{equation}
+
+It would often be common to take the mean-field approximation and treat $M_i$ and $M_j$ as independent and identically distributed. However, in this metapopulation model with a small number of nodes, this is not adequately justified.
+
+If we shift our framing slightly, and instead consider an (approximately continuous) "infection density" $\rho_i(t) = \frac {I_i(t)} {N_i}$, we can attempt to analyse equilibria of the system and their stability. The mass-action approximation becomes
+
+\begin{equation}
+	\fd {\rho_i} {t} = k_I \rho_i(t) N_i (1- \rho_i(t)) + k_I (1 - \rho_i(t)) \sum_j A_{ij} N_j \rho_j(t) - k_S \rho_i(t).
+\end{equation}
+
+Setting the time derivative to $0$ to find the equilibria gives us
+
+\begin{equation}
+	k_I N_i \rho_i(t)^2 + (k_I \sum_j A_{ij} N_j \rho_j(t) - k_I N_i + k_S) \rho_i(t) + k_I \sum_j A_{ij} N_j \rho_j(t) = 0.
+\end{equation}
+
+We first seek homogeneous solutions to this, of the form $\rho_i = \rho, \forall i$, satisfying
+
+\begin{equation}
+	(k_I N_i + k_I \sum_j A_{ij} N_j) \rho^2 + (k_S - k_I N_i + k_I \sum_j A_{ij} N_j) \rho = 0,
+\end{equation}
+
+giving $\rho = 0$, the extinction scenario, or
+
+\begin{equation}
+	\rho_i = 1 - \frac {k_S} {k_I (N_i + \sum_j A_{ij} N_j)}
+	\label{metaHomEq}
+\end{equation}
+
+which is highly reminiscent of the $I = N - \frac {k_S} {k_I}$ equilibrium for the well-mixed scenario, and actually is exactly equivalent for the complete graph, as we would expect. As we assumed homogeneity, we can see that we require the population of a node, summed with the populations of its neighbours, must always be constant. For the complete graph, this does not constrain the populations at all, so this solution always exists there. On the cycle graph, it enforces a repeating pattern of three populations, so for cycle graphs with a multiple of $3$ nodes, the population can be varying between nodes, but on any other cycle graph the nodes must all have the same population for this equilibrium to exist. For the path graph, this equilibrium cannot exist, as there is no way for the "end nodes" to have the same population sums as their neighbours, and this is also the case for the star graph.
+
+If we instead allow for inhomogeneous equilibria, we can simplify the equations somewhat by considering constant "neighbour infectivity", i.e. $\sum_j A_{ij} N_j \rho_j = C$, so every node is at the same risk of infection by a neighbouring node as every other node. The equation then becomes
+
+\begin{equation}
+	k_I N_i \rho_i^2 + (k_I C - k_I N_i + k_S) \rho_i + k_I C= 0.
+\end{equation}
+
+Again the extinction scenario is an equilibrium satisfying constant neighbour infectivity ($C = 0$). The other, endemic equilibria, are given by the complicated expression
+
+\begin{equation}
+	\rho_i = \frac {k_I (N_i - C) - k_S \pm \sqrt{k_I^2 (N_i - C)^2 - 2 k_I k_S (N_i - C) + k_S^2 - 4 k_I^2 N_i C}} {2 k_I N_i},
+\end{equation}
+
+from the quadratic formula. We will show that these are both positive real roots. It is worth noting the comparison to the well-mixed model, for which there is only a single endemic equilibria.
+
+We can rewrite the roots in a more wieldy manner using the variables $c_i = \frac C {N_i}$ and $k_i = \frac {k_S} {2k_I N_i}$ as
+
+\begin{equation}
+	\rho_i = \frac 1 2 (1 - c_i) - k_i \pm \sqrt{\frac 1 4 - \frac {3 c_i} 2 + \frac {c_i^2} {4} - k_i + k_i c_i + k_i^2}.
+\end{equation}
+
+Focusing just on the discriminant, and using $k = k_i N_i = \frac {k_S} {2 k_I}$, for real roots we require
+
+\begin{equation}
+	\frac {N_i^2} {4} - \frac {3C} {2} N_i + \frac {C^2} {4} - k N_i + k C + k^2 \geq 0.
+\end{equation}
+
+This is a positive quadratic in $N_i$, and therefore is satisfied for
+
+\begin{align}
+	N_i &\leq 8(\frac {3C} {2} + k - \sqrt{2 k C + 2 C^2}), \\
+	N_i &\geq 8(\frac {3 C} {2} + k + \sqrt{2 k C + 2 C^2}).
+\end{align}
+
+We can see that both of these roots must be real, as $k, C \geq 0$, and also positive, as
+
+\begin{equation}
+	\left( \frac {3 C} {2} + k \right)^2 = \frac 9 4 C^2 + 3 k C + k^2 > 2 k C + 2 C^2.
+\end{equation}
+
+In a similar vein, we now return to the equation for $\rho_i$
+
+\begin{align}
+	\left( \frac 1 2 (1 - c_i) - k_i \right)^2 &= \frac 1 4 (1 - c_i)^2 - (1- c_i) k_i + k_i^2 \\
+	&= \frac 1 4 - \frac {c_i} 2 + \frac {c_i^2} 4 - k_i + c_i k_i + k_i^2 \\
+	&\geq \frac 1 4 - \frac {3 c_i} 2 + \frac {c_i^2} 4 - k_i + c_i k_i + k_i^2.
+\end{align}
+
+So both $\rho_i \geq 0$, with equality if and only if $c_i = 0$, which gives the extinction equilibrium as expected.
+
+We also have $1 \geq 1 - c_i - 2 k_i \geq \rho_i$, so these are both valid solutions, for some conditions which we now derive.
+
+We note that as $C = \sum_j A_{ij} N_j \rho_j$, we have the vector equation $\v C = \m A (\v N \otimes \boldsymbol{\rho})$, where $\v C$ is the vector where each element is $C$. For our metapopulation model, we have no unconnected vertices, and thus no zero rows or columns in $\m A$, we consider only the case where $\m A$ is invertible. There are no simple conditions for the adjacency matrix of a graph to be invertible, so this process is only applicable to those which do have an invertible adjacency matrix. We can then write $\v N \boldsymbol{\rho} = \m A^{-1} \v C = C \m A^{-1} \v 1$, where $\v 1$ is the vector where each element is $1$. We thus let $\m A^{-1} = \v a$, so we have $\rho_i = \frac {C a_i} {N_i}$. Substituting this into our equation for $\rho_i$ gives
+
+\begin{align}
+	\frac {C a_i} {N_i} &= \frac 1 2 (1 - c_i) - k_i \\
+	&\qquad \pm \sqrt{\frac 1 4 - \frac {3 c_i} 2 + \frac {c_i^2} {4} - k_i + k_i c_i + k_i^2} \\
+	\iff \left( \frac {C a_i} {N_i} + \frac k {N_i} + \frac C {2 N_i} - \frac 1 2 \right)^2 &= \frac 1 4 - \frac {3C} {2N_i} + \frac {C^2} {4 N_i^2} - \frac k {N_i} + \frac {k C} {N_i^2} + \frac {k^2} {N_i^2} \\
+	\iff \frac {C^2 a_i^2} {N_i^2} + \frac {2 C k a_i} {N_i^2} + \frac {C^2 a_i} {N_i^2} - \frac {C a_i} {N_i} &= - \frac C {N_i} \\
+	\iff \frac {C^2 a_i^2} {N_i} + \frac {2 C k a_i} {N_i} + \frac {C^2 a_i} {N_i} - C a_i + C &= 0 \\
+	\iff \left( \frac {a_i^2} {N_i} + \frac {a_i} {N_i} \right) C^2 + \left( \frac {2 k a_i} {N_i} - a_i + \frac 1 {N_i} \right) C &= 0.
+\end{align}
+
+This clearly has two solutions. Trivially, $C=0$, giving the extinction equilibrium. Or
+
+\begin{equation}
+	C = \frac {a_i N_i - 1 - 2 k a_i} {a_i^2 + a_i}.
+\end{equation}
+
+We can rearrange this to give a condition on $N_i$
+
+\begin{equation}
+	N_i = \frac {a_i^2 C + a_i C + 2 k a_i + 1} {a_i}.
+\end{equation}
+
+This is always positive, so after selecting a $C$ we can calculate the necessary $N_i$ for the equilibrium to exist, and then $\rho_i$ will be determined as above. This can obviously only be performed for graphs with an invertible adjacency matrix, as mentioned earlier.
+
+We can now analyse the stability of these equilibria, following the methods set out in \citep{porterDynamicalSystemsNetworks2015}. In their notation, we have
+
+\begin{align}
+	f_i(\rho_i) &= k_I \rho_i(t) N_i (1 - \rho_i(t)) - k_S \rho_i(t), \\
+	g_{ij}(\rho_i, \rho_j) &= k_I N_i (1 - \rho_i(t)) \rho_j(t).
+\end{align}
+
+We likewise also define
+
+\begin{align}
+	a_i &:= k_I N_i (1 - 2 \rho_i^*(t)) - k_S, \\
+	b_{ij} &:= -k_I N_i \rho_j^*(t), \\
+	c_{ij} &:= k_I N_i (1 - \rho_i^*(t)).
+\end{align}
+
+Where $\rho_i^*(t)$ are the equilibria defined above. We then define the matrix $\m M$ as in \citep{porterDynamicalSystemsNetworks2015}
+
+\begin{equation}
+	M_{ij} = \delta_{ij} \left[ a_i + \sum_k b_{ik} A_{ik} \right] + c_{ij} A_{ij}.
+\end{equation}
+
+Letting the eigenvalues of this matrix be $\mu_r$, we then have the usual stability conditions of local asymptotic stability if $\mathrm{Re}(\mu_r) < 0$ for all $r$, instability if any $\mathrm{Re}(\mu_r)> 0$ and more complex stability if some $\mathrm{Re} (\mu_r) = 0$ and none of the eigenvalues have a positive real part.
+
+For the extinction equilibrium, we have
+
+\begin{equation}
+	M_{ij} = k_I N_i A_{ij} + \delta_{ij} (k_I N_i - k_S).
+\end{equation}
+
+We focus now on some simple graphs to examine the behaviour of the model. These are the complete graph $k_5$, the cycle graph $C_5$, the path graph $P_5$, and the star graph $S_4$. These are chosen for their simple nature, making them easy to analyse, and their different properties giving us a good intuition for how more complex structures may behave, and they all have the same number of nodes, making them easily comparable. The adjacency matrices are as follows, along with the population vectors required to permit homogeneous equilibria. The matrices $\m M$ for extinction are given by $\m M = k_I \m A + k_I \m N - k_S \m I$ where $\m N$ is the matrix with the populations on the diagonal, and zeroes everywhere else. 
+
+\begin{tabular}{c c c}
+	Graph & $\m A$ & homogeneous equilibrium populations \\ [20pt]
+	$k_5$ &
+	$
+	\begin{pmatrix}
+		0 & 1 & 1 & 1 & 1 \\
+		1 & 0 & 1 & 1 & 1 \\
+		1 & 1 & 0 & 1 & 1 \\
+		1 & 1 & 1 & 0 & 1 \\
+		1 & 1 & 1 & 1 & 0
+	\end{pmatrix}$ &
+	$
+	\begin{pmatrix}
+		N \\
+		N \\
+		N \\
+		N \\
+		N
+	\end{pmatrix}$ \\ [35pt] 
+	$C_5$ &
+	$
+	\begin{pmatrix}
+		0 & 1 & 0 & 0 & 1 \\
+		1 & 0 & 1 & 0 & 0 \\
+		0 & 1 & 0 & 1 & 0 \\
+		0 & 0 & 1 & 0 & 1 \\
+		1 & 0 & 0 & 1 & 0
+	\end{pmatrix}$ &
+	$
+	\begin{pmatrix}
+		N-1 \\
+		N-1 \\
+		N-1 \\
+		N-1 \\
+		N-1
+	\end{pmatrix}$ \\ [35pt]
+	$P_5$ &
+	$
+	\begin{pmatrix}
+		0 & 1 & 0 & 0 & 0 \\
+		1 & 0 & 1 & 0 & 0 \\
+		0 & 1 & 0 & 1 & 0 \\
+		0 & 0 & 1 & 0 & 1 \\
+		0 & 0 & 0 & 1 & 0
+	\end{pmatrix}$ &
+	$
+	\begin{pmatrix}
+		N-1 \\
+		N-2 \\
+		N-2 \\
+		N-2 \\
+		N-1
+	\end{pmatrix}$ \\ [35pt]
+	$S_4$ &
+	$
+	\begin{pmatrix}
+		0 & 1 & 1 & 1 & 1 \\
+		1 & 0 & 0 & 0 & 0 \\
+		1 & 0 & 0 & 0 & 0 \\
+		1 & 0 & 0 & 0 & 0 \\
+		1 & 0 & 0 & 0 & 0
+	\end{pmatrix}$ &
+	$
+	\begin{pmatrix}
+		N-4 \\
+		N-1 \\
+		N-1 \\
+		N-1 \\
+		N-1
+	\end{pmatrix}$
+\end{tabular}
+
+For $k_5$ the eigenvalues of the extinction $\m M$ are $k_I N - k_S - k_I$ with degeneracy $4$ and $k_I N - k_S + 3 k_I$ with degeneracy $1$. Both are clearly real, so as $k_I > 0$, this last one is clearly the larger of the two. For stability of the extinction equilibrium we therefore require $N + 3 < \frac {k_S} {k_I}$. This requires either extremely small populations, or a much higher rate of recovery than rate of infection, as we would expect.
+
+For $C_5$ we find the eigenvalues are given by the solutions of the quintic equation
+
+\begin{equation}
+	(k_I N - k_I - k_S - \lambda)^5 - 5 k_I^2 (k_I N - k_I - k_S - \lambda)^3 + 4 k_I^4 (k_I N - k_I - k_S - \lambda) + 3 k_I^5 = 0.
+\end{equation}
+
+Numerically, we can calculate that the eigenvalues are given by $\lambda = k_I N - k_I - k_S - \gamma k_I$, where $\gamma \in \{ -2.10182, 1.44392, 1.8079, -0.575001 \pm 0.464919i \}$. The eigenvalue with the largest real part is therefore the one corresponding to $\gamma = -2.10182$, giving us the stability condition $\frac {k_S} {k_I} + 1 - N > 2.10182$. In other words, the extinction equilibrium again requires either very small populations or a very large ratio of recovery to infection.
+
+For $P_5$ we again have the eigenvalues given by the solutions of a quintic equation, where if the eigenvalues are $\lambda$ and we write $x = k_I N - k_I - k_S - \lambda$, we have
+
+\begin{equation}
+	x^5 - 3 k_I x^4 - k_I^2 x^3 + 4 k_I^3 x^2 - k_I^5 = 0
+\end{equation}
+
+which has solutions $x = \gamma k_I$, where $\gamma \in \{-1.13883, -0.459892, 0.510197, 1.38348, 2.70504 \}$. We therefore have $\lambda = (N - 1 - \gamma) k_I - k_S$, so all of the eigenvalues are real, and the largest is given by $(N - 1 + 1.13883) k_I - k_S$, as $k_I > 0$. So for stability of the extinction equilibrium, we require $\frac {k_S} {k_I} > N + 0.13883$. Again, this requires either very small populations or a very large ratio of recovery to infection.
+
+Finally, for $S_4$ the eigenvalues are given by $\lambda = k_I N - k_I - k_S$ with degeneracy 3 and $\lambda = k_I N - k_S - \frac {5 k_I} {2} \pm \frac {k_I} {2} \sqrt{25 - 8 N^2}$. For $N < \frac {5} {2 \sqrt{2}}$ these last lambda are real, and are at most $k_I N - k_S$, so if we have $\frac {k_S} {k_I} > N$, then the extinction equilibrium is stable. If $N$ is larger, the second expression for $\lambda$ is complex, and has real part smaller than $k_I N - k_I - k_S$, so for stability we require $\frac {k_S} {k_I} > N-1$, requiring either small population or large recovery to infection ratio once again.
+
+These changes in the stability of the extinction equilibrium all correspond to a transcritical bifurcation, where the equilibrium at $\rho_i = 0$ always exists, but its stability changes as we vary the system parameters. In fact, the homogeneous equilibrium given by \ref{metaHomEq} drops below $0$ when the equilibrium at $0$ becomes stable. We refer to these regimes from now on as the "supercritical" (unstable $0$ equilibrium) and "subcritical" (stable $0$ equilibrium) regimes.
+
+We therefore now simulate the different networks in the regime where extinction is stable, and where it is unstable. The populations were set as in the table above, with $N=500$. The parameters used were $k_I = 0.002$ in all simulations, with $k_S = 0.2$ in the supercritical cases and $k_S = 20$ in the subcritical cases. All simulations started with $20$ individuals infected on node $0$, which is the central node in $S_4$ and one of the end nodes in $P_5$.
+
 \begin{figure}
 	\centering
-	\begin{subfigure}[t]{0.45\textwidth}
+	\begin{subfigure}[t]{0.24\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISmetak5.png}
-		\caption{$k_5$}
-		\label{fig:SISmetak5}
+		\includegraphics[width=\textwidth]{figs/SISmetak5sub.png}
+		\caption{Subcritical $k_5$}
+		\label{fig:SISmetak5sub}
 	\end{subfigure}
-	\begin{subfigure}[t]{0.45\textwidth}
+	\begin{subfigure}[t]{0.24\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISmetacycle5.png}
-		\caption{$C_5$}
-		\label{fig:SISmetacycle5}
+		\includegraphics[width=\textwidth]{figs/SISmetak5sup.png}
+		\caption{Supercritical $k_5$}
+		\label{fig:SISmetak5sup}
 	\end{subfigure}
-	\begin{subfigure}[b]{0.45\textwidth}
+	\begin{subfigure}[t]{0.24\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISmetalollipop3_2.png}
-		\caption{$\mathrm{lollipop}(3, 2)$}
-		\label{fig:SISmetalollipop3}
+		\includegraphics[width=\textwidth]{figs/SISmetaC5sub.png}
+		\caption{Subcritical $C_5$}
+		\label{fig:SISmetaC5sub}
 	\end{subfigure}
-	\begin{subfigure}[b]{0.45\textwidth}
+	\begin{subfigure}[t]{0.24\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISmetaTuran5_2.png}
-		\caption{$\mathrm{Turan}(5, 2)$}
-		\label{fig:SISmetaTuran5}
+		\includegraphics[width=\textwidth]{figs/SISmetaC5sup.png}
+		\caption{Supercritical $C_5$}
+		\label{fig:SISmetaC5sup}
 	\end{subfigure}
-	\caption{A set of metapopulation SIS simulations on different graphs, all with $5$ nodes, each figure showing $20$ realisations. \ref{fig:SISmetak5} shows the realisations on the complete graph with $5$ nodes, $k_5$. \ref{fig:SISmetacycle5} shows the realisations on the cycle graph with $5$ nodes, $C_5$. \ref{fig:SISmetalollipop3} shows the realisations on the lollipop graph consisting of $k_3$ joined to path graph of $2$ nodes. \ref{fig:SISmetaTuran5} shows the realisations on the Turán graph with $5$ nodes, split into $2$ groups, so a bipartite complete graph, with partitions of $2$ and $3$ nodes. The same starting conditions were applied to each graph, where we set node $0$ to have a single infected individual, and all other nodes to have $0$ infected. The populations of the nodes were $(100, 200, 300, 400, 500)$, and the model coefficients were $k_I = 0.002$ and $k_S = 0.1$, as in the well-mixed model. The flat traces in the latter $3$ plots are those in which the infection died out.}
+	\begin{subfigure}[b]{0.24\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISmetaP5sub.png}
+		\caption{Subcritical $P_5$}
+		\label{fig:SISmetaP5sub}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.24\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISmetaP5sup.png}
+		\caption{Supercritical $P_5$}
+		\label{fig:SISmetaP5sup}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.24\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISmetaS4sub.png}
+		\caption{Subcritical $S_4$}
+		\label{fig:SISmetaS4sub}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.24\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISmetaS4sup.png}
+		\caption{Supercritical $S_4$}
+		\label{fig:SISmetaS4sup}
+	\end{subfigure}
+	\caption{Simulations of the metapopulation SIS model on various graphs, with both supercritical and subcritical parameter values. As expected, in all of the supercritical simulations, the trajectories tend to an endemic equilibrium. In the subcritical cases, the trajectories all go to the extinction equilibrium, as we would again expect. The blue dotted lines in each graph show the location of the endemic and extinction equilibria, the endemic equilibria calculated as the homogeneous equilibria given by \ref{metaHomEq}. Although this equilibrium cannot exist for $P_5$ or $S_4$, it does appear that there is some kind of quasistable attractor there for these graphs, as the trajectories of different realisations do all seem to approach this value. All of the supercritical scenarios show a logistic-like growth, though $S_4$ appears to show a more linear characteristic, likely as a result of the specific way in which the graph is connected.}
 	\label{figs:SISmeta}
 \end{figure}
-
-It is clear from the plots that the nature of the graph in question has a large impact on the disease spread. While all of the scenarios followed a similar logistic curve-like behaviour, they vary greatly in the speed of the infection, as well as in the variance between the traces. As we would expect from \ref{SISmetameans}, the more well connected graphs have a generally faster rate of spread than the sparser graphs. The variance also appears to be tied to the connectedness of the different graph structures, as \ref{fig:SISmetacycle5} and \ref{fig:SISmetalollipop3} appear, visually, to have a higher variance than \ref{fig:SISmetak5} and \ref{fig:SISmetaTuran5}, and they correspond to graphs with a lower average node degree.
 
 \section{Networked individuals model}
 
@@ -785,7 +1056,22 @@ By setting the average number of infected individuals to $M(t) = \sum_{i} p_i(t)
 	&= k_I \sum_{i, j} (1-p_i(t)) A_{ij} p_j(t) - k_S M(t).
 \end{align}
 
-It is clear from the equation that the structure of the network in question has a major impact on the spread of the disease. This is therefore difficult to directly analyse for an arbitrary network, so we will look at only the complete graph, due to its simple adjacency matrix. For this graph, the equation reduces to
+We can take the mean-field limit here, and treat $p_i(t)$ and $p_j(t)$ as independent and identically distributed, giving
+
+\begin{align}
+	\fd {M} {t} &= k_I \sum_{ij} A_{ij} p_j(t) - k_I \sum_{ij} A_{ij} p_i(t) p_j(t) - k_S M(t) \\
+	&\approx k_I \bar{d(A)} M(t) - k_I \bar{d(A)} \sum_{i} p_i(t)^2 - k_S M(t), 
+\end{align}
+
+where $\bar{d(A)}$ is the average degree of the nodes. Then using the identity $V(t) = \sum_{i} p_i(t)^2 - M(t)^2$, we get
+
+\begin{equation}
+	\fd {M} {t} \approx k_I \bar{d(A)} M(t) - k_I \bar{d(A)} V(t) - k_I \bar{d(A)} M(t)^2 - k_S M(t).
+\end{equation}
+
+This is clearly the same as the equation for the mean in the well-mixed case, with a scaled infection coefficient $k_I \bar{d(A)}$.
+
+It is difficult to directly analyse this system for an arbitrary network, so we will look at only the complete graph, due to its simple adjacency matrix. For this graph, the original equation reduces to
 
 \begin{equation}
 	\fd {M} {t} = k_I N M(t) - k_I \sum_{i \neq j} p_i p_j - k_S M(t).
@@ -927,6 +1213,8 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 	\caption{A set of simulations of the SIS model on percolation graphs, these being $2$D lattices where each edge is removed, so that edges exist with probability $p$, as given in the captions. We see clearly the drastic effect on the disease dynamics. For the subcritical graph, with $p < 0.5$, only a small number of individuals are infected, and the initial growth is roughly linear. For the critical graph, where $p = 0.5$, a reasonable proportion of the population are infected, but the infection spreads fairly linearly at a similar rate to the subcritical case, and is limited to this connected pocket. For the supercritical graph, where $p > 0.5$, we see that a much larger fraction of the total population is infected, and the pattern of infection more closely resembles the usual logistic curve. For all simulations, the population was $600$, on a $30 \times 20$ lattice. The parameters were $k_I = 0.2$, $k_S = 0.05$.}
 	\label{figs:SISindvperc}
 \end{figure}
+
+These different kinds of random graphs exhibit a variety of interesting properties, but all also have limitations compared to real-life examples of social networks. The Erdos-Renyi model exhibits low clustering, which is not the case with real social networks (if person $A$ knows people $B$ and $C$, then it is generally likely that person $B$ knows person $C$). The Barabasi-Albert model and Watts-Strogatz model don't suffer from this problem, but have their own shortcomings. The Watts-Strogatz model does exhibit high clustering, as well as the small-world property (including short average path lengths, the famous "seven degrees of separation" idea), but is not scale-free, which social networks are thought to be. This is a shortcoming that the Barabasi-Albert model seeks to address, however it too does not demonstrate the small-world property. A further abstraction is made in the percolation-type networks, where every individual can only be connected to a maximum of $4$ others. This isn't highly realistic for most diseases, though could be the case for diseases spread only through specific forms of contact (such as STIs or blood-borne diseases), which most individuals only experience with a small number of others. The percolation graphs demonstrate a strong difference in behaviour based on how well-connected the network is as a whole, which may be useful in understanding the spread of diseases such as HIV, HPV, or hepatitis.
 
 \bibliography{mybib.bib}
 

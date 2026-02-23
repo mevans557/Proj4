@@ -128,7 +128,7 @@ def iterate_Gillespie(G, I, N, kI, delta, stop=100, step=0.1, draw=False):
     A = nx.to_scipy_sparse_array(G)
     while (t <= stop):
         loop += 1
-        if (draw and (loop % 50 == 0)):
+        if (draw and (loop % 100 == 0)):
             draw_graph(G, I, N)
         I, tau = Gillespie(A, I, N, kI, delta)
         t += tau
@@ -165,12 +165,12 @@ def draw_graph(G, I, N, colours=plt.cm.viridis):
     plt.show()
 
 
-G = nx.path_graph(5)
+G = nx.complete_graph(5)
 Ii = np.zeros(5)
 Ni = np.array([500, 500, 500, 500, 500])
 Ii[0] = 20
 
-iters = 50
+iters = 1
 END = 5
 k_I = 0.002
 k_S = 0.2
@@ -183,7 +183,7 @@ processes = []
 for i in range(iters):
     par_conn, child_conn = Pipe()
     process = Process(target=mult_Gillespie, args=(
-        G, Ii, Ni, k_I, k_S, child_conn, END,))
+        G, Ii, Ni, k_I, k_S, child_conn, END, 0.1, False,))
     processes.append(process)
     conns.append(par_conn)
     process.start()

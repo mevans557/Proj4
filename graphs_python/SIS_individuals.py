@@ -1,6 +1,7 @@
 import numpy as np
 import scipy as sp
 import networkx as nx
+import pandas as pd
 from matplotlib import pyplot as plt
 from multiprocessing import Process, Pipe
 
@@ -58,7 +59,8 @@ def iterate_Gillespie(G, I, kI, kS, stop=100, step=0.1, drawer=None):
     t = 0
     ts = [t]
     Is = [I]
-    Isum = [1]
+    Isum = []
+    Isum.append(np.sum(I))
     loop = 0
     A = nx.to_scipy_sparse_array(G)
     while (t <= stop):
@@ -100,8 +102,8 @@ def draw_graph(G, I, colours=plt.cm.viridis):
     colours (optional): the colourmap to use
     '''
     nx.set_node_attributes(G, "green", name="node_color")
-    nx.draw_circular(G, node_color=I, node_size=100,
-                     vmin=0, vmax=1, cmap=colours)
+    nx.draw(G, node_color=I, node_size=100,
+            vmin=0, vmax=1, cmap=colours)
     plt.show()
 
 
@@ -120,6 +122,18 @@ def make_perc_graph(width, length, pr):
     return G
 
 
+def make_fb_graph():
+    facebook = pd.read_csv(
+        # Dataset from the SNAP database
+        "https://snap.stanford.edu/data/facebook_combined.txt.gz",
+        compression="gzip",
+        sep=" ",
+        names=["start_node", "end_node"],
+    )
+    G = nx.from_pandas_edgelist(facebook, "start_node", "end_node")
+    return G
+
+
 def draw_perc(gr, I, colours=plt.cm.viridis):
     '''
     Draws a percolation graph, with correct positioning
@@ -135,14 +149,23 @@ def draw_perc(gr, I, colours=plt.cm.viridis):
     plt.show()
 
 
+# PERCOLATION STUFF
 WIDTH = 20
 LENGTH = 30
 mid = WIDTH*LENGTH//2 + WIDTH//2
 G = make_perc_graph(20, 30, 0.55)
 I = np.zeros(600)
 I[mid] = 1
+
+
+# FACEBOOK STUFF
+# I = np.zeros(4039)
+# G = make_fb_graph()
+# for i in range(20):
+#     I[i] = 1
+
 k_I = 0.2
-k_S = 0.05
+k_S = 0.1
 iters = 1
 
 tcollect = []
@@ -153,7 +176,7 @@ processes = []
 for i in range(iters):
     par_conn, child_conn = Pipe()
     process = Process(target=mult_Gillespie, args=(
-        G, I, k_I, k_S, child_conn, 300, 0.1, draw_perc))
+        G, I, k_I, k_S, child_conn, 500, 0.1, draw_perc))
     processes.append(process)
     conns.append(par_conn)
     process.start()
@@ -170,7 +193,7 @@ for i in range(iters):
     plt.plot(tcollect[i], Icollect[i])
 
 
-plt.title("SSA of SIS metapopulation model on Graph Infecteds over Time")
+# plt.title("SSA of SIS Individuals model on Graph Infecteds over Time")
 plt.xlabel("Time t")
 plt.ylabel("Infecteds I(t)")
 plt.show()

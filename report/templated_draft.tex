@@ -999,7 +999,11 @@ We therefore now simulate the different networks in the regime where extinction 
 
 To give even more depth to the spatial aspect of this model, we can apply it to a networked population where rather than each node representing a smaller population, each node represents an individual in the overall population. In this kind of model, the precise network structure chosen has a large impact on the behaviour of the model. We focus on a few kinds. Firstly, the complete graph. This should entirely reproduce the results of the well-mixed model, as every individual is in contact with every other individual. Second, we shall consider graphs with low maximum node degree, which may provide sensible models for diseases spread only through specific contact, such as exclusively blood-borne, or sexually-transmitted diseases. These will be the cycle graph, where each individual is connected to exactly $2$ others; and the lattice graph, with each individual connected to (generally) $4$ neighbours. We will also examine how random percolation on this lattice graph may affect the disease spread characteristics, as well as how the disease itself may have percolation-like effects. Finally, we will look at random graphs more closely mimicking social networks, specifically Barabasi-Albert, Watts-Strogatz, and Erdos-Renyi networks, the former being of particular interest due to being a scale-free network. This is a characteristic which is observed to be common to many social networks. The Watts-Strogatz networks demonstrate high clustering, and specifically the small-world property, which are also observed in a variety of real-world networks. These can all be generated easily using the NetworkX package for Python.
 
-Adopting the notation from the metapopulation model, we let $\v{I}$ be the vector storing whether a given node is infected or not, by setting $I_i = 1$ if node $i$ is infected, and $I_i = 0$ otherwise. We set $\m{A}$ to be the adjacency matrix for the graph under examination. We also set the infection rate at $k_I$, and the recovery rate at $k_S$.
+Adopting the notation from the metapopulation model, we let $\v{I}$ be the vector storing whether a given node is infected or not, by setting $I_i = 1$ if node $i$ is infected, and $I_i = 0$ otherwise. We set $\m{A}$ to be the adjacency matrix for the graph under examination. We also set the infection rate at $k_I$, and the recovery rate at $k_S$. The chemical equations are
+
+\begin{equation}
+	\ce{S_i + I_j ->[A_{ij} k_I] 2 I} \qquad \ce{I_i ->[k_S] S_i}.
+\end{equation}
 
 The infection is spread according to the following modified Gillespie SSA:
 
@@ -1035,7 +1039,7 @@ Taking the limit as $\Delta t \rightarrow 0$ gives
 
 \begin{align}
 	\fd {p_i} {t} &= k_I (1 - p_i(t)) \sum_j A_{ij} p_j(t) - k_S p_i(t) \\
-	&= k_I \sum_j A_{ij} p_j(t) - \left( k_I \sum_j A_{ij} p_j(t) + k_S \right) p_i(t).
+	&= k_I \sum_j A_{ij} p_j(t) - \left( k_I \sum_j A_{ij} p_j(t) + k_S \right) p_i(t). \label{indvCME}
 \end{align}
 
 This can then be rewritten in vector notation
@@ -1074,7 +1078,7 @@ This is clearly the same as the equation for the mean in the well-mixed case, wi
 It is difficult to directly analyse this system for an arbitrary network, so we will look at only the complete graph, due to its simple adjacency matrix. For this graph, the original equation reduces to
 
 \begin{equation}
-	\fd {M} {t} = k_I N M(t) - k_I \sum_{i \neq j} p_i p_j - k_S M(t).
+	\fd {M} {t} = k_I (N-1) M(t) - k_I \sum_{i \neq j} p_i p_j - k_S M(t)
 \end{equation}
 
 This is highly reminiscent of the well-mixed mean (\ref{SISmixmean}), as we would expect, and the similarity of \ref{fig:SISindvcomp} to \ref{fig:SISmix} is apparent.
@@ -1085,6 +1089,15 @@ This is highly reminiscent of the well-mixed mean (\ref{SISmixmean}), as we woul
 	\caption{A plot of $20$ realisations of the modified Gillespie SSA on the complete graph $k_{500}$, where each node is an individual. Parameters used were $k_I = 0.002$, $k_S = 0.1$.}
 	\label{fig:SISindvcomp}
 \end{figure}
+
+We can make a brief attempt to find and analyse some equilibria of these systems, by treating the CME probabilities as a continuous approximation of the system, where we can interpret the probabilities approximately as the amount of time we would expect to see a given node infected for. Setting the derivative in the CME \ref{indvCME} to $0$, we get a rather complex expression for the probabilities. To simplify the situation, we consider the mean-field approximation, where we take all $p_i = p$ to be identically and independently distributed. This gives us
+
+\begin{align}
+	0 &= k_I p(t) \sum_j A_{ij} - k_I p^2(t) \sum_j A_{ij} - k_S p(t) \\
+	&= p(t) \left( k_I \sum_j A_{ij} - k_I p(t) \sum_j A_{ij} - k_S \right).
+\end{align}
+
+This clearly shows that $p_i = p = 0$ is an equilibrium of the system, as we would expect. The other possibility is given by $p(t) = 1 - \frac {k_S} {k_I \sum_j A_{ij}}$. The requirement that $p(t)$ are all identical requires that $\sum_j A_{ij}$ is the same for all $i$. This is satisfied, for example, by several kinds of tree graph, the complete graph, the cycle graph, and (in the infinite limit) the $2$D lattice. We again see that in the case of the complete graph, we reproduce behaviour very close to that of the well-mixed model, as if we sum over the $p_i$, we get $M = N - \frac {k_S N} {k_I (N-1)}$. Analysing the stability of these equilibria is unfortunately very difficult, as we would be required to find the eigenvalues of an $N \times N$ matrix, where $N$ is in general very large. However, as the behaviour is not dissimilar to the well-mixed and metapopulation models, we could expect to see some kind of critical point at which the extinction equilibrium becomes stable.
 
 We now simulate the infection on a variety of graph structures. We begin with a few simple types of graph, in order to demonstrate some important effects. These are the Cycle graph, Tadpole graph, Lollipop graph, and Barbell graph. We then move on to some more complex random-generated graphs, these being the Erdos-Renyi, Barabasi-Albert, and Watts-Strogatz. We then simulate on a small selection of percolation-type lattices, with differing percolation coefficients.
 
@@ -1214,7 +1227,7 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 	\label{figs:SISindvperc}
 \end{figure}
 
-These different kinds of random graphs exhibit a variety of interesting properties, but all also have limitations compared to real-life examples of social networks. The Erdos-Renyi model exhibits low clustering, which is not the case with real social networks (if person $A$ knows people $B$ and $C$, then it is generally likely that person $B$ knows person $C$). The Barabasi-Albert model and Watts-Strogatz model don't suffer from this problem, but have their own shortcomings. The Watts-Strogatz model does exhibit high clustering, as well as the small-world property (including short average path lengths, the famous "seven degrees of separation" idea), but is not scale-free, which social networks are thought to be. This is a shortcoming that the Barabasi-Albert model seeks to address, however it too does not demonstrate the small-world property. A further abstraction is made in the percolation-type networks, where every individual can only be connected to a maximum of $4$ others. This isn't highly realistic for most diseases, though could be the case for diseases spread only through specific forms of contact (such as STIs or blood-borne diseases), which most individuals only experience with a small number of others. The percolation graphs demonstrate a strong difference in behaviour based on how well-connected the network is as a whole, which may be useful in understanding the spread of diseases such as HIV, HPV, or hepatitis.
+These different kinds of random graphs exhibit a variety of interesting properties, but all also have limitations compared to real-life examples of social networks. The Erdos-Renyi model exhibits low clustering, which is not the case with real social networks (if person $A$ knows people $B$ and $C$, then it is generally likely that person $B$ knows person $C$). The Barabasi-Albert model and Watts-Strogatz model don't suffer from this problem, but have their own shortcomings. The Watts-Strogatz model does exhibit high clustering, as well as the small-world property (including short average path lengths, the famous "seven degrees of separation" idea), but is not scale-free, which social networks are thought to be. This is a shortcoming that the Barabasi-Albert model seeks to address, however it too does not demonstrate the small-world property. A further abstraction is made in the percolation-type networks, where every individual can only be connected to a maximum of $4$ others. This isn't highly realistic for most diseases, though could be the case for diseases spread only through specific forms of contact (such as STIs or blood-borne diseases), which most individuals only experience with a small number of others. The percolation graphs demonstrate a strong difference in behaviour based on how well-connected the network is as a whole, which may be useful in understanding the spread of diseases such as HIV, HPV, or hepatitis. We also see very clearly from these different simulations that the specifics of a given graph have a very strong impact on the disease characteristics.
 
 \bibliography{mybib.bib}
 

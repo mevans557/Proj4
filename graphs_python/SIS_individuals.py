@@ -4,6 +4,7 @@ import networkx as nx
 import pandas as pd
 from matplotlib import pyplot as plt
 from multiprocessing import Process, Pipe
+from griddify import griddify
 
 
 def evolve_graph(A, I, k_I, k_S):
@@ -52,7 +53,7 @@ def iterate_Gillespie(G, I, kI, kS, stop=100, step=0.1, drawer=None):
     kI: infection rate
     delta: recovery rate (no immunity)
     stop: optional, time to stop simulating at
-    step: optional, time steps to take
+    step: optional, time steps to take (deprecated)
     draw: optional, whether the graph should be drawn (if so, drawn every 50 loops)
     Returns two lists, one storing times, the other storing infected populations
     '''
@@ -107,17 +108,19 @@ def draw_graph(G, I, colours=plt.cm.viridis):
     plt.show()
 
 
-def make_perc_graph(width, length, pr):
+def make_perc_graph(width, length, pr, seed):
     '''
     Creates a networkx lattice graph, on which percolation has been performed.
     Params:
     width: the width of the lattice
     length: the length of the lattice
     pr: the probability of a given edge existing
+    seed: seed for random generator, for repeatability
     Returns a networkx graph
     '''
     G = nx.grid_2d_graph(width, length)
-    remove = [edge for edge in G.edges if (np.random.random() > pr)]
+    rng = np.random.default_rng(seed)
+    remove = [edge for edge in G.edges if (rng.random() > pr)]
     G.remove_edges_from(remove)
     return G
 
@@ -151,10 +154,10 @@ def draw_perc(gr, I, colours=plt.cm.viridis):
 
 # PERCOLATION STUFF
 WIDTH = 20
-LENGTH = 30
+LENGTH = 25
 mid = WIDTH*LENGTH//2 + WIDTH//2
-G = make_perc_graph(20, 30, 0.55)
-I = np.zeros(600)
+G = make_perc_graph(20, 25, 0.5, 20)  # Seeded for repeatability
+I = np.zeros(500)
 I[mid] = 1
 
 
@@ -164,9 +167,16 @@ I[mid] = 1
 # for i in range(20):
 #     I[i] = 1
 
-k_I = 0.2
-k_S = 0.1
-iters = 1
+
+# Networkx Builtin Graphs
+# G = nx.watts_strogatz_graph(500, 40, 0.5)
+# I = np.zeros(500)
+# I[0] = 1
+
+k_I = 0.1
+k_S = 0.02
+iters = 20
+END = 600
 
 tcollect = []
 Icollect = []
@@ -176,7 +186,7 @@ processes = []
 for i in range(iters):
     par_conn, child_conn = Pipe()
     process = Process(target=mult_Gillespie, args=(
-        G, I, k_I, k_S, child_conn, 500, 0.1, draw_perc))
+        G, I, k_I, k_S, child_conn, END, 0.1, None))
     processes.append(process)
     conns.append(par_conn)
     process.start()
@@ -189,11 +199,27 @@ for conn in conns:
 for proc in processes:
     proc.join()
 
+
+# GRID
+tgrid = np.arange(0, END, END/(I.size*4))
+Igrid = []
 for i in range(iters):
-    plt.plot(tcollect[i], Icollect[i])
+    Igrid.append(griddify(np.array(tcollect[i]), tgrid, np.array(Icollect[i])))
+
+Igrida = np.array(Igrid)
+avs = np.sum(Igrida, 0)/iters
+sds = np.sqrt(np.sum(Igrida**2, 0)/iters - avs**2)
+
+plt.plot(tgrid, avs, "g")
+plt.plot(tgrid, avs + 3*sds, "--r")
+plt.plot(tgrid, avs - 3*sds, "--r")
+
+
+# for i in range(iters):
+#     plt.plot(tcollect[i], Icollect[i])
 
 
 # plt.title("SSA of SIS Individuals model on Graph Infecteds over Time")
-plt.xlabel("Time t")
-plt.ylabel("Infecteds I(t)")
+# plt.xlabel("Time t")
+# plt.ylabel("Infecteds I(t)")
 plt.show()

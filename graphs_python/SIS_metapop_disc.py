@@ -168,11 +168,11 @@ def draw_graph(G, I, N, colours=plt.cm.viridis):
 
 G = nx.complete_graph(5)
 Ii = np.zeros(5)
-Ni = np.array([500, 500, 500, 500, 500])
+Ni = np.array([1000, 1000, 1000, 1000, 1000])
 Ii[0] = 20
 
 iters = 100
-END = 5
+END = 2
 k_I = 0.002
 k_S = 0.2
 
@@ -214,12 +214,11 @@ sds = np.sqrt(np.sum(Igrida**2, 0)/iters - avs**2)
 plt.plot(tgrid, avs, "g")
 plt.plot(tgrid, avs + 3*sds, "--r")
 plt.plot(tgrid, avs - 3*sds, "--r")
-plt.show()
 
-'''
+
 linet = [0, END]
 extinct = [0, 0]
-endemic = 1500*(1 - k_S/(k_I * 1500)) + 1000*(1 - k_S/(k_I * 1000))
+endemic = 5000*(1 - k_S/(k_I * 5000))
 lineI = [endemic, endemic]
 
 plt.plot(linet, lineI, '--b')
@@ -228,4 +227,3 @@ plt.plot(linet, extinct, '--b')
 plt.xlabel("Time t")
 plt.ylabel("Total Infecteds I(t)")
 plt.show()
-'''

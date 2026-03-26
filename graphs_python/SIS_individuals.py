@@ -161,11 +161,11 @@ I = np.zeros(500)
 I[mid] = 1
 
 
-# FACEBOOK STUFF
-# I = np.zeros(4039)
-# G = make_fb_graph()
-# for i in range(20):
-#     I[i] = 1
+    # FACEBOOK STUFF
+    I = np.zeros(4039)
+    G = make_fb_graph()
+    for i in range(20):
+        I[i] = 1
 
 
 # Networkx Builtin Graphs
@@ -178,10 +178,10 @@ k_S = 0.02
 iters = 20
 END = 600
 
-tcollect = []
-Icollect = []
-conns = []
-processes = []
+    tcollect = []
+    Icollect = []
+    conns = []
+    processes = []
 
 for i in range(iters):
     par_conn, child_conn = Pipe()
@@ -191,13 +191,13 @@ for i in range(iters):
     conns.append(par_conn)
     process.start()
 
-for conn in conns:
-    ts, Is = conn.recv()
-    tcollect.append(ts)
-    Icollect.append(Is)
+    for conn in conns:
+        ts, Is = conn.recv()
+        tcollect.append(ts)
+        Icollect.append(Is)
 
-for proc in processes:
-    proc.join()
+    for proc in processes:
+        proc.join()
 
 
 # GRID

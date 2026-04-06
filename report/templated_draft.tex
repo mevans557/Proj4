@@ -181,7 +181,7 @@
 			\includegraphics[scale=0.8]{figs/durham-logo.pdf}
 			\vspace{45mm}
 			
-			\Huge \textbf{All your nodes are belong to us: An exploration of percolation-like disease modelling.}
+			\Huge \textbf{Giving Facebook users Chlamydia: An exploration of networked SIS disease modelling.}
 			
 			\vspace{15mm}
 			\large
@@ -283,11 +283,11 @@ Disease modelling has the potential to impact governmental policy with regards t
 
 Now the effects of the COVID-19 pandemic are waning, and so it is important to build upon the huge amount of work that was done at the time, to develop more accurate and useful models for other diseases with different attributes, such as passive immunity from birth. These models can help to shape public policy surrounding not just pandemics and outbreaks, but also vaccination programmes, and other forms of aid globally.
 
-\chapter{The SIS Model}
-
 Here we outline a variety of different approaches to implementing a discrete SI model, consisting of a well-mixed model; a networked discrete metapopulation model (where each node has a population generally greater than $1$); and a networked individuals model (where each node represents an individual, and has a state of either infected or susceptible).
 
-\section{Well-mixed model}
+\chapter{Well-mixed model}
+
+\section{The Gillespie SSA and Mass-Action Approximation}
 
 We consider the population to behave like a chemical reaction, and so leverage the mathematical tools relevant to that field here. The reactions we consider are:
 
@@ -361,6 +361,8 @@ We can also perform a linear stability analysis to predict the expected behaviou
 	\caption{A plot of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted black line is the deterministic mean calculated using the mass action approximation. Only $19$ traces are visible, as $1$ realisation hit extinction - an example of the effects of discretisation on the system. We see that as expected, the mass action approximation appears to be an approximate average of the realisations. We also see that when stopping after some finite time, the solutions are all close to the endemic equilibrium, as predicted by our work with the SDE for the system.}
 	\label{fig:SISmix}
 \end{figure}
+
+\section{The Chemical Master Equation and Probability Generating Function}
 
 To gain a more accurate analysis, we leverage the Chemical Master Equation (CME). We begin by considering $P_n (t) = \mathbb{P}(I(t) = n)$. We also have that $P_k (t) \equiv 0$ for $k < 0$ and $k > N$. Then
 
@@ -466,6 +468,8 @@ Attempting to solve this numerically, using tools such as VisualPDE, does not se
 
 However, due to the difficulty in determining a good boundary condition at $x = -1$, and of then numerically calculating the PGF, we will not do this here, and will instead move onto an analysis of the stationary distribution.
 
+\section{The Stationary Distribution}
+
 We define the stationary distribution as
 
 \begin{equation}
@@ -495,6 +499,8 @@ We can also consider the recovery-free (SI) model, by setting $k_S - 0$. This gi
 \end{equation}
 
 Now setting $n = 0$ clearly gives $\phi(0) = 0$, as we would expect. In fact, it is then clear that all $\phi(n) = 0$, for all $n < N$. For $n = N$, the steady-state CME gives us no information, but again using $\sum_{k = 0}^N \phi(k) = 1$, we see that $\phi(N) = 1$. Again this makes sense, as with no recovery, we expect the whole population to become infected.
+
+\section{Stochastic Differential Equation Approach, and Finite-Time Stationary Distribution Approximation}
 
 The final approach we can consider to obtain more information about the system, is to approximate it as a Stochastic Differential Equation. We define two functions
 
@@ -638,7 +644,9 @@ and dividing this by the expression under the square root gives
 
 We then have three possible cases. If $\frac {k_S} {k_I}$ and $N$ are similar in magnitude, then this expression is of magnitude $\frac 1 N \ll 1$. If $\frac {k_S} {k_I}$ is of significantly smaller magnitude than $N$, then the expression is again of magnitude $\frac 1 N \ll 1$. And finally, if $\frac {k_S} {k_I}$ is significantly larger than $N$, then the magnitude of the expression is $\frac {k_I} {k_S} \ll 1$. In all cases, this expression is much smaller than $1$, and as the difference is effectively square rooted, the difference between this peak and the ODE equilibrium $N - \frac {k_S} {k_I}$ should be less than $1$. When we substitute a range of values for $\frac {k_S} {k_I}$ and $N$, this is in fact what we do find. We have therefore shown that we expect, for finite durations of time, for the stochastic simulations to approximate the endemic equilibrium from the mass action approximation, which is what we see.
 
-\section{Metapopulation model}
+\chapter{Metapopulation model}
+
+\section{Setup and Chemical Master Equations}
 
 We consider a graph with: a state vector $\v{I}(t)$, where $I_i(t)$ is the number of infected individuals at node $i$ and at time $t$; adjacency matrix $\m{A}$; and population vector $\v{N}$, where $N_i$ is the number of individuals (in any compartment) at node $i$. We take the population at each node to be fixed over the time interval considered (so there is no birth or death in this model). We also by extension then have the susceptible population in each node at time $t$ as $S_i(t) = N_i - I_i(t)$. If we represent an infected individual in node $i$ as $\ce{I_i}$, and a susceptible individual in node $i$ as $\ce{S_i}$, then we can represent the model with the following system:
 
@@ -709,7 +717,9 @@ We also note that this is really the distribution of $\mathbb{E}(I_i(t) | I_j(t)
 	\fd {M_i} {t} = k_I \left( \sum_j A_{ij} M_j(t) \right) (N_i - M_i) + k_I (N_i M_i + M_i^2 - V_i) - k_S M_i.
 \end{equation}
 
-It would often be common to take the mean-field approximation and treat $M_i$ and $M_j$ as independent and identically distributed. However, in this metapopulation model with a small number of nodes, this is not adequately justified.
+It would often be common to take the mean-field approximation and treat $M_i$ and $M_j$ as independent and identically distributed. However, in this metapopulation model with a small number of nodes, this is not adequately justified, so we do not.
+
+\section{Continuous Approximation, Equilibria, and Stability}
 
 If we shift our framing slightly, and instead consider an (approximately continuous) "infection density" $\rho_i(t) = \frac {I_i(t)} {N_i}$, we can attempt to analyse equilibria of the system and their stability. The mass-action approximation becomes
 
@@ -843,10 +853,10 @@ For the extinction equilibrium, we have
 	M_{ij} = k_I N_i A_{ij} + \delta_{ij} (k_I N_i - k_S).
 \end{equation}
 
-We focus now on some simple graphs to examine the behaviour of the model. These are the complete graph $k_5$, the cycle graph $C_5$, the path graph $P_5$, and the star graph $S_4$. These are chosen for their simple nature, making them easy to analyse, and their different properties giving us a good intuition for how more complex structures may behave, and they all have the same number of nodes, making them easily comparable. The adjacency matrices are as follows, along with the population vectors required to permit homogeneous equilibria. The matrices $\m M$ for extinction are given by $\m M = k_I \m A + k_I \m N - k_S \m I$ where $\m N$ is the matrix with the populations on the diagonal, and zeroes everywhere else. 
+We focus now on some simple graphs to examine the behaviour of the model. These are the complete graph $k_5$, the cycle graph $C_5$, the path graph $P_5$, and the star graph $S_4$. These are chosen for their simple nature, making them easy to analyse, and their different properties giving us a good intuition for how more complex structures may behave, and they all have the same number of nodes, making them easily comparable. The adjacency matrices are as follows. The matrices $\m M$ for extinction are given by $\m M = k_I \m A + k_I \m N - k_S \m I$ where $\m N$ is the matrix with the populations on the diagonal, and zeroes everywhere else. 
 
 \begin{tabular}{c c c}
-	Graph & $\m A$ & homogeneous equilibrium populations \\ [20pt]
+	Graph & $\m A$ & Image \\ [20pt]
 	$k_5$ &
 	$
 	\begin{pmatrix}
@@ -855,15 +865,8 @@ We focus now on some simple graphs to examine the behaviour of the model. These 
 		1 & 1 & 0 & 1 & 1 \\
 		1 & 1 & 1 & 0 & 1 \\
 		1 & 1 & 1 & 1 & 0
-	\end{pmatrix}$ &
-	$
-	\begin{pmatrix}
-		N \\
-		N \\
-		N \\
-		N \\
-		N
-	\end{pmatrix}$ \\ [35pt] 
+	\end{pmatrix}$ & 
+	\includegraphics[width=0.1\textwidth]{figs/k5.png} \\ [35pt] 
 	$C_5$ &
 	$
 	\begin{pmatrix}
@@ -872,15 +875,8 @@ We focus now on some simple graphs to examine the behaviour of the model. These 
 		0 & 1 & 0 & 1 & 0 \\
 		0 & 0 & 1 & 0 & 1 \\
 		1 & 0 & 0 & 1 & 0
-	\end{pmatrix}$ &
-	$
-	\begin{pmatrix}
-		N-1 \\
-		N-1 \\
-		N-1 \\
-		N-1 \\
-		N-1
-	\end{pmatrix}$ \\ [35pt]
+	\end{pmatrix}$ & 
+	\includegraphics[width=0.1\textwidth]{figs/C5.png} \\ [35pt]
 	$P_5$ &
 	$
 	\begin{pmatrix}
@@ -889,15 +885,8 @@ We focus now on some simple graphs to examine the behaviour of the model. These 
 		0 & 1 & 0 & 1 & 0 \\
 		0 & 0 & 1 & 0 & 1 \\
 		0 & 0 & 0 & 1 & 0
-	\end{pmatrix}$ &
-	$
-	\begin{pmatrix}
-		N-1 \\
-		N-2 \\
-		N-2 \\
-		N-2 \\
-		N-1
-	\end{pmatrix}$ \\ [35pt]
+	\end{pmatrix}$ & 
+	\includegraphics[width=0.1\textwidth]{figs/P5.png} \\ [35pt]
 	$S_4$ &
 	$
 	\begin{pmatrix}
@@ -906,15 +895,8 @@ We focus now on some simple graphs to examine the behaviour of the model. These 
 		1 & 0 & 0 & 0 & 0 \\
 		1 & 0 & 0 & 0 & 0 \\
 		1 & 0 & 0 & 0 & 0
-	\end{pmatrix}$ &
-	$
-	\begin{pmatrix}
-		N-4 \\
-		N-1 \\
-		N-1 \\
-		N-1 \\
-		N-1
-	\end{pmatrix}$
+	\end{pmatrix}$ & 
+	\includegraphics[width=0.1\textwidth]{figs/S4.png}
 \end{tabular}
 
 For $k_5$ the eigenvalues of the extinction $\m M$ are $k_I N - k_S - k_I$ with degeneracy $4$ and $k_I N - k_S + 3 k_I$ with degeneracy $1$. Both are clearly real, so as $k_I > 0$, this last one is clearly the larger of the two. For stability of the extinction equilibrium we therefore require $N + 3 < \frac {k_S} {k_I}$. This requires either extremely small populations, or a much higher rate of recovery than rate of infection, as we would expect.
@@ -939,9 +921,9 @@ Finally, for $S_4$ the eigenvalues are given by $\lambda = k_I N - k_I - k_S$ wi
 
 These changes in the stability of the extinction equilibrium all correspond to a transcritical bifurcation, where the equilibrium at $\rho_i = 0$ always exists, but its stability changes as we vary the system parameters. In fact, the homogeneous equilibrium given by \ref{metaHomEq} drops below $0$ when the equilibrium at $0$ becomes stable. We refer to these regimes from now on as the "supercritical" (unstable $0$ equilibrium) and "subcritical" (stable $0$ equilibrium) regimes.
 
-We therefore now simulate the different networks in the regime where extinction is stable, and where it is unstable. The populations were set as in the table above, with $N=500$. The parameters used were $k_I = 0.002$ in all simulations, with $k_S = 0.2$ in the supercritical cases and $k_S = 20$ in the subcritical cases. All simulations started with $20$ individuals infected on node $0$, which is the central node in $S_4$ and one of the end nodes in $P_5$.
+We therefore now simulate the different networks in the regime where extinction is stable, and where it is unstable. The population at each node was set to be $1000$, representing groups of small villages. The parameters used were $k_I = 0.002$ in all simulations, with $k_S = 0.2$ in the supercritical cases and $k_S = 20$ in the subcritical cases. All simulations started with $20$ individuals infected on node $0$, which is the central node in $S_4$ and one of the end nodes in $P_5$.
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
 	\begin{subfigure}[t]{0.24\textwidth}
 		\centering
@@ -991,13 +973,13 @@ We therefore now simulate the different networks in the regime where extinction 
 		\caption{Supercritical $S_4$}
 		\label{fig:SISmetaS4sup}
 	\end{subfigure}
-	\caption{Simulations of the metapopulation SIS model on various graphs, with both supercritical and subcritical parameter values. As expected, in all of the supercritical simulations, the trajectories tend to an endemic equilibrium. In the subcritical cases, the trajectories all go to the extinction equilibrium, as we would again expect. The blue dotted lines in each graph show the location of the endemic and extinction equilibria, the endemic equilibria calculated as the homogeneous equilibria given by \ref{metaHomEq}. Although this equilibrium cannot exist for $P_5$ or $S_4$, it does appear that there is some kind of quasistable attractor there for these graphs, as the trajectories of different realisations do all seem to approach this value. All of the supercritical scenarios show a logistic-like growth, though $S_4$ appears to show a more linear characteristic, likely as a result of the specific way in which the graph is connected.}
+	\caption{Means with $\pm 3$ standard deviations of $100$ simulations of the metapopulation SIS model on various graphs, with both supercritical and subcritical parameter values. As expected, in all of the supercritical simulations, the trajectories tend to an endemic equilibrium. In the subcritical cases, the trajectories all go to the extinction equilibrium, as we would again expect. The blue dotted lines, where shown, give the endemic and extinction equilibria, the endemic equilibria calculated as the homogeneous equilibria given by \ref{metaHomEq}. This shows good agreement between the simulation mean and the prediceted homogeneous equilibrium. All of the supercritical scenarios show a logistic-like growth, though $S_4$ appears to show a more linear characteristic, likely as a result of the specific way in which the graph is connected.}
 	\label{figs:SISmeta}
 \end{figure}
 
-\section{Networked individuals model}
+\chapter{Networked individuals model}
 
-To give even more depth to the spatial aspect of this model, we can apply it to a networked population where rather than each node representing a smaller population, each node represents an individual in the overall population. In this kind of model, the precise network structure chosen has a large impact on the behaviour of the model. We focus on a few kinds. Firstly, the complete graph. This should entirely reproduce the results of the well-mixed model, as every individual is in contact with every other individual. Second, we shall consider graphs with low maximum node degree, which may provide sensible models for diseases spread only through specific contact, such as exclusively blood-borne, or sexually-transmitted diseases. These will be the cycle graph, where each individual is connected to exactly $2$ others; and the lattice graph, with each individual connected to (generally) $4$ neighbours. We will also examine how random percolation on this lattice graph may affect the disease spread characteristics, as well as how the disease itself may have percolation-like effects. Finally, we will look at random graphs more closely mimicking social networks, specifically Barabasi-Albert, Watts-Strogatz, and Erdos-Renyi networks, the former being of particular interest due to being a scale-free network. This is a characteristic which is observed to be common to many social networks. The Watts-Strogatz networks demonstrate high clustering, and specifically the small-world property, which are also observed in a variety of real-world networks. These can all be generated easily using the NetworkX package for Python.
+To give even more depth to the spatial aspect of this model, we can apply it to a networked population where rather than each node representing a smaller population, each node represents an individual in the overall population. This could be thought of in the context of modelling an invididual village or town, with a smaller population than those in the metapopulation model. In this kind of model, the precise network structure chosen has a large impact on the behaviour of the model. We focus on a few kinds. Firstly, the complete graph. This should entirely reproduce the results of the well-mixed model, as every individual is in contact with every other individual. Second, we shall consider some other simple graphs which should inform our expectations for how the graph structure will impact the disease spread. We will also examine how random percolation on the $2$D lattice graph may affect the disease spread characteristics. We will also look at random graphs more closely mimicking social networks, specifically Barabasi-Albert, Watts-Strogatz, and Erdos-Renyi networks, the former being of particular interest due to being a scale-free network. This is a characteristic which is observed to be common to many social networks. The Watts-Strogatz networks demonstrate high clustering, and specifically the small-world property, which are also observed in a variety of real-world networks. These can all be generated easily using the NetworkX package for Python. Finally, we will use the SNAP dataset \citet{snapnets} to analyse the spread of a disease on a network of Facebook users, and see how this network compares to those mentioned earlier.
 
 Adopting the notation from the metapopulation model, we let $\v{I}$ be the vector storing whether a given node is infected or not, by setting $I_i = 1$ if node $i$ is infected, and $I_i = 0$ otherwise. We set $\m{A}$ to be the adjacency matrix for the graph under examination. We also set the infection rate at $k_I$, and the recovery rate at $k_S$. The chemical equations are
 
@@ -1073,7 +1055,7 @@ where $\bar{d(A)}$ is the average degree of the nodes. Then using the identity $
 	\fd {M} {t} \approx k_I \bar{d(A)} M(t) - k_I \bar{d(A)} V(t) - k_I \bar{d(A)} M(t)^2 - k_S M(t).
 \end{equation}
 
-This is clearly the same as the equation for the mean in the well-mixed case, with a scaled infection coefficient $k_I \bar{d(A)}$.
+This is clearly the same as the equation for the mean in the well-mixed case, with a scaled infection coefficient $k_I \bar{d(A)}$. We can thus suspect that the equilibria of the system will be approximately those of the well-mixed system, with an extinction and endemic equilbria. We can further conjecture that the stability of the endemic equilibria will likewise depend on the coefficients, and so we can estimate the stable regime on a given graph by using the average node degree of the graph, which we will utilise to examine subcritical, transcritical, and supercritical regimes on the different graphs we analyse.
 
 It is difficult to directly analyse this system for an arbitrary network, so we will look at only the complete graph, due to its simple adjacency matrix. For this graph, the original equation reduces to
 
@@ -1083,10 +1065,10 @@ It is difficult to directly analyse this system for an arbitrary network, so we 
 
 This is highly reminiscent of the well-mixed mean (\ref{SISmixmean}), as we would expect, and the similarity of \ref{fig:SISindvcomp} to \ref{fig:SISmix} is apparent.
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=\linewidth]{figs/SISindvcomp.png}
-	\caption{A plot of $20$ realisations of the modified Gillespie SSA on the complete graph $k_{500}$, where each node is an individual. Parameters used were $k_I = 0.002$, $k_S = 0.1$.}
+	\caption{A plot of the mean $\pm 3$ standard deviations of $20$ realisations of the modified Gillespie SSA on the complete graph $k_{500}$, where each node is an individual. Parameters used were $k_I = 0.002$, $k_S = 0.1$. The large standard deviation, and slightly lower mean than expected, at the later portion of the plot, is due to the significant number of simulations which hit $0$ infected people.}
 	\label{fig:SISindvcomp}
 \end{figure}
 
@@ -1101,7 +1083,7 @@ This clearly shows that $p_i = p = 0$ is an equilibrium of the system, as we wou
 
 We now simulate the infection on a variety of graph structures. We begin with a few simple types of graph, in order to demonstrate some important effects. These are the Cycle graph, Tadpole graph, Lollipop graph, and Barbell graph. We then move on to some more complex random-generated graphs, these being the Erdos-Renyi, Barabasi-Albert, and Watts-Strogatz. We then simulate on a small selection of percolation-type lattices, with differing percolation coefficients.
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
 	\begin{subfigure}[t]{0.45\textwidth}
 		\centering
@@ -1127,107 +1109,177 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 		\caption{$\mathrm{Barbell}(249, 2)$}
 		\label{fig:SISindvbar}
 	\end{subfigure}
-	\caption{A collection of simulations on various simple and composite graphs. \ref{fig:SISindvcycle} shows $20$ realisations on the cycle graph with $500$ nodes, $C_{500}$. This demonstrates how the graph structure significantly impacts the spreading behaviour, as there is a clear linear trend, due to the structure preventing most nodes from being exposed to the disease for a long period of time. This also results in the disease taking much longer to spread. The parameters used were $k_I = 0.7$, $k_S = 0.1$. This is also of note, as for significantly smaller ratios of $k_I$ to $k_S$, the disease became extinct extremely rapidly. \ref{fig:SISindvtadpole} shows $20$ realisations on the $\mathrm{tadpole}(300, 200)$ graph, the graph of $C_{300}$ connected to $P_{200}$, using the same parameters. This again demonstrates a generally linear growth. However, the growth here is faster. This is because, for the majority of the time, the growth is effectively along three branches, rather than effectively along two. \ref{fig:SISindvloll} shows $20$ realisations on the lollipop graph, made up of the complete graph $K_{300}$ connected to the path graph $P_{200}$, using the same parameters again. This shows a very sharp rise at the start, as the high rate of infection causes the disease to rapidly spread through the population of the connected graph. However, the growth slows down massively as the disease spreads roughly linearly along the path section of the graph. \ref{fig:SISindvbar} demonstrates this even more clearly, showing $20$ realisations on the Barbell graph made up of two copies of the complete graph $k_{249}$ connected by the path graph $P_{2}$. The disease rapidly spreads through the large connected populations, but takes much longer to spread along the path between them. However, once the disease reaches the second connected population, it again spreads extremely rapidly, giving this step effect. The parameters used for this graph were $k_I = k_S = 0.1$.}
+	\caption{A collection of simulations on various simple and composite graphs. \ref{fig:SISindvcycle} shows the mean $\pm 3$ standard deviations of $20$ realisations on the cycle graph with $500$ nodes, $C_{500}$. This demonstrates how the graph structure significantly impacts the spreading behaviour, as there is a clear linear trend, due to the structure preventing most nodes from being exposed to the disease for a long period of time. This also results in the disease taking much longer to spread. The parameters used were $k_I = 0.7$, $k_S = 0.1$. This is also of note, as for significantly smaller ratios of $k_I$ to $k_S$, the disease became extinct extremely rapidly. \ref{fig:SISindvtadpole} shows the mean $\pm 3$ standard deviations $20$ realisations on the $\mathrm{tadpole}(300, 200)$ graph, the graph of $C_{300}$ connected to $P_{200}$, using the same parameters. This again demonstrates a generally linear growth. However, the growth here is faster. This is because, for the majority of the time, the growth is effectively along three branches, rather than effectively along two. \ref{fig:SISindvloll} shows the mean $\pm 3$ standard deviations of $20$ realisations on the lollipop graph, made up of the complete graph $K_{300}$ connected to the path graph $P_{200}$, using the same parameters again. This shows a very sharp rise at the start, as the high rate of infection causes the disease to rapidly spread through the highly connected portion of the graph. However, the growth slows down massively as the disease spreads roughly linearly along the path section of the graph. \ref{fig:SISindvbar} demonstrates this even more clearly, showing $20$ realisations on the Barbell graph made up of two copies of the complete graph $k_{249}$ connected by the path graph $P_{2}$. The disease rapidly spreads through the large connected populations, but takes much longer to spread along the path between them. However, once the disease reaches the second connected population, it again spreads extremely rapidly, giving this step effect. The parameters used for this graph were $k_I = 0.7$, $k_S = 0.1$. Here, traces are shown, as they are more informative than the mean and standard deviations, and show the interesting behaviour of very different times to jump from one highly connected portion of the graph to the other.}
 	\label{figs:SISindvsimp}
 \end{figure}
 
-\begin{figure}
+% ER plots
+
+\begin{figure}[h]
 	\centering
-	\begin{subfigure}[t]{0.3\textwidth}
+	\begin{subfigure}[t]{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISindvER3.png}
-		\caption{Erdos-Renyi $p=0.3$}
-		\label{fig:SISindvER3}
+		\includegraphics[width=\textwidth]{figs/SISindvER0_1.png}
+		\caption{Erdos-Renyi $k_S = 0.1$}
+		\label{fig:SISindvER0_1}
 	\end{subfigure}
-	\begin{subfigure}[t]{0.3\textwidth}
+	\begin{subfigure}[t]{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISindvER5.png}
-		\caption{Erdos-Renyi $p=0.5$}
-		\label{fig:SISindvER5}
+		\includegraphics[width=\textwidth]{figs/SISindvER0_25.png}
+		\caption{Erdos-Renyi $k_S = 0.25$}
+		\label{fig:SISindvER0_25}
 	\end{subfigure}
-	\begin{subfigure}[t]{0.3\textwidth}
+	\begin{subfigure}[b]{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISindvER7.png}
-		\caption{Erdos-Renyi $p=0.7$}
-		\label{fig:SISindvER7}
+		\includegraphics[width=\textwidth]{figs/SISindvER0_4.png}
+		\caption{Erdos-Renyi $k_S = 0.4$}
+		\label{fig:SISindvER0_4}
 	\end{subfigure}
-	\caption{A set of simulations of the SIS model on Erdos-Renyi networks with $500$ nodes. In each plot, the realisations were all performed on the same network. We clearly see that in increasing the edge creation probability, we greatly speed up the overall disease spread, as well as decreasing the variation between different realisations. This lines up with our expectations of how the connectedness of different graphs impacts the spread, from the metapopulation model \ref{figs:SISmeta}. All simulations here used $k_I = 0.002$, $k_S = 0.1$.}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvER0_55.png}
+		\caption{Erdos-Renyi $k_S = 0.55$}
+		\label{fig:SISindvER0_55}
+	\end{subfigure}
+	\caption{A set of plots of the mean $\pm 3$ standard deviations of $20$ realisations of the individual simulation on an Erdos-Renyi random graph, generated with $500$ nodes, and using $p= 0.5$. The simulations used $k_I = 0.002$ and $k_S$ as given. The means are all somewhat skewed by the fraction of realisations in each case which hit the extinction state. We can clearly see that varying $k_S$ leads to a tipping behaviour around $k_S = 0.4$, where for lower values, the simulations tend to an endemic state, whereas for higher values, the simulations tend to an extinction state. The mean number of infected individuals also decreases with increasing $k_S$, as we would expect.}
 	\label{figs:SISindvER}
 \end{figure}
 
-\begin{figure}
+% BA plots
+
+\begin{figure}[h]
 	\centering
-	\begin{subfigure}[t]{0.3\textwidth}
+	\begin{subfigure}[t]{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISindvBA3.png}
-		\caption{Attachment $=3$}
-		\label{fig:SISindvBA3}
+		\includegraphics[width=\textwidth]{figs/SISindvBA0_02.png}
+		\caption{$k_S = 0.02$}
+		\label{fig:SISindvBA0_02}
 	\end{subfigure}
-	\begin{subfigure}[t]{0.3\textwidth}
+	\begin{subfigure}[t]{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISindvBA5.png}
-		\caption{Attachment $=5$}
-		\label{fig:SISindvBA5}
+		\includegraphics[width=\textwidth]{figs/SISindvBA0_1.png}
+		\caption{$k_S = 0.1$}
+		\label{fig:SISindvBA0_1}
 	\end{subfigure}
-	\begin{subfigure}[t]{0.3\textwidth}
+	\begin{subfigure}[b]{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISindvBA7.png}
-		\caption{Attachment $=7$}
-		\label{fig:SISindvBA7}
+		\includegraphics[width=\textwidth]{figs/SISindvBA0_2.png}
+		\caption{$k_S = 0.2$}
+		\label{fig:SISindvBA0_2}
 	\end{subfigure}
-	\caption{A set of simulations of the SIS model on Barabasi-Albert random networks with $500$ nodes, all using $k_I = 0.02$, $k_S = 0.1$. Each figure shows $20$ realisations on the same network. The number of edges each newly attached node has is given. We see clearly that again, the more connected graphs result in a faster disease spread. However, we also see that the more connected networks have a higher infected population, as the disease struggles to spread to poorly-connected nodes. We also see a more logarithmic disease spread curve, compard to the logistic curve-like behaviour of the Erdos-Renyi graphs.}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvBA0_3.png}
+		\caption{$k_S = 0.3$}
+		\label{fig:SISindvBA0_3}
+	\end{subfigure}
+	\caption{A set of plots of the mean $\pm 3$ standard deviations of $20$ realisations of the individual simulation on a Barabasi-Albert random graph, generated with $500$ nodes, and using an attachment of $40$. The simulations used $k_I = 0.002$ and $k_S$ as given. The means are all somewhat skewed by the fraction of realisations in each case which hit the extinction state. We can clearly see that varying $k_S$ leads to a tipping behaviour around $k_S = 0.2$, where for lower values, the simulations tend to an endemic state, whereas for higher values, the simulations tend to an extinction state. The mean number of infected individuals also decreases with increasing $k_S$, as we would expect.}
 	\label{figs:SISindvBA}
 \end{figure}
 
-\begin{figure}
+% WS plots
+
+\begin{figure}[h]
 	\centering
-	\begin{subfigure}[t]{0.3\textwidth}
+	\begin{subfigure}[t]{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISindvWS3.png}
-		\caption{$\beta = 0.3$}
-		\label{fig:SISindvWS3}
+		\includegraphics[width=\textwidth]{figs/SISindvWS0_02.png}
+		\caption{$k_S = 0.02$}
+		\label{fig:SISindvWS0_02}
 	\end{subfigure}
-	\begin{subfigure}[t]{0.3\textwidth}
+	\begin{subfigure}[t]{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISindvWS5.png}
-		\caption{$\beta = 0.5$}
-		\label{fig:SISindvWS5}
+		\includegraphics[width=\textwidth]{figs/SISindvWS0_07.png}
+		\caption{$k_S = 0.07$}
+		\label{fig:SISindvWS0_07}
 	\end{subfigure}
-	\begin{subfigure}[t]{0.3\textwidth}
+	\begin{subfigure}[b]{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISindvWS7.png}
-		\caption{$\beta = 0.7$}
-		\label{fig:SISindvWS7}
+		\includegraphics[width=\textwidth]{figs/SISindvWS0_1.png}
+		\caption{$k_S = 0.1$}
+		\label{fig:SISindvWS0_1}
 	\end{subfigure}
-	\caption{A set of simulations of the SIS model on Watts-Strogatz networks, with $N=500$, $K = 30$, and varying $\beta$ as stated. We once again see the usual logistic-curve style of disease spread.}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvWS0_3.png}
+		\caption{$k_S = 0.3$}
+		\label{fig:SISindvWS0_3}
+	\end{subfigure}
+	\caption{A set of plots of the mean $\pm 3$ standard deviations of $20$ realisations of the individual simulation on a Watts-Strogatz random graph, generated with $500$ nodes, connecting $40$ nearest neighbours and rewiring with probability $0.5$. The simulations used $k_I = 0.002$ and $k_S$ as given. The means are all somewhat skewed by the fraction of realisations in each case which hit the extinction state. We can clearly see that varying $k_S$ leads to a tipping behaviour around $k_S = 0.07$, where for lower values, the simulations tend to an endemic state, whereas for higher values, the simulations tend to an extinction state. The mean number of infected individuals also decreases with increasing $k_S$, as we would expect.}
 	\label{figs:SISindvWS}
 \end{figure}
 
-\begin{figure}
+% Percolation plots
+
+\begin{figure}[h]
 	\centering
 	\begin{subfigure}[t]{0.3\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISindvperc45.png}
-		\caption{$p = 0.45$}
-		\label{fig:SISindvperc45}
+		\includegraphics[width=\textwidth]{figs/SISindvpercsub0_02.png}
+		\caption{Subcritical, $k_S = 0.02$}
+		\label{fig:SISindvpercsub0_02}
 	\end{subfigure}
 	\begin{subfigure}[t]{0.3\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISindvperc50.png}
-		\caption{$p = 0.5$}
-		\label{fig:SISindvperc50}
+		\includegraphics[width=\textwidth]{figs/SISindvpercsub0_1.png}
+		\caption{Subcritical, $k_S = 0.1$}
+		\label{fig:SISindvpercsub0_1}
 	\end{subfigure}
 	\begin{subfigure}[t]{0.3\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{figs/SISindvperc55.png}
-		\caption{$p = 0.55$}
-		\label{fig:SISindvperc55}
+		\includegraphics[width=\textwidth]{figs/SISindvpercsub0_2.png}
+		\caption{Subcritical, $k_S = 0.2$}
+		\label{fig:SISindvpercsub0_2}
 	\end{subfigure}
-	\caption{A set of simulations of the SIS model on percolation graphs, these being $2$D lattices where each edge is removed, so that edges exist with probability $p$, as given in the captions. We see clearly the drastic effect on the disease dynamics. For the subcritical graph, with $p < 0.5$, only a small number of individuals are infected, and the initial growth is roughly linear. For the critical graph, where $p = 0.5$, a reasonable proportion of the population are infected, but the infection spreads fairly linearly at a similar rate to the subcritical case, and is limited to this connected pocket. For the supercritical graph, where $p > 0.5$, we see that a much larger fraction of the total population is infected, and the pattern of infection more closely resembles the usual logistic curve. For all simulations, the population was $600$, on a $30 \times 20$ lattice. The parameters were $k_I = 0.2$, $k_S = 0.05$.}
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvperccrit0_02.png}
+		\caption{Critical, $k_S = 0.02$}
+		\label{fig:SISindvperccrit0_02}
+	\end{subfigure}
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvperccrit0_1.png}
+		\caption{Critical, $k_S = 0.1$}
+		\label{fig:SISindvperccrit0_1}
+	\end{subfigure}
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvperccrit0_2.png}
+		\caption{Critical, $k_S = 0.2$}
+		\label{fig:SISindvperccrit0_2}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvpercsup0_02.png}
+		\caption{Supcritical, $k_S = 0.02$}
+		\label{fig:SISindvpercsup_02}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvpercsup0_1.png}
+		\caption{Supcritical, $k_S = 0.1$}
+		\label{fig:SISindvpercsup0_1}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvpercsup0_2.png}
+		\caption{Supcritical, $k_S = 0.2$}
+		\label{fig:SISindvpercsup0_2}
+	\end{subfigure}
+	\caption{A set of plots of the mean $\pm$ 3 standard deviations, of $20$ realisations of the individual simulation on $3$ different $2$D lattice percolation graphs. These are the subcritical, critical, and supercritical graphs, corresponding to a $20$ by $25$ lattice with edges present with probabilities $0.45$, $0.5$, and $0.55$. This allows us to examine the effect of the criticality of the graph interacting with the tipping point of the disease model. We see that in the critical and supercritical cases, the simulations with $k_S = 0.02$, the endemic case, have far lower variance than the subcritical graph case - this corresponds to a much lower likelihood of the extinction scenario occuring. We also see the simulations change in character for $k_S = 0.1$, near the tipping point of the model. We see that the supercritical graph allows for more rapid growth of the disease, when it does not hit the extinction scenario. Finally, in the case with $k_S = 0.2$, where extinction is always reached, we see that the simulations on the supercritical graph actually hit extinction much more quickly than in the critical or subcritical graphs. All simulations used $k_I = 0.1$.}
 	\label{figs:SISindvperc}
 \end{figure}
 
 These different kinds of random graphs exhibit a variety of interesting properties, but all also have limitations compared to real-life examples of social networks. The Erdos-Renyi model exhibits low clustering, which is not the case with real social networks (if person $A$ knows people $B$ and $C$, then it is generally likely that person $B$ knows person $C$). The Barabasi-Albert model and Watts-Strogatz model don't suffer from this problem, but have their own shortcomings. The Watts-Strogatz model does exhibit high clustering, as well as the small-world property (including short average path lengths, the famous "seven degrees of separation" idea), but is not scale-free, which social networks are thought to be. This is a shortcoming that the Barabasi-Albert model seeks to address, however it too does not demonstrate the small-world property. A further abstraction is made in the percolation-type networks, where every individual can only be connected to a maximum of $4$ others. This isn't highly realistic for most diseases, though could be the case for diseases spread only through specific forms of contact (such as STIs or blood-borne diseases), which most individuals only experience with a small number of others. The percolation graphs demonstrate a strong difference in behaviour based on how well-connected the network is as a whole, which may be useful in understanding the spread of diseases such as HIV, HPV, or hepatitis. We also see very clearly from these different simulations that the specifics of a given graph have a very strong impact on the disease characteristics.
+
+\section{The Facebook Network}
+
+We finally move onto analysing the disease spread on a real social network, the Facebook network from the SNAP dataset \citet{snapnets}. This is a network of $4039$ Facebook users, and the connections between them. The average clustering coefficient of this network is $0.6055$, and the degree distribution is shown in [[FIGURE HERE]], and [[COMPARE TO OTHERS]]. Running the simulation for a variety of parameter values yields the following plots.
+
+[[PLOTS HERE]]
+
+[[DISCUSS RESULTS]]
 
 \bibliography{mybib.bib}
 

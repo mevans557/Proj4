@@ -3,6 +3,7 @@ import numpy as np
 import scipy as sp
 from matplotlib import pyplot as plt
 from multiprocessing import Process, Pipe
+from griddify import griddify
 
 
 def evolve(A, I, N, kI, delta):
@@ -167,11 +168,11 @@ def draw_graph(G, I, N, colours=plt.cm.viridis):
 
 G = nx.complete_graph(5)
 Ii = np.zeros(5)
-Ni = np.array([500, 500, 500, 500, 500])
+Ni = np.array([1000, 1000, 1000, 1000, 1000])
 Ii[0] = 20
 
-iters = 1
-END = 5
+iters = 100
+END = 2
 k_I = 0.002
 k_S = 0.2
 
@@ -196,12 +197,28 @@ for conn in conns:
 for proc in processes:
     proc.join()
 
+# for i in range(iters):
+#     plt.plot(tcollect[i], Icollect[i], '--')
+
+
+# GRID
+tgrid = np.arange(0, END, END/(np.sum(Ni)*4))
+Igrid = []
 for i in range(iters):
-    plt.plot(tcollect[i], Icollect[i])
+    Igrid.append(griddify(np.array(tcollect[i]), tgrid, np.array(Icollect[i])))
+
+Igrida = np.array(Igrid)
+avs = np.sum(Igrida, 0)/iters
+sds = np.sqrt(np.sum(Igrida**2, 0)/iters - avs**2)
+
+plt.plot(tgrid, avs, "g")
+plt.plot(tgrid, avs + 3*sds, "--r")
+plt.plot(tgrid, avs - 3*sds, "--r")
+
 
 linet = [0, END]
 extinct = [0, 0]
-endemic = 1500*(1 - k_S/(k_I * 1500)) + 1000*(1 - k_S/(k_I * 1000))
+endemic = 5000*(1 - k_S/(k_I * 5000))
 lineI = [endemic, endemic]
 
 plt.plot(linet, lineI, '--b')

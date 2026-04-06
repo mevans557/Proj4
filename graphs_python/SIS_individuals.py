@@ -151,75 +151,77 @@ def draw_perc(gr, I, colours=plt.cm.viridis):
             vmin=0, vmax=1, cmap=colours)
     plt.show()
 
+if __name__ == '__main__':
 
-# PERCOLATION STUFF
-WIDTH = 20
-LENGTH = 25
-mid = WIDTH*LENGTH//2 + WIDTH//2
-G = make_perc_graph(20, 25, 0.5, 20)  # Seeded for repeatability
-I = np.zeros(500)
-I[mid] = 1
-
-
-# FACEBOOK STUFF
-# I = np.zeros(4039)
-# G = make_fb_graph()
-# for i in range(20):
-#     I[i] = 1
+    # PERCOLATION STUFF
+    # WIDTH = 20
+    # LENGTH = 25
+    # mid = WIDTH*LENGTH//2 + WIDTH//2
+    # G = make_perc_graph(20, 25, 0.55, 20)  # Seeded for repeatability
+    # I = np.zeros(500)
+    # I[mid] = 1
 
 
-# Networkx Builtin Graphs
-# G = nx.watts_strogatz_graph(500, 40, 0.5)
-# I = np.zeros(500)
-# I[0] = 1
-
-k_I = 0.1
-k_S = 0.02
-iters = 20
-END = 600
-
-tcollect = []
-Icollect = []
-conns = []
-processes = []
-
-for i in range(iters):
-    par_conn, child_conn = Pipe()
-    process = Process(target=mult_Gillespie, args=(
-        G, I, k_I, k_S, child_conn, END, 0.1, None))
-    processes.append(process)
-    conns.append(par_conn)
-    process.start()
-
-for conn in conns:
-    ts, Is = conn.recv()
-    tcollect.append(ts)
-    Icollect.append(Is)
-
-for proc in processes:
-    proc.join()
+    # FACEBOOK STUFF
+    I = np.zeros(4039)
+    G = make_fb_graph()
+    for i in range(20):
+        I[i] = 1
 
 
-# GRID
-tgrid = np.arange(0, END, END/(I.size*4))
-Igrid = []
-for i in range(iters):
-    Igrid.append(griddify(np.array(tcollect[i]), tgrid, np.array(Icollect[i])))
+    # Networkx Builtin Graphs
+    # G = nx.watts_strogatz_graph(500, 40, 0.5)
+    # I = np.zeros(500)
+    # I[0] = 1
 
-Igrida = np.array(Igrid)
-avs = np.sum(Igrida, 0)/iters
-sds = np.sqrt(np.sum(Igrida**2, 0)/iters - avs**2)
+    k_I = 0.1
+    k_S = 10
+    iters = 20
+    END = 2
 
-plt.plot(tgrid, avs, "g")
-plt.plot(tgrid, avs + 3*sds, "--r")
-plt.plot(tgrid, avs - 3*sds, "--r")
+    tcollect = []
+    Icollect = []
+    conns = []
+    processes = []
+
+    for i in range(iters):
+        par_conn, child_conn = Pipe()
+        process = Process(target=mult_Gillespie, args=(
+            G, I, k_I, k_S, child_conn, END, 0.1, None))
+        processes.append(process)
+        conns.append(par_conn)
+        process.start()
+
+    for conn in conns:
+        ts, Is = conn.recv()
+        tcollect.append(ts)
+        Icollect.append(Is)
+
+    for proc in processes:
+        proc.join()
 
 
-# for i in range(iters):
-#     plt.plot(tcollect[i], Icollect[i])
+    # GRID
+    tgrid = np.arange(0, END, END/(I.size*4))
+    Igrid = []
+    for i in range(iters):
+        Igrid.append(griddify(np.array(tcollect[i]), tgrid, np.array(Icollect[i])))
+
+    Igrida = np.array(Igrid)
+    avs = np.sum(Igrida, 0)/iters
+    sds = np.sqrt(np.sum(Igrida**2, 0)/iters - avs**2)
+
+    plt.plot(tgrid, avs, "g")
+    plt.plot(tgrid, avs + sds, "--r")
+    plt.plot(tgrid, avs - sds, "--r")
+    plt.fill_between(tgrid, avs - sds, avs + sds, color=(1, 0, 0, 0.2))
 
 
-# plt.title("SSA of SIS Individuals model on Graph Infecteds over Time")
-# plt.xlabel("Time t")
-# plt.ylabel("Infecteds I(t)")
-plt.show()
+    # for i in range(iters):
+    #     plt.plot(tcollect[i], Icollect[i])
+
+
+    # plt.title("SSA of SIS Individuals model on Graph Infecteds over Time")
+    # plt.xlabel("Time t")
+    # plt.ylabel("Infecteds I(t)")
+    plt.show()

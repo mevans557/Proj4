@@ -181,7 +181,7 @@
 			\includegraphics[scale=0.8]{figs/durham-logo.pdf}
 			\vspace{45mm}
 			
-			\Huge \textbf{Giving Facebook users Chlamydia: An exploration of networked SIS disease modelling.}
+			\Huge \textbf{An exploration of networked SIS disease modelling.}
 			
 			\vspace{15mm}
 			\large
@@ -218,7 +218,7 @@
 		\large\textbf{Declaration of use of AI tools in the writing process}
 	\end{center}
 	\begin{center}
-                No AI tools were used in this project, for any purpose.
+		I confirm that I have not used generative AI in the writing of this report.
 	\end{center}
 	
 	
@@ -237,31 +237,10 @@
 	% ----- ACKNOWLEDGEMENTS ----- % You may remove if you want or modify upon agreement with your supervisor
 
 	% ----- LIST OF FIGURES ----- % You may remove if you want or modify upon agreement with your supervisor
-	
-	\listoffigures
-	\markboth{}{} 
-	%	The name of the figure that appears in the list is taken from the short description of the caption, i.e.
-	% \caption[short caption - appears in the list of figures]{long caption - appears under the figure}
-	% if no short description appears, i.e. if you use \caption{something} then 'something' will appear in the list of figures (and might be a very long sentence!).
-	
-	\newpage
-	
-	% ----- LIST OF TABLES----- % You may remove if you want or modify upon agreement with your supervisor
-	
-	\listoftables
-	\markboth{}{} 
-	% You will need to use the Table environment (not Tabular) and to use \caption in order for the table to appear in the above list (you can wrap the tabular environment within a table environemnt, see an example below). Much like with the list of figures, the short description of the caption is the one that is taken for the list of tables. 
-	
-	\newpage
-	
-	% ----- LIST OF NOTATION----- % You may remove if you want or modify upon agreement with your supervisor
-	
-	\chapter*{Notation}
 
-	
-	\begin{tabular}{p{4cm} l  }
-	\end{tabular}
-	
+	% ----- LIST OF TABLES----- % You may remove if you want or modify upon agreement with your supervisor
+
+	% ----- LIST OF NOTATION----- % You may remove if you want or modify upon agreement with your supervisor
 	
 	% Pretty table of contents - DO NOT CHANGE OR REMOVE
 	\setlength{\parskip}{0.2ex}
@@ -275,20 +254,23 @@
 
 \mainmatter
 
-\chapter{Introduction - REDO THIS}
+\chapter{Introduction and Background}
 
-Throughout human history, disease has been one of the greatest societal challenges. From the black death, to COVID-19, widespread infection has disrupted society, caused economic recessions, and caused suffering to millions of people \citep{prabhuHistorysSevenDeadliest}. It is therefore no surprise that Epidemiology has a rich and vaired history, as we have tried to understand diseases from their chemical functions, to their effect on the human body, to how they spread through a population. It is this last problem which this report is concerned with.
+Throughout human history, disease has been a constant threat to health and happiness. From the black death sweeping through Europe from 1347 to 1353, killing an estimated 50 million, to the recent COVID-19 pandemic which shut down world travel and trade while killing in excess of 25 million \citep{dattaniWhatWereDeath2023}, the impacts of disease on society can be vast. It is therefore of great importance to develop accurate models for the spread of different kinds of diseases, to understand how they work, and how best to combat their spread. In the recent COVID-19 pandemic, many countries based their responses on mathematical models \citep{smithHowHaveMathematical2023}, and this has led to these models occupying a much greater space in the public consciousness. Before the pandemic, most people had probably never heard of the R number $R_0$, but during the pandemic, discussion around this modelling parameter permeated a large amount of the news \citep{bbcCoronavirusWhatNumber2020}. Developing good models is therefore extremely important for pandemic preparedness \citep{lancetHowModellingCan2024}.
 
-Disease modelling has the potential to impact governmental policy with regards to pandemic preparedness and responses, as well as outbreak containment and response \citep{gov.ukEpidemiologicalModellingFrequently}. It is clearly of great importance to develop accurate and realistic models for disease spread, and for these to be flexible enough to be effective in their use \citep{lancetHowModellingCan2024}. It is also important to make these models easy to interpret and communicate to the general public. The effectiveness of this was evident during the COVID-19 pandemic, as a great number of people were encouraged to ``flatten the curve'' - a direct reference to the underlying models used to predict the effect of the pandemic \citep{ecdcVideoCOVID19Flatten2020}.
+The original work in the field of mathematical disease modelling was done in 1927, by Kermack and McKendrick \citep{kermackContributionMathematicalTheory1927}, where they introduced the concept of a compartmental model, in which the population of concern is split into several compartments. They primarily examined what became known as the SIR model, where individuals are considered to either be Susceptible, Infected, or Removed (either through recovery or death). In this model, only Susceptible people can be infected, and only Infected people can be removed - there is also no movement back into the Susceptible compartment. Once an individual has had the disease, they are either dead, or immune for life. This model is applicable to a large number of diseases that were of great concern at the time, such as measels, polio, or diptheria. However, in the present day UK, where most people are vaccinated against these diseases \citep{ukhsaVaccinationCoverageStatistics}, we are more interested in diseases from which we only develop temporary immunity, or those from which no immunity is gained at all. In this project, we focus on the related, but more simple SIS model, where individuals are either Susceptible or Infected. Like in the SIR model, only Susceptible individuals can be infected, but we also allow infected individuals to recover, without immunity, and become Susceptible again. This is a good model for several common diseases against which no immunity is developed, such as Gonorrhea or Syphillis. This model is also a good starting point to develop the machinery for a more complex future model, as it can easily be extended to have more compartments, or to introduce the effects of social distancing and other measures, as in \citet{croccoloSpreadingInfectionsRandom2020}.
 
-Now the effects of the COVID-19 pandemic are waning, and so it is important to build upon the huge amount of work that was done at the time, to develop more accurate and useful models for other diseases with different attributes, such as passive immunity from birth. These models can help to shape public policy surrounding not just pandemics and outbreaks, but also vaccination programmes, and other forms of aid globally.
+Another departure we make from the original work of Kermack and McKendrick is to consider discrete populations, where they considered the populations to be continuous. This means we can no longer use the machinery of ODEs that they utilise, and so we must choose another method of modelling this discrete process. A natural way to do this is by treating the individuals in different compartments as different chemical species, and the transitions between compartments as chemical reactions. This allows us to leverage a large amount of machinery developed for these kinds of discrete stochastic processes.
 
-Here we outline a variety of different approaches to implementing a discrete SI model, consisting of a well-mixed model; a networked discrete metapopulation model (where each node has a population generally greater than $1$); and a networked individuals model (where each node represents an individual, and has a state of either infected or susceptible).
+We first focus on a model with no spatial variation, this is equivalent to thinking of our individuals (which we are treating as chemicals) as being well-mixed, and so we refer to this as the well-mixed model. We then examine two ways of introducing spatial structure using networks. First, we analyse the system on simple graphs, with a relatively large population on each node. This is known as the metapopulation model, and each of the nodes can be thought of as representing a town or village in this model, which are themselves well-mixed. Second, we look at several models for networks of individuals, where each node of the network represents an individual person. This is referred to as the individual model. Finally, we look at the behaviour of the model on a real social network, utilising the SNAP dataset \citep{snapnets} to simulate the individual model on a network of Facebok users and their friends.
+
+For all of these models, we examine the stability of the equilibria of ODE approximations of the models, and show that there exists a tipping point for all of them, at which the extinction equilibrium becomes stable.
 
 \chapter{Well-mixed model}
 
 \section{The Gillespie SSA and Mass-Action Approximation}
 
+Here we examine a discretised SIS model without any network structure, where all individuals are assumed to be in contact with all others. This will allow us to develop the tools we will need to analyse the networked models, and will provide a point of comparison for the networked models.
 We consider the population to behave like a chemical reaction, and so leverage the mathematical tools relevant to that field here. The reactions we consider are:
 
 \begin{equation}
@@ -300,7 +282,7 @@ Where $k_I$ is the rate of infection, and $k_S$ the rate of recovery, without im
 \begin{algorithmic}
 	\State $r_1 \gets$ \Call{Rand}{}
 	\State $r_2 \gets$ \Call{Rand}{}
-	\Comment{Get two random numbers uniform in $[0, 1]$}
+	\Comment{Generate two random numbers uniform in $[0, 1]$}
 	\State $\alpha(t) \gets k_I S(t) I(t) + k_S I(t)$
 	\Comment{Compute the propensity function}
 	\State $\tau \gets \frac 1 {\alpha(t)} \log(1/r_1)$
@@ -314,30 +296,23 @@ Where $k_I$ is the rate of infection, and $k_S$ the rate of recovery, without im
 	\EndIf
 \end{algorithmic}
 
-This allows us to simulate the system, but we also attempt to analyse the system. We can make a simple approximation utilising the law of mass action and treating the populations as continuous functions on time. First, we consider only $I(t)$, the number of infected individuals at time $t$, and take $S(t) = N - I(t)$ the number of susceptible individuals at time $t$ is the total population, minus the number of infected individuals at time $t$. We are also assuming here that the population size does not change over time, so no births or deaths take place over the time period considered. We can then approximate the behaviour of the system with the equation
+This is an algorithm, originally implemented by David Kendall, but popularised by Dan Gillespie. It allows us to simulate a Markov jump process, such as this one. This process satisfies the Markov property, as the chance of a reaction occuring depends purely on the current numbers of different chemicals in the system, and not on the system's past. We can thus use this algorithm to simulate our system, though we also attempt several other forms of analysis. We can make a simple approximation utilising the law of mass action and treating the populations as continuous functions on time. First, we consider only $I(t)$, the number of infected individuals at time $t$, and take $S(t) = N - I(t)$ the number of susceptible individuals at time $t$ is the total population, minus the number of infected individuals at time $t$. We are also assuming here that the population size does not change over time, so no births or deaths take place over the time period considered. We can then approximate the behaviour of the system with the equation
 
 \begin{equation}
 	\fd {I} {t} = k_I (N - I(t)) I(t) - k_S I(t). \label{SIScts}
 \end{equation}
 
-This can be solved by separation of variables, as follows
+This can be solved by separation of variables, to get
 
-\begin{align}
-	\fd {I} {t} &= (k_I N - k_S - k_I I(t)) I(t) \\
-	\int dt &= \int \frac {1} {k_I N - k_S - k_I I(t)} \frac {1} {I(t)} \\
-	\int dt &= \int \frac {1} {(k_I N - k_S) I(t)} + \frac {k_I} {(k_I N - k_S) ((k_I N - k_S) k_I I(t))} \\
-	t + C &= \frac {1} {k_I N - k_S} \big( \ln (I(t)) - \ln ((k_I N - k_S) - k_I I(t)) \big) \\
-	\ln \left( \frac {I(t)} {(k_I N - k_S) - k_I I(t)} \right) &= (k_I N - k_S) (t + C) \\
-	\frac {(k_I N - k_S) - k_I I(t)} {I(t)} &= A \exp ((k_S - k_I N) t) \\
-	k_I N - k_S &= (k_I + A \exp((k_S - k_I N) t)) I(t) \\
-	I(t) &= \frac {k_I N - k_S} {k_I + A \exp((k_S - k_I N) t)}.
-\end{align}
+\begin{equation}
+	I(t) = \frac {k_I N - k_S} {k_I + A \mathrm{exp}((k_S - k_I N) t)}.
+\end{equation}
 
 Setting the initial condition $I(0) = 1$ allows us to specify the constant
 
 \begin{align}
-	1 &= \frac {k_I N - k_S} {k_I + A} \\
-	A &= k_I N - k_S - k_I.
+	1 &= \frac {k_I N - k_S} {k_I + A} \notag \\
+	\implies A &= k_I N - k_S - k_I.
 \end{align}
 
 Giving
@@ -364,20 +339,28 @@ We can also perform a linear stability analysis to predict the expected behaviou
 
 \section{The Chemical Master Equation and Probability Generating Function}
 
-To gain a more accurate analysis, we leverage the Chemical Master Equation (CME). We begin by considering $P_n (t) = \mathbb{P}(I(t) = n)$. We also have that $P_k (t) \equiv 0$ for $k < 0$ and $k > N$. Then
+To gain a more accurate analysis, we leverage the Chemical Master Equation (CME). We begin by considering $P_n (t) = \mathbb{P}(I(t) = n)$, the probability that at time $t$ there are $n$ infected individuals. We therefore clearly have that $P_k (t) \equiv 0$ for $k < 0$ and $k > N$. Then
 
-\begin{align}
-	P_n(t + dt) &= k_S (n+1) P_{n+1}(t) dt + k_I (n-1) (N- (n-1)) P_{n-1}(t) dt \\
-	&\qquad + P_n(t) (1 - (k_s n + k_I n (N-n)) dt) \\
-	\iff \fd {} {t} P_n(t) &= k_S (n+1) P_{n+1}(t) + k_I (n-1) (N- (n-1)) P_{n-1}(t) \\
-	&\qquad - (k_S n + k_I n (N-n)) P_n(t).
-\end{align}
+\begin{multline}
+	P_n(t + dt) = k_S (n+1) P_{n+1}(t) dt + k_I (n-1) (N- (n-1)) P_{n-1}(t) dt \\
+	+ P_n(t) (1 - (k_s n + k_I n (N-n)) dt).
+\end{multline}
 
-This is not easily solvable analytically, and so we instead examine the mean and variance processes, and the stationary distribution.
+Now taking the limit as $dt \rightarrow 0$, we have
+
+\begin{multline}
+	\fd {} {t} P_n(t) = k_S (n+1) P_{n+1}(t) + k_I (n-1) (N- (n-1)) P_{n-1}(t) \\
+	 - (k_S n + k_I n (N-n)) P_n(t).
+\end{multline}
+
+This is not easily solvable analytically, as it is a system of $N$ equations (where $N$ is large), and so we instead examine the mean and variance processes, and the stationary distribution.
+
+\subsection{Mean and Variance} \label{MeanVar}
 
 We define the mean as $M(t) = \sum_{n = 0}^N n P_n(t)$ and the Variance as $V(t) = \sum_{n = 0}^N (n - M(t))^2 P_n(t)$. We then proceed as follows
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	\fd {M} {t} &= \fd {} {t} \sum_{n = 0}^N n P_n(t) \\
 	&= \sum_{n = 0}^N n \fd {} {t} P_n(t) \\
 	&= \sum_{n = 0}^N n k_S (n+1) P_{n+1} (t) + n k_I (n-1)(N - (n-1)) P_{n-1} (t) - n (k_S n + k_I n (N-n)) P_n(t) \\
@@ -386,11 +369,12 @@ We define the mean as $M(t) = \sum_{n = 0}^N n P_n(t)$ and the Variance as $V(t)
 	&= \sum_{n=0}^N k_I n (N-n) P_n(t)-n k_S P_n(t) \\
 	&= k_I N \sum_{n=0}^N n P_n(t) - k_S \sum_{n=0}^N n P_n(t) - k_I \sum_{n=0}^N n^2 P_n(t) \\
 	&= k_I N M(t) - k_S M(t) - k_I \sum_{n=0}^N n^2 P_n(t). \label{SISmixmean}
-\end{align}
+\end{aligned}
+\end{equation}
 
 Where the change in indices is justified by the factors of $(n \pm 1)$ and $(N-n)$ in the sums, and the definition of $P_n(t)$.
 
-This aligns roughly with what we would expect from the mass action approximation, however the final sum provides some difficulty. Expanding and rearranging the equation for the variance, we get
+This is visually very similar to the ODE for the mass action approximation, however the final sum provides some difficulty. Expanding and rearranging the equation for the variance, we get
 
 \begin{equation}
 	V(t) = \sum_{n=0}^N n^2 P_n(t) - M(t)^2. \label{variancesquare}
@@ -402,7 +386,31 @@ Therefore, we have that
 	\fd {M} {t} = k_I(N - M(t)) M(t) - k_S M(t) - k_I V(t).
 \end{equation}
 
-So for non-zero variance, we see that this is not the same as the mass action approximation. Unfortunately we can't write a closed-form solution for the mean or variance, as we are just going to get dependence on higher-order terms. In order to sidestep this problem, we attempt to analyse the process using the probability generating function
+So for non-zero variance, we see that this is not the same as the mass action approximation. Unfortunately we cannot write a closed-form solution for the mean or variance without making some sort of closure, as we are just going to get dependence on higher-order terms. The simplest closure would be to just take the variance to be zero, however this just gives the mass-action approximation. We therefore take a moment closure \citep{kuehnMomentClosureBrief2016} where we assume that any higher-order moments are zero. Defining the third centralised moment as $J(t) = \sum_{n = 0}^N (n-M(t))^3 P_n(t) = 0$ and expanding gives
+
+\begin{equation}
+	\sum_{n = 0}^N n^3 P_n(t) = 3 M(t) V(t) + M(t)^3,
+\end{equation}
+
+which allows us to simplify the ODE for variance
+
+\begin{equation}
+\begin{aligned}
+	\fd{V}{t} &= \sum_{n = 0}^N n^2 \fd {P_n(t)(t)}{t} \\
+	&= \sum_{n = 0}^N n^2 k_S (n+1) P_{n+1}(t) + n^2 k_I (n-1) (N - (n-1)) P_{n-1} (t) - n^2 (k_S n + k_I n (N - n)) P_n(t) \\
+	&= \sum_{n = 0}^N (n-1)^2 k_S n P_n(t) + (n+1)^2 k_I n (N-n) P_n(t) - n^2 (k_S n + k_I n (N - n)) P_n(t) \\
+	&= \sum_{n=0}^N \left[ k_S n - 2 k_S n^2 + 2 k_I N n^2  + k_I N n - 2 k_I n^3 - k_I n^2 \right] P_n(t) \\
+	&= (k_S + k_I N) M(t) + (2k_I N - 2k_S - k_I) (V(t) + M(t)^2)  - 6 k_I M(t) V(t) - 2 k_I M(t)^3.
+\end{aligned}	
+\end{equation}
+
+Where we have used the closure to write everything in terms of the mean and variance, and where the change in indices in justified as for the mean.
+
+These two equations now constitute a system of coupled nonlinear ODEs. This is very difficult to solve analytically, so we instead solve the system numerically, using the fourth order Runge-Kutta algorithm \citep{cheeverFourthOrderRungeKutta}.
+
+\subsection{Probability Generating Function}
+
+We now attempt to analyse the process using the probability generating function, defined as
 
 \begin{equation}
 	G: [-1, 1] \times (0, \infty) \mapsto \mathbb{R}: \qquad G(x, t) = \sum_{n=0}^\infty x^n P_n(t).
@@ -410,39 +418,44 @@ So for non-zero variance, we see that this is not the same as the mass action ap
 
 We can then derive the following:
 
-\begin{align}
-	\pd{}{t} \sum_{n=0}^\infty x^n P_n(t) &= k_S \sum_{n = 0}^\infty (n+1) x^n P_{n+1}(t) + k_I \sum_{n=0}^\infty (n-1)(N - (n-1)) x^n P_{n-1}(t) \\
-	&\qquad - \sum_{n=0}^\infty (k_S + k_I (N - n))n x^n P_n(t).
-\end{align}
+\begin{multline}
+	\pd{}{t} \sum_{n=0}^\infty x^n P_n(t) = k_S \sum_{n = 0}^\infty (n+1) x^n P_{n+1}(t) + k_I \sum_{n=0}^\infty (n-1)(N - (n-1)) x^n P_{n-1}(t) \label{PGFCME} \\
+	- \sum_{n=0}^\infty (k_S + k_I (N - n))n x^n P_n(t). \notag
+\end{multline}
 
-We note the following:
+We note the following useful identities:
 
 \begin{align}
-	\pd {} {x} G(x, t) &= \sum_{n=1}^\infty n x^{n-1} P_n(t) \\
+	\pd {} {x} G(x, t) &= \sum_{n=1}^\infty n x^{n-1} P_n(t), \\
 	\pdd{} {x} G(x, t) &= \sum_{n=2}^\infty n (n-1) x^{n-2} P_n(t).
 \end{align}
 
-Changing indices in the above then gives
+Changing indices in \ref{PGFCME} then gives the PDE
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	\pd {} {t} \sum_{n = 0}^\infty x^n P_n(t) &= k_S \sum_{n = 1}^\infty n x^{n-1} P_n(t) + k_I \sum_{n = 0}^\infty n (N-n) x^{n+1} P_n(t) \\
 	&\qquad - \sum_{n=0}^\infty (k_S + k_I (N-n))n x^n P_n(t) \\
-	\pd {} {t} G(x, t) &= k_S \pd {} {x} G(x, t) + k_I (N-1) x^2 \pd {} {x} G(x, t) - k_I x^3 \pdd {} {x} G(x, t) \\
+	\implies \pd {} {t} G(x, t) &= k_S \pd {} {x} G(x, t) + k_I (N-1) x^2 \pd {} {x} G(x, t) - k_I x^3 \pdd {} {x} G(x, t) \\
 	&\qquad - k_S x \pd {} {x} G(x, t) - k_I N x \pd {} {x} G(x, t) + k_I x^2 \pdd {} {x} G(x, t) + k_I x \pd {} {x} G(x, t) \\
-	\pd {} {t} G(x, t) &= (k_S - k_S x + k_I (N-1) (x^2 - x)) \pd {} {x} G(x, t) + (k_I x^2 - k_I x^3) \pdd {} {x} G(x, t).
-\end{align}
+	\implies \pd {} {t} G(x, t) &= (k_S - k_S x + k_I (N-1) (x^2 - x)) \pd {} {x} G(x, t) + (k_I x^2 - k_I x^3) \pdd {} {x} G(x, t).
+\end{aligned}
+	\label{PGFPDE}
+\end{equation}
 
 We can define the initial condition
 
 \begin{equation}
-	G(x, 0) = \sum_{n = 0}^\infty x^n P_n(0) = x,
+	G(x, 0) = \sum_{n = 0}^\infty x^n P_n(0) = x^{n_0},
 \end{equation}
 
-as the starting infected population is $1$. We can also easily get one of the boundary conditions
+where the initial number of infected individuals is $n_0$, so $P_n(0) = 0$ for all $n \neq n_0$, and $P_{n_0}(0) = 1$. We can also see one of the boundary conditions
 
 \begin{equation}
-	G(1, t) = \sum_{n = 0}^\infty P_n(t) = 1.
+	G(1, t) = \sum_{n = 0}^\infty P_n(t) = 1,
 \end{equation}
+
+which follows immediately from the normalisation of the probabilities.
 
 Unfortunately the boundary condition at $x = -1$ is considerably more difficult to derive, as the PDE yields
 
@@ -450,23 +463,23 @@ Unfortunately the boundary condition at $x = -1$ is considerably more difficult 
 	\pd {} {t} G(-1, t) = (2 k_S + 2 k_I (N-1)) \pd {} {x} G(-1, t) + 2 k_I \pdd {} {x} G(-1, t).
 \end{equation}
 
-Clearly to compute this boundary condition, we would already require knowledge of the function on the boundary. We could enforce a Dirichlet boundary condition, and define $G(-1, t)$ to be constant. We might consider that the probability of an odd number of molecules should be approximately equal to the probability of having an even number of molecules, which gives us
+Clearly to compute this boundary condition, we would already require knowledge of the function on the boundary. We could enforce a Dirichlet boundary condition, and define $G(-1, t)$ to be constant, setting $G(-1, t) = (-1)^{n_0}$ for consistency with the initial condition above. We might also consider that the probability of an odd number of molecules should be approximately equal to the probability of having an even number of molecules, which gives us
 
 \begin{align}
 	\frac {G(1, t) + G(-1, t)} {2} &= \sum_{k = 0}^\infty P_{2k}(t) = \frac 1 2\\
 	\frac {G(1, t) - G(-1, t)} {2} &= \sum_{k = 0}^\infty P_{2k+1}(t) = \frac 1 2.
 \end{align}
 
-This then simply gives that $G(-1, t) = 0$. This also then gives, from the above equation, that the first $x$ derivatives of $G$, evaluated at $-1$, are also $0$.
+This then simply gives that $G(-1, t) = 0$. This also then gives, from the above equation, that the first $x$ derivatives of $G$, evaluated at $-1$, are also $0$. However, this isn't consistent with the initial condition, so we instead opt for the Dirichlet condition that $G(-1, t) = (-1)^{n_0}$.
 
-Attempting to solve this numerically, using tools such as VisualPDE, does not seem to work, potentially due to the complex nature of the equations involved. If we could, this then would give us numerical estimates for the mean and variance of the system, using
+We can solve this system numerically, using VisualPDE \citep{walkerVisualPDERapidInteractive2023}. Doing this allows us to use the following identities to get numerical estimates for the mean and variance of the system over time:
 
 \begin{equation}
 	\mathbb{E} [I(t)] = \pd {} {x} G(x, t) \Big|_{x = 1} \qquad
 	\mathrm{Var} [I(t)] = \left( \pdd {} {x} G(x, t) + \pd {} {x} G(x, t) - \left( \pd {} {x} G(x, t) \right)^2 \right) \Big|_{x = 1}.
 \end{equation}
 
-However, due to the difficulty in determining a good boundary condition at $x = -1$, and of then numerically calculating the PGF, we will not do this here, and will instead move onto an analysis of the stationary distribution.
+We in fact see in the numerical solution, tracking these expressions over time, that the mean rises as we would expect, before levelling off. We also see the variance drop rapidly to a very low value, showing that we expect the solutions to rapidly converge towards an equilibrium.
 
 \section{The Stationary Distribution}
 
@@ -498,11 +511,11 @@ We can also consider the recovery-free (SI) model, by setting $k_S - 0$. This gi
 	k_I (n-1)(N-(n-1)) \phi(n-1) - k_I n (N-n) \phi(n) = 0.
 \end{equation}
 
-Now setting $n = 0$ clearly gives $\phi(0) = 0$, as we would expect. In fact, it is then clear that all $\phi(n) = 0$, for all $n < N$. For $n = N$, the steady-state CME gives us no information, but again using $\sum_{k = 0}^N \phi(k) = 1$, we see that $\phi(N) = 1$. Again this makes sense, as with no recovery, we expect the whole population to become infected.
+Now setting $n = 0$ gives $\phi(0) = 0$, as we would expect. In fact, it follows that all $\phi(n) = 0$, for all $n < N$. For $n = N$, the steady-state CME gives us no information, but again using $\sum_{k = 0}^N \phi(k) = 1$, we see that $\phi(N) = 1$. Again this makes sense, as with no recovery, we expect the whole population to become infected.
 
 \section{Stochastic Differential Equation Approach, and Finite-Time Stationary Distribution Approximation}
 
-The final approach we can consider to obtain more information about the system, is to approximate it as a Stochastic Differential Equation. We define two functions
+The final approach we can consider to obtain more information about the system, is to approximate it as a Stochastic Differential Equation, following the procedure laid out in \citet{erbanStochasticDifferentialEquations2020}. We define two functions
 
 \begin{equation}
 	h_1(n, t) = k_S n P_n(t), \qquad h_2(n, t) = k_I n (N-n) P_n(t).
@@ -514,7 +527,7 @@ These allow us to rewrite the the CME as
 	\fd {} {t} P_n(t) = h_1 (n+1, t) + h_2 (n-1, t) - h_1 (n, t) - h_2 (n, t).
 \end{equation}
 
-Approximating for large $n$, we consider a large fixed $\omega$ such that $n = \eta \omega$, for some continuous $\eta > 0$, and we set $P_n(t) = P(\eta, t)$. We thus have
+Approximating for large $n$, we consider a large fixed $\omega$ such that $n = \eta \omega$, for some continuous $\eta > 0$, and we set $P_n(t) = P(\eta, t)$. This continuous approximation lets us write
 
 \begin{equation}
 	h_1(\eta, t) = k_S \eta \omega P(\eta, t), \qquad h_2(\eta, t) = k_I \eta \omega (N- \eta \omega) P(\eta, t).
@@ -529,9 +542,11 @@ And the CME is now
 We then Taylor expand in powers of $\omega$
 
 \begin{align}
-	h_1 (\eta + \frac 1 \omega, t) &\approx h_1 (\eta, t) + \frac 1 \omega \pd {} {\eta} h_1 (\eta, t) + \frac 1 {2 \omega^2} \pdd {} {\eta} h_1 (\eta, t) + \mathcal{O} (\frac {h_1} {\omega^3}), \\
-	h_2 (\eta - \frac 1 \omega, t) &\approx h_2 (\eta, t) - \frac 1 \omega \pd {} {\eta} h_2 (\eta, t) + \frac 1 {2 \omega^2} \pdd {} {\eta} h_2 (\eta, t) + \mathcal{O} (\frac {h_2} {\omega^3}).
+	h_1 (\eta + \frac 1 \omega, t) &\approx h_1 (\eta, t) + \frac 1 \omega \pd {} {\eta} h_1 (\eta, t) + \frac 1 {2 \omega^2} \pdd {} {\eta} h_1 (\eta, t) + \mathcal{O} \left(\frac {h_1} {\omega^3}\right), \\
+	h_2 (\eta - \frac 1 \omega, t) &\approx h_2 (\eta, t) - \frac 1 \omega \pd {} {\eta} h_2 (\eta, t) + \frac 1 {2 \omega^2} \pdd {} {\eta} h_2 (\eta, t) + \mathcal{O} \left(\frac {h_2} {\omega^3}\right).
 \end{align}
+
+Where $\mathcal {O} (n)$ indicates terms of order $n$ or higher ($n, n^2$, etc).
 
 Truncating at $\mathcal{O} (\frac 1 {\omega^2})$ then lets us write
 
@@ -554,95 +569,107 @@ Where
 So we have
 
 \begin{align}
-	\pd {} {t} P(x, t) &= \pd {} {x} \big((k_S x - k_I x (N-x)) P(x, t)\big) + \pdd {} {x} \left(\frac {1} {2}(k_S x + k_I x (N-x)) P(x, t)\right) \\
-	&= - \pd {} {x} (f(x) P(x, t)) + \pdd {} x (d(x) P(x, t)).
+	\pd {} {t} P(x, t) &= \pd {} {x} \big((k_S x - k_I x (N-x)) P(x, t)\big) + \pdd {} {x} \left(\frac {1} {2}(k_S x + k_I x (N-x)) P(x, t)\right) \notag \\
+	&= - \pd {} {x} (f(x) P(x, t)) + \pdd {} x (d(x) P(x, t)). \label{ChemFPEq}
 \end{align}
 
-Where, in the usual Fokker-Planck notation,
+This is a PDE known as the Chemical Fokker Planck equation. We then have the drift and diffusion terms
 
 \begin{equation}
 	f(x) = (k_I x (N-x) - k_S x), \qquad d(x) = \frac {k_S x + k_I x (N-x)} {2} = \frac {g(x)^2} 2.
 \end{equation}
 
-This is therefore the Chemical Fokker-Planck equation for this system. We now use the following "computational definition" of SDEs:
+We now use the following "computational definition" of SDEs:
 
 \begin{equation}
-	X(t + \Delta t) = X(t) + f(X(t)) \Delta t + g(X(t)) \sqrt{\Delta t} \xi.
+	X(t + \Delta t) = X(t) + f(X(t)) \Delta t + g(X(t)) \sqrt{\Delta t} \xi
 \end{equation}
+
+where $\xi \sim N(0, 1)$ is normally distributed with $0$ mean and a variance of $1$. We can then iterate in time steps of $\Delta t$, taking a new $\xi$ each time, according to the normal distribution - this accounts for the noise in the process.
 
 Setting the mean $M(t) = \mathbb{E} (X(t))$ and the variance $V(t) = \mathrm{Var} (X(t))$, we derive the following:
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	M(t + \Delta t) &= \mathbb{E} (X(t + \Delta t)) \\
 	&= \mathbb{E} (X(t) + f(X(t)) \Delta t + g(X(t)) \sqrt{\Delta t} \xi) \\
 	&= \mathbb{E} (X(t)) + \Delta t \mathbb{E} (f(X(t))) + \sqrt{\Delta t}\mathbb{E} (g(X(t))) \mathbb{E} (\xi) \\
 	&= M(t) + \Delta t \mathbb{E} (f(X(t))).
-\end{align}
+\end{aligned}
+\end{equation}
 
 So
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	\fd M t &= \mathbb{E} (f(X(t))) \\
 	&= \mathbb{E} (k_I X (N-X) - k_S X) \\
 	&= (k_I N - k_S) \mathbb{E} (X) - k_I \mathbb{E} (X^2) \\
 	&= (k_I N - k_S - k_I M(t)) M(t) - k_I V(t).
-\end{align}
+\end{aligned}
+\end{equation}
 
-Which is the same result we gained from analysing the CME directly, so is unfortunately again intractable.
+Which is the same result we gained from analysing the CME directly, and so this would give the same results as in \ref{MeanVar}
 
-We can attempt to get an expression for the stationary distribution from the SDE here. Clearly, if we impose the absorbing boundary condition at $x=0$, we will just get the distribution $p_s(x) = 0$, as all trajectories will eventually hit $0$ and be absorbed. However, we are able to extract some useful information by not applying this boundary condition. This will give us a stationary distribution more closely approximating the behaviour we see stopping the simulation after finite time, as the probability of trajectories hitting $0$ in (relatively small) finite time is very low. We use the standard formula
+We can attempt to get an expression for the stationary distribution from the SDE here. Clearly, if we impose the absorbing boundary condition at $x=0$, we will just get the distribution $p_s(x) = 0$, as all trajectories will eventually hit $0$ and be absorbed. However, we are able to extract some useful information by not applying this boundary condition. This will give us a stationary distribution more closely approximating the behaviour we see stopping the simulation after finite time, as the probability of trajectories hitting $0$ in (relatively small) finite time is very low. By setting the time derivative in \ref{ChemFPEq} to $0$, we can derive the formula for the stationary distribution
 
 \begin{equation}
 	p_s(x) = \frac C {d(x)} \mathrm{exp} \left( \int_0^x \frac {f(y)} {d(y)} dy \right).
 \end{equation}
 
-Substituting our functions in gives the following
+Substituting our functions for $f, g$ in gives the following
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	p_s(x) &= \frac {2C} {k_S x + k_I x (N-x)} \mathrm{exp} \left( \int_0^x \frac {2 (k_I y (N-y) - k_S y)} {k_S y + k_I y (N-y)}dy \right) \\
 	&= \frac {2C} {k_S x + k_I x (N-x)} \mathrm{exp} \left( \int_0^x 2 - \frac {4k_S} {k_S + k_I (N-y)} dy \right) \\
 	&= \frac {2C} {k_S x + k_I x (N-x)} \mathrm{exp} \left( 2x + \frac {4k_S} {k_I} \ln \left( 1 - \frac {k_I x} {k_S + k_I N} \right) \right) \\
 	&= \frac {2C} {k_S + k_I x (N-x)} e^{2x} \left( 1 - \frac {k_I x} {k_S + k_I N} \right)^{\frac {4k_S} {k_I}}.
-\end{align}
+\end{aligned}
+\end{equation}
 
-This is a somewhat complicated function, and difficult to see the behaviour of. Plotting it on an appropriate scale, we can clearly see that it looks similar to a Gaussian, and seems to be centred roughly on the value of $x = N- \frac {k_S} {k_I}$, as we would expect from the equilibrium of the mass action approximation. To quantify this, we can differentiate with respect to $x$, and find the $x$ value of the peak of the distribution.
+This is a somewhat complicated function, and difficult to intuit the behaviour of. Plotting it on an appropriate scale, we can clearly see that it looks similar to a Gaussian, and seems to be centred roughly on the value of $x = N- \frac {k_S} {k_I}$, as we would expect from the equilibrium of the mass action approximation. To quantify this, we can differentiate with respect to $x$, and find the $x$ value of the peak of the distribution.
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	\fd {p_s} x &= - \frac {2C} {x^2 (k_S + k_I (N-x))} e^{2x} \left( 1 - \frac {k_I x} {k_S + k_I N} \right)^{\frac {4k_S} {k_I}} \\
 	&\qquad + \frac {2C k_I} {x(k_S + k_I (N-x))^2} e^{2x} \left( 1 - \frac {k_I x} {k_S + k_I N} \right)^{\frac {4k_S} {k_I}} \\
 	&\qquad + \frac {4C} {k_S + k_I x (N-x)} e^{2x} \left( 1 - \frac {k_I x} {k_S + k_I N} \right)^{\frac {4k_S} {k_I}} \\
 	&\qquad + \frac {2C} {k_S + k_I x (N-x)} e^{2x} \frac {4k_S} {k_I} \left( 1 - \frac {k_I x} {k_S + k_I N} \right)^{\frac {4k_S - k_I} {k_I}} \left( - \frac {k_I} {k_S + k_I N} \right) \\
 	&= p_s(x) \left[ - \frac 1 x + \frac {k_I} {k_S + k_I (N-x)} + 2 - \frac {4 k_S} {k_S + k_I (N-x)} \right] \\
 	&= p_s(x) \left[ \frac {k_I - 4k_S} {k_S + K_I (N-x)} - \frac 1 x + 2 \right].
-\end{align}
+\end{aligned}
+\end{equation}
 
-Clearly we aren't interested about an area where $p_s(x) = 0$, so we only care about where the second part is $0$. Rearranging and applying the quadratic formula gives the (somewhat unweildy) result
+Clearly we are not interested about an area where $p_s(x) = 0$, so we only care about where the second part is $0$. Rearranging and applying the quadratic formula gives the (somewhat unweildy) result
 
 \begin{align}
-	x &= \frac {2k_S - 2 k_I - 2k_I N \pm \sqrt{4k_S^2 + 4k_I^2 + 4k_I^2 N^2 - 16 k_I k_S - 8 k_I k_S N}} {-4 k_I} \\
+	x &= \frac {2k_S - 2 k_I - 2k_I N \pm \sqrt{4k_S^2 + 4k_I^2 + 4k_I^2 N^2 - 16 k_I k_S - 8 k_I k_S N}} {-4 k_I} \notag \\
 	&= \frac N 2 + \frac 1 2 - \frac {k_S} {2 k_I} \mp \frac 1 2 \sqrt{ \left( \frac {k_S} {k_I} \right)^2 + 1 + N^2 - 4 \frac {k_S} {k_I} - 2 \frac {k_S} {k_I} N}.
 \end{align}
 
-While this seems unhelpful, we observe that we can write
+While this does not offer much insight in itself, we observe that we can write
 
 \begin{equation}
-	N - \frac {k_S} {k_I} = \frac N 2 + \frac 1 2 + \frac {k_S} {2 k_I} - \sqrt{N^2 + 1 + \left( \frac {k_S} {k_I} \right)^2 - 2 N - 2 \frac {k_S} {k_I} N + 2 \frac {k_S} {k_I}}.
+	N - \frac {k_S} {k_I} = \frac N 2 + \frac 1 2 - \frac {k_S} {2 k_I} - \frac {1} {2} \sqrt{N^2 + 1 + \left( \frac {k_S} {k_I} \right)^2 - 2 N - 2 \frac {k_S} {k_I} N + 2 \frac {k_S} {k_I}}. \label{FPStatapprox}
 \end{equation}
 
-Clearly these expressions are very close together, and we can attempt to quantify the difference. The difference in the expressions under the square root is
+These expressions are very similar, and we can attempt to quantify the difference. The difference in the expressions under the square root is
 
 \begin{equation}
 	6 \frac {k_S} {k_I} - 2N
 \end{equation}
 
-and dividing this by the expression under the square root gives
+and dividing this by the expression under the square root in \ref{FPStatapprox} gives
 
 \begin{align}
-	\frac {6 \frac {k_S} {k_I} - 2N} {\left( N - 1 - \frac {k_S} {k_I} \right)^2} &\approx \frac {6 \frac {k_S} {k_I} - 2N} {\left(N - \frac {k_S} {k_I} \right)^2} \\
+	\frac {6 \frac {k_S} {k_I} - 2N} {\left( N - 1 - \frac {k_S} {k_I} \right)^2} &\approx \frac {6 \frac {k_S} {k_I} - 2N} {\left(N - \frac {k_S} {k_I} \right)^2} \notag \\
 	&= \frac {6 \frac {k_S} {k_I} - 2N} {N^2 - \frac {k_S} {k_I} N + \left( \frac {k_S} {k_I} \right)^2}.
 \end{align}
 
 We then have three possible cases. If $\frac {k_S} {k_I}$ and $N$ are similar in magnitude, then this expression is of magnitude $\frac 1 N \ll 1$. If $\frac {k_S} {k_I}$ is of significantly smaller magnitude than $N$, then the expression is again of magnitude $\frac 1 N \ll 1$. And finally, if $\frac {k_S} {k_I}$ is significantly larger than $N$, then the magnitude of the expression is $\frac {k_I} {k_S} \ll 1$. In all cases, this expression is much smaller than $1$, and as the difference is effectively square rooted, the difference between this peak and the ODE equilibrium $N - \frac {k_S} {k_I}$ should be less than $1$. When we substitute a range of values for $\frac {k_S} {k_I}$ and $N$, this is in fact what we do find. We have therefore shown that we expect, for finite durations of time, for the stochastic simulations to approximate the endemic equilibrium from the mass action approximation, which is what we see.
+
+We have now developed several tools for analysing this model, specifically the Chemical Master Equations, mass action approximation, and stochastic differential equations. We also analysed the probability generating function for the chemical master equations. We have used these to determine a stationary distribution for the simulations, and to analyse the stability of solutions to the mass action approximation, which we have used to predict the qualitative behaviour of the model. We have seen that the model results in noisy trajectories, which are approximated by logistic growth, in the case that the extinction equilibrium of the mass action ODE is unstable, and which decay exponentially to extinction, in the case that the extinction equilibrium of the mass action ODE is stable. In the discussion on network models, we will focus primarily on the chemical master equations, approximations of their solutions, and the resulting stability analysis.
 
 \chapter{Metapopulation model}
 
@@ -661,16 +688,20 @@ Here the first equation corresponds to infection within node $i$, the second to 
 From these equations, we can see that the mass-action approximation would be of the form
 
 \begin{equation}
-	\fd{I_i}{t} = k_I I_i(t) (N_i - I_i(t)) + k_I (N_i - I_i(t)) (\sum_j A_{ij} I_j(t)) - k_S I_i(t).
+	\fd{I_i}{t} = k_I I_i(t) (N_i - I_i(t)) + k_I (N_i - I_i(t)) (\sum_j A_{ij} I_j(t)) - k_S I_i(t). \label{metaMA}
 \end{equation}
 
 If we set $I(t) = \sum_i I_i(t)$ to be the total infected population, and $\sum_i N_i = N$ to be the total population, we get
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	\fd {I} {t} &= k_I \sum_i (I_i(t) N_i) - k_I \sum_i (I_i(t)^2) + k_I \sum_{i, j} A_{ij} I_j(t) N_i - k_I \sum_{i, j} A_{ij} I_j(t) I_i(t) - k_S \sum_i I_i(t) \\
 	&= k_I \sum_i (I_i(t) N_i) - k_I \sum_i (I_i(t)^2) + k_I \sum_{j} A_{ij} I_j(t) (N_i - I_i(t)) - k_S I(t) \\
-	&= k_I \sum_{i,j} (\m A + \m I)_{ij} I_j(t) (N_i - I_i(t)) - k_S I(t).
-\end{align}
+	&= k_I \sum_{i,j} (\m A + \mathbb{I})_{ij} I_j(t) (N_i - I_i(t)) - k_S I(t)
+\end{aligned}
+\end{equation}
+
+where $\mathbb{I}$ is the identity matrix.
 
 This sum is difficult to simplify for a generic graph. However, this equation does bear a strong resemblance to the non-spatial SI equation, but with the spreading term modified by the graph interactions.
 
@@ -689,16 +720,15 @@ First, let $p_i(n, t) = \mathbb{P}(I_i(t) = n)$, with $p_i(k, t) = 0$ for $k < 0
 
 By rearranging and taking the limit as $\Delta t \rightarrow 0$, we obtain:
 
-\begin{equation}
-\begin{split}
-	\fd {p_i} {t} (n, t) &= k_I (N_i - (n-1)) \sum_j A_{ij} I_j(t) p_i(n-1, t) + k_I(N_i - (n-1))(n-1) p_i(n-1, t)\\
-	&+ k_S (n+1) p_i(n+1, t) - \left(k_I (N_i - n) \sum_j A_{ij} I_j(t) + k_I (N_i - n) n+ k_S n \right) p_i(n, t).
-\end{split}
-\end{equation}
+\begin{multline}
+	\fd {p_i} {t} (n, t) = k_I (N_i - (n-1)) \sum_j A_{ij} I_j(t) p_i(n-1, t) + k_I(N_i - (n-1))(n-1) p_i(n-1, t)\\
+	+ k_S (n+1) p_i(n+1, t) - \left(k_I (N_i - n) \sum_j A_{ij} I_j(t) + k_I (N_i - n) n+ k_S n \right) p_i(n, t).
+\end{multline}
 
 By setting $M_i(t) = \sum_{n=0}^{N_i} n p_i (n, t)$ to be the average infected individuals at node $i$ at time $t$, we can use the chemical master equations to derive the following:
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	\fd {M_i} {t} &= \sum_{n = 0}^{N_i} k_I n (N_i - (n-1)) \sum_j A_{ij} I_j(t) p_i(n-1, t) + n k_I(N_i - (n-1))(n-1) p_i(n-1, t) \notag \\
 	&\qquad + n k_S (n+1) p_i(n+1, t) - n \left( k_I (N_i - n) \sum_j A_{ij} I_j(t) + k_I (N_i - n) n + k_S n \right) p_i(n, t) \\
 	&= \sum_{n = 0}^{N_i} k_I (n+1) (N_i - n) \sum_j A_{ij} I_j(t) p_i(n, t) + \sum_{n = 0}^{N_i} (n+1) k_I (N_i - n) n p_i(n, t)\notag \\
@@ -707,7 +737,8 @@ By setting $M_i(t) = \sum_{n=0}^{N_i} n p_i (n, t)$ to be the average infected i
 	&= k_I \left(\sum_j A_{ij} I_j(t) \right) \left( \sum_{n = 0}^{N_i} N_i p_i(n ,t) - \sum_{n = 0}^{N_i} n p_i(n, t) \right) \notag \\
 	&\qquad + k_I \left(N_i \sum_{n = 0}^{N_i} n p_i(n, t) - \sum_{n = 0}^{N_i} n^2 p_i(n, t) \right) - k_S \sum_{n = 0}^{N_i} n p_i(n, t) \\
 	&= k_I \left( \sum_j A_{ij} I_j(t) \right) (N_i - M_i) + k_I(N_i M_i + M_i^2 - V_i) - k_S M_i. \label{SISmetameans}
-\end{align}
+\end{aligned}
+\end{equation}
 
 Using \ref{variancesquare} in the last step, where $V_i = \sum_{n=0}^{N_i} (n-M_i)^2 p_i(n, t)$. We have also suppressed the index switching, as again this is justified by factors in the sums, and the definition of $p_i(n, t)$. We have also used the fact that, as a probability distribution, $\sum_{n=0}^{N_i} p_i(n, t) \equiv 1$.
 
@@ -721,7 +752,7 @@ It would often be common to take the mean-field approximation and treat $M_i$ an
 
 \section{Continuous Approximation, Equilibria, and Stability}
 
-If we shift our framing slightly, and instead consider an (approximately continuous) "infection density" $\rho_i(t) = \frac {I_i(t)} {N_i}$, we can attempt to analyse equilibria of the system and their stability. The mass-action approximation becomes
+If we shift our framing slightly, and instead consider an (approximately continuous) "infection density" $\rho_i(t) = \frac {I_i(t)} {N_i}$, we can attempt to analyse equilibria of the system and their stability. The mass-action approximation \ref{metaMA} becomes
 
 \begin{equation}
 	\fd {\rho_i} {t} = k_I \rho_i(t) N_i (1- \rho_i(t)) + k_I (1 - \rho_i(t)) \sum_j A_{ij} N_j \rho_j(t) - k_S \rho_i(t).
@@ -762,7 +793,7 @@ Again the extinction scenario is an equilibrium satisfying constant neighbour in
 
 from the quadratic formula. We will show that these are both positive real roots. It is worth noting the comparison to the well-mixed model, for which there is only a single endemic equilibria.
 
-We can rewrite the roots in a more wieldy manner using the variables $c_i = \frac C {N_i}$ and $k_i = \frac {k_S} {2k_I N_i}$ as
+We can simplify the notation using the variables $c_i = \frac C {N_i}$ and $k_i = \frac {k_S} {2k_I N_i}$ as
 
 \begin{equation}
 	\rho_i = \frac 1 2 (1 - c_i) - k_i \pm \sqrt{\frac 1 4 - \frac {3 c_i} 2 + \frac {c_i^2} {4} - k_i + k_i c_i + k_i^2}.
@@ -777,8 +808,8 @@ Focusing just on the discriminant, and using $k = k_i N_i = \frac {k_S} {2 k_I}$
 This is a positive quadratic in $N_i$, and therefore is satisfied for
 
 \begin{align}
-	N_i &\leq 8(\frac {3C} {2} + k - \sqrt{2 k C + 2 C^2}), \\
-	N_i &\geq 8(\frac {3 C} {2} + k + \sqrt{2 k C + 2 C^2}).
+	N_i &\leq 8 \left(\frac {3C} {2} + k - \sqrt{2 k C + 2 C^2}\right), \quad \text{or} \\
+	N_i &\geq 8 \left(\frac {3 C} {2} + k + \sqrt{2 k C + 2 C^2}\right).
 \end{align}
 
 We can see that both of these roots must be real, as $k, C \geq 0$, and also positive, as
@@ -789,28 +820,32 @@ We can see that both of these roots must be real, as $k, C \geq 0$, and also pos
 
 In a similar vein, we now return to the equation for $\rho_i$
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	\left( \frac 1 2 (1 - c_i) - k_i \right)^2 &= \frac 1 4 (1 - c_i)^2 - (1- c_i) k_i + k_i^2 \\
 	&= \frac 1 4 - \frac {c_i} 2 + \frac {c_i^2} 4 - k_i + c_i k_i + k_i^2 \\
 	&\geq \frac 1 4 - \frac {3 c_i} 2 + \frac {c_i^2} 4 - k_i + c_i k_i + k_i^2.
-\end{align}
+\end{aligned}
+\end{equation}
 
 So both $\rho_i \geq 0$, with equality if and only if $c_i = 0$, which gives the extinction equilibrium as expected.
 
 We also have $1 \geq 1 - c_i - 2 k_i \geq \rho_i$, so these are both valid solutions, for some conditions which we now derive.
 
-We note that as $C = \sum_j A_{ij} N_j \rho_j$, we have the vector equation $\v C = \m A (\v N \otimes \boldsymbol{\rho})$, where $\v C$ is the vector where each element is $C$. For our metapopulation model, we have no unconnected vertices, and thus no zero rows or columns in $\m A$, we consider only the case where $\m A$ is invertible. There are no simple conditions for the adjacency matrix of a graph to be invertible, so this process is only applicable to those which do have an invertible adjacency matrix. We can then write $\v N \boldsymbol{\rho} = \m A^{-1} \v C = C \m A^{-1} \v 1$, where $\v 1$ is the vector where each element is $1$. We thus let $\m A^{-1} = \v a$, so we have $\rho_i = \frac {C a_i} {N_i}$. Substituting this into our equation for $\rho_i$ gives
+We note that as $C = \sum_j A_{ij} N_j \rho_j$, we have the vector equation $\v C = \m A (\v N \otimes \boldsymbol{\rho})$, where $\v C$ is the vector where each element is $C$, and $\otimes$ denotes the component wise product of two vectors. For our metapopulation model, we have no unconnected vertices, and thus no zero rows or columns in $\m A$, we consider only the case where $\m A$ is invertible. There are no simple conditions for the adjacency matrix of a graph to be invertible, so this process is only applicable to those which do have an invertible adjacency matrix. We can then write $\v N \boldsymbol{\rho} = \m A^{-1} \v C = C \m A^{-1} \v 1$, where $\v 1$ is the vector where each element is $1$. We thus let $\m A^{-1} = \v a$, so we have $\rho_i = \frac {C a_i} {N_i}$. Substituting this into our equation for $\rho_i$ gives
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	\frac {C a_i} {N_i} &= \frac 1 2 (1 - c_i) - k_i \\
 	&\qquad \pm \sqrt{\frac 1 4 - \frac {3 c_i} 2 + \frac {c_i^2} {4} - k_i + k_i c_i + k_i^2} \\
 	\iff \left( \frac {C a_i} {N_i} + \frac k {N_i} + \frac C {2 N_i} - \frac 1 2 \right)^2 &= \frac 1 4 - \frac {3C} {2N_i} + \frac {C^2} {4 N_i^2} - \frac k {N_i} + \frac {k C} {N_i^2} + \frac {k^2} {N_i^2} \\
 	\iff \frac {C^2 a_i^2} {N_i^2} + \frac {2 C k a_i} {N_i^2} + \frac {C^2 a_i} {N_i^2} - \frac {C a_i} {N_i} &= - \frac C {N_i} \\
 	\iff \frac {C^2 a_i^2} {N_i} + \frac {2 C k a_i} {N_i} + \frac {C^2 a_i} {N_i} - C a_i + C &= 0 \\
 	\iff \left( \frac {a_i^2} {N_i} + \frac {a_i} {N_i} \right) C^2 + \left( \frac {2 k a_i} {N_i} - a_i + \frac 1 {N_i} \right) C &= 0.
-\end{align}
+\end{aligned}
+\end{equation}
 
-This clearly has two solutions. Trivially, $C=0$, giving the extinction equilibrium. Or
+This has two solutions. Trivially, $C=0$, giving the extinction equilibrium. Or
 
 \begin{equation}
 	C = \frac {a_i N_i - 1 - 2 k a_i} {a_i^2 + a_i}.
@@ -853,10 +888,18 @@ For the extinction equilibrium, we have
 	M_{ij} = k_I N_i A_{ij} + \delta_{ij} (k_I N_i - k_S).
 \end{equation}
 
+If we now take the populations $N_i = N$ to be the same at every node, we can write $\m M = k_I N \m A + (k_I N - k_S) \m I$. Then, as in \citet{porterDynamicalSystemsNetworks2015}, we have that any eigenvector of $\m A$, $\v w_r$ with eigenvalue $\lambda_r$ satisfies $(k_I N \m A + (k_I N - k_S) \m I) \v w_r = (k_I N \lambda_r + (k_I N - k_S)) \v w_r$ and so any eigenvector of $\m A$ is also an eigenvector of $\m M$. Again an equilibrium here is asymptotically stable if and only if all of the eigenvalues of $\m M$ are negative (as $\m M$ is symmetric here, they are all real). We thus need $k_I N \lambda_r + (k_I N - k_S) < 0$ for all $\lambda_r$. The authors point to \citet{newmanDynamicalSystemsNetworks2018}, where the result is shown that the adjacency matrix must always have both positive and negative eigenvalues. This shows that we must also have $k_I N - k_S < 0$ for stability. It then follows here that $\lambda_r < (k_S - k_I N)/(k_I N)$ for $k_I N > 0$ and $\lambda_r > (k_S - k_I N)/(k_I N)$ for $k_I N < 0$. As we always have $k_I N > 0$, we can discard this last condition. It is clear, however, that if the greatest eigenvalue, $\lambda_1$, satisfies $\lambda_1 < (k_S - k_I N) / (k_I N)$, then so do all the other eigenvalues. This condition actually implies that $k_S / k_I > N$, so we can write that for stability of the extinction equilibrium, we require
+
+\begin{equation}
+	N (\lambda_1 + 1) < \frac {k_S} {k_I}.
+\end{equation}
+
+We refer to the point at which $k_S / k_I = N (\lambda_1 + 1)$ as the critical ratio. We refer to a ratio of $k_S / k_I$ greater than this as the subcritical case, and a ratio lower than the critical ratio as the supercritical case.
+
 We focus now on some simple graphs to examine the behaviour of the model. These are the complete graph $k_5$, the cycle graph $C_5$, the path graph $P_5$, and the star graph $S_4$. These are chosen for their simple nature, making them easy to analyse, and their different properties giving us a good intuition for how more complex structures may behave, and they all have the same number of nodes, making them easily comparable. The adjacency matrices are as follows. The matrices $\m M$ for extinction are given by $\m M = k_I \m A + k_I \m N - k_S \m I$ where $\m N$ is the matrix with the populations on the diagonal, and zeroes everywhere else. 
 
-\begin{tabular}{c c c}
-	Graph & $\m A$ & Image \\ [20pt]
+\begin{tabular}{c c c c c }
+	Graph & $\m A$ & Image & Largest eigenvalue $\lambda_1$ & Critical ratio\\ [20pt]
 	$k_5$ &
 	$
 	\begin{pmatrix}
@@ -866,7 +909,9 @@ We focus now on some simple graphs to examine the behaviour of the model. These 
 		1 & 1 & 1 & 0 & 1 \\
 		1 & 1 & 1 & 1 & 0
 	\end{pmatrix}$ & 
-	\includegraphics[width=0.1\textwidth]{figs/k5.png} \\ [35pt] 
+	\includegraphics[width=0.1\textwidth]{figs/k5.png} &
+	$4$ &
+	$5 N$ \\ [35pt] 
 	$C_5$ &
 	$
 	\begin{pmatrix}
@@ -876,7 +921,9 @@ We focus now on some simple graphs to examine the behaviour of the model. These 
 		0 & 0 & 1 & 0 & 1 \\
 		1 & 0 & 0 & 1 & 0
 	\end{pmatrix}$ & 
-	\includegraphics[width=0.1\textwidth]{figs/C5.png} \\ [35pt]
+	\includegraphics[width=0.1\textwidth]{figs/C5.png} &
+	$2$ &
+	$3 N$ \\ [35pt]
 	$P_5$ &
 	$
 	\begin{pmatrix}
@@ -886,7 +933,9 @@ We focus now on some simple graphs to examine the behaviour of the model. These 
 		0 & 0 & 1 & 0 & 1 \\
 		0 & 0 & 0 & 1 & 0
 	\end{pmatrix}$ & 
-	\includegraphics[width=0.1\textwidth]{figs/P5.png} \\ [35pt]
+	\includegraphics[width=0.1\textwidth]{figs/P5.png} &
+	$\sqrt{3}$ &
+	$(1 + \sqrt{3}) N$ \\ [35pt]
 	$S_4$ &
 	$
 	\begin{pmatrix}
@@ -896,32 +945,14 @@ We focus now on some simple graphs to examine the behaviour of the model. These 
 		1 & 0 & 0 & 0 & 0 \\
 		1 & 0 & 0 & 0 & 0
 	\end{pmatrix}$ & 
-	\includegraphics[width=0.1\textwidth]{figs/S4.png}
+	\includegraphics[width=0.1\textwidth]{figs/S4.png} &
+	$2$ &
+	$3 N$
 \end{tabular}
 
-For $k_5$ the eigenvalues of the extinction $\m M$ are $k_I N - k_S - k_I$ with degeneracy $4$ and $k_I N - k_S + 3 k_I$ with degeneracy $1$. Both are clearly real, so as $k_I > 0$, this last one is clearly the larger of the two. For stability of the extinction equilibrium we therefore require $N + 3 < \frac {k_S} {k_I}$. This requires either extremely small populations, or a much higher rate of recovery than rate of infection, as we would expect.
+These changes in the stability of the extinction equilibrium all correspond to a transcritical bifurcation, where the equilibrium at $\rho_i = 0$ always exists, but its stability changes as we vary the system parameters. In fact, when it exists the homogeneous endemic equilibrium given by \ref{metaHomEq} drops below $0$ when the equilibrium at $0$ becomes stable. We refer to these regimes from now on as the "supercritical" (unstable $0$ equilibrium) and "subcritical" (stable $0$ equilibrium) regimes.
 
-For $C_5$ we find the eigenvalues are given by the solutions of the quintic equation
-
-\begin{equation}
-	(k_I N - k_I - k_S - \lambda)^5 - 5 k_I^2 (k_I N - k_I - k_S - \lambda)^3 + 4 k_I^4 (k_I N - k_I - k_S - \lambda) + 3 k_I^5 = 0.
-\end{equation}
-
-Numerically, we can calculate that the eigenvalues are given by $\lambda = k_I N - k_I - k_S - \gamma k_I$, where $\gamma \in \{ -2.10182, 1.44392, 1.8079, -0.575001 \pm 0.464919i \}$. The eigenvalue with the largest real part is therefore the one corresponding to $\gamma = -2.10182$, giving us the stability condition $\frac {k_S} {k_I} + 1 - N > 2.10182$. In other words, the extinction equilibrium again requires either very small populations or a very large ratio of recovery to infection.
-
-For $P_5$ we again have the eigenvalues given by the solutions of a quintic equation, where if the eigenvalues are $\lambda$ and we write $x = k_I N - k_I - k_S - \lambda$, we have
-
-\begin{equation}
-	x^5 - 3 k_I x^4 - k_I^2 x^3 + 4 k_I^3 x^2 - k_I^5 = 0
-\end{equation}
-
-which has solutions $x = \gamma k_I$, where $\gamma \in \{-1.13883, -0.459892, 0.510197, 1.38348, 2.70504 \}$. We therefore have $\lambda = (N - 1 - \gamma) k_I - k_S$, so all of the eigenvalues are real, and the largest is given by $(N - 1 + 1.13883) k_I - k_S$, as $k_I > 0$. So for stability of the extinction equilibrium, we require $\frac {k_S} {k_I} > N + 0.13883$. Again, this requires either very small populations or a very large ratio of recovery to infection.
-
-Finally, for $S_4$ the eigenvalues are given by $\lambda = k_I N - k_I - k_S$ with degeneracy 3 and $\lambda = k_I N - k_S - \frac {5 k_I} {2} \pm \frac {k_I} {2} \sqrt{25 - 8 N^2}$. For $N < \frac {5} {2 \sqrt{2}}$ these last lambda are real, and are at most $k_I N - k_S$, so if we have $\frac {k_S} {k_I} > N$, then the extinction equilibrium is stable. If $N$ is larger, the second expression for $\lambda$ is complex, and has real part smaller than $k_I N - k_I - k_S$, so for stability we require $\frac {k_S} {k_I} > N-1$, requiring either small population or large recovery to infection ratio once again.
-
-These changes in the stability of the extinction equilibrium all correspond to a transcritical bifurcation, where the equilibrium at $\rho_i = 0$ always exists, but its stability changes as we vary the system parameters. In fact, the homogeneous equilibrium given by \ref{metaHomEq} drops below $0$ when the equilibrium at $0$ becomes stable. We refer to these regimes from now on as the "supercritical" (unstable $0$ equilibrium) and "subcritical" (stable $0$ equilibrium) regimes.
-
-We therefore now simulate the different networks in the regime where extinction is stable, and where it is unstable. The population at each node was set to be $1000$, representing groups of small villages. The parameters used were $k_I = 0.002$ in all simulations, with $k_S = 0.2$ in the supercritical cases and $k_S = 20$ in the subcritical cases. All simulations started with $20$ individuals infected on node $0$, which is the central node in $S_4$ and one of the end nodes in $P_5$.
+We now simulate the different networks in the regime where extinction is stable, and where it is unstable. The population at each node was set to be $1000$, representing groups of small villages. The parameters used were $k_I = 0.002$ in all simulations, with $k_S = 0.2$ in the supercritical cases and $k_S = 20$ in the subcritical cases. All simulations started with $20$ individuals infected on node $0$, which is the central node in $S_4$ and one of the end nodes in $P_5$.
 
 \begin{figure}[h]
 	\centering
@@ -1019,10 +1050,12 @@ The first term here is the chance of node $i$ being infected in a time step $\De
 
 Taking the limit as $\Delta t \rightarrow 0$ gives
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	\fd {p_i} {t} &= k_I (1 - p_i(t)) \sum_j A_{ij} p_j(t) - k_S p_i(t) \\
 	&= k_I \sum_j A_{ij} p_j(t) - \left( k_I \sum_j A_{ij} p_j(t) + k_S \right) p_i(t). \label{indvCME}
-\end{align}
+\end{aligned}
+\end{equation}
 
 This can then be rewritten in vector notation
 
@@ -1034,20 +1067,24 @@ Where $\odot$ is the component-wise vector product.
 
 By setting the average number of infected individuals to $M(t) = \sum_{i} p_i(t)$, we can show the following
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	\fd {M} {t} &= \sum_{i} \fd {p_i} {t} \\
 	&= \sum_i \left( k_I \sum_j A_{ij} p_j(t) - \left( k_I \sum_j A_{ij} p_j(t) + k_S \right) p_i(t) \right) \\
 	&= \sum_i \left( (1-p_i(t)) k_I \sum_j A_{ij} p_j(t) - k_S p_i(t) \right) \\
 	&= \sum_i (1-p_i(t)) k_I \sum_j A_{ij} p_j(t) - k_S M(t) \\
 	&= k_I \sum_{i, j} (1-p_i(t)) A_{ij} p_j(t) - k_S M(t).
-\end{align}
+\end{aligned}
+\end{equation}
 
 We can take the mean-field limit here, and treat $p_i(t)$ and $p_j(t)$ as independent and identically distributed, giving
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	\fd {M} {t} &= k_I \sum_{ij} A_{ij} p_j(t) - k_I \sum_{ij} A_{ij} p_i(t) p_j(t) - k_S M(t) \\
 	&\approx k_I \bar{d(A)} M(t) - k_I \bar{d(A)} \sum_{i} p_i(t)^2 - k_S M(t), 
-\end{align}
+\end{aligned}
+\end{equation}
 
 where $\bar{d(A)}$ is the average degree of the nodes. Then using the identity $V(t) = \sum_{i} p_i(t)^2 - M(t)^2$, we get
 
@@ -1074,10 +1111,12 @@ This is highly reminiscent of the well-mixed mean (\ref{SISmixmean}), as we woul
 
 We can make a brief attempt to find and analyse some equilibria of these systems, by treating the CME probabilities as a continuous approximation of the system, where we can interpret the probabilities approximately as the amount of time we would expect to see a given node infected for. Setting the derivative in the CME \ref{indvCME} to $0$, we get a rather complex expression for the probabilities. To simplify the situation, we consider the mean-field approximation, where we take all $p_i = p$ to be identically and independently distributed. This gives us
 
-\begin{align}
+\begin{equation}
+\begin{aligned}
 	0 &= k_I p(t) \sum_j A_{ij} - k_I p^2(t) \sum_j A_{ij} - k_S p(t) \\
 	&= p(t) \left( k_I \sum_j A_{ij} - k_I p(t) \sum_j A_{ij} - k_S \right).
-\end{align}
+\end{aligned}
+\end{equation}
 
 This clearly shows that $p_i = p = 0$ is an equilibrium of the system, as we would expect. The other possibility is given by $p(t) = 1 - \frac {k_S} {k_I \sum_j A_{ij}}$. The requirement that $p(t)$ are all identical requires that $\sum_j A_{ij}$ is the same for all $i$. This is satisfied, for example, by several kinds of tree graph, the complete graph, the cycle graph, and (in the infinite limit) the $2$D lattice. We again see that in the case of the complete graph, we reproduce behaviour very close to that of the well-mixed model, as if we sum over the $p_i$, we get $M = N - \frac {k_S N} {k_I (N-1)}$. Analysing the stability of these equilibria is unfortunately very difficult, as we would be required to find the eigenvalues of an $N \times N$ matrix, where $N$ is in general very large. However, as the behaviour is not dissimilar to the well-mixed and metapopulation models, we could expect to see some kind of critical point at which the extinction equilibrium becomes stable.
 

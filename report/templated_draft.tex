@@ -318,7 +318,7 @@ Setting the initial condition $I(0) = 1$ allows us to specify the constant
 Giving
 
 \begin{equation}
-	I(t) = \frac {N - \frac {k_S} {k_I}} {1 + \left( N - \frac {k_S} {k_I} - 1 \right) \exp((k_S - k_I N)t)}.
+	I(t) = \frac {N - \frac {k_S} {k_I}} {1 + \left( N - \frac {k_S} {k_I} - 1 \right) \exp((k_S - k_I N)t)}. \label{WMmassAct}
 \end{equation}
 
 We can also perform a linear stability analysis to predict the expected behaviour of the system. By plotting $\fd {I} {t}$ against $I(t)$, we can see that there is an unstable equilibrium at $I(t) = 0$, the extinction scenario, and a stable equilibrium at $I(t) = N - \frac {k_S} {k_I}$. From this it is clear that with no recovery ($k_S = 0$), the stable equilibrium is total infection of the population. It is also clear that in the (quite extreme) situation of $\frac {k_S} {k_I} = N$, extinction is the only equilibrium, and is stable (as the infected population cannot be negative). However, the mass action model is only an approximation and works best for large numbers of infected individuals.
@@ -333,13 +333,13 @@ We can also perform a linear stability analysis to predict the expected behaviou
 \begin{figure}
 	\centering
 	\includegraphics[width = \linewidth]{figs/SISmix.png}
-	\caption{A plot of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted black line is the deterministic mean calculated using the mass action approximation. Only $19$ traces are visible, as $1$ realisation hit extinction - an example of the effects of discretisation on the system. We see that as expected, the mass action approximation appears to be an approximate average of the realisations. We also see that when stopping after some finite time, the solutions are all close to the endemic equilibrium, as predicted by our work with the SDE for the system.}
+	\caption{A plot of the mean $\pm 1$ standard deviation of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted blue line is the deterministic solution to the mass action approximation. We see that it is higher than the simulation average, as some of the simulations hit the extinction solution, and stay at $0$, lowering the average.}
 	\label{fig:SISmix}
 \end{figure}
 
 \section{The Chemical Master Equation and Probability Generating Function}
 
-To gain a more accurate analysis, we leverage the Chemical Master Equation (CME). We begin by considering $P_n (t) = \mathbb{P}(I(t) = n)$, the probability that at time $t$ there are $n$ infected individuals. We therefore clearly have that $P_k (t) \equiv 0$ for $k < 0$ and $k > N$. Then
+To gain a more accurate analysis, we leverage the Chemical Master Equation (CME). We begin by considering $P_n (t) = \mathbb{P}(I(t) = n)$, the probability that at time $t$ there are $n$ infected individuals. We therefore have that $P_k (t) \equiv 0$ for $k < 0$ and $k > N$. Then
 
 \begin{multline}
 	P_n(t + dt) = k_S (n+1) P_{n+1}(t) dt + k_I (n-1) (N- (n-1)) P_{n-1}(t) dt \\
@@ -406,21 +406,29 @@ which allows us to simplify the ODE for variance
 
 Where we have used the closure to write everything in terms of the mean and variance, and where the change in indices in justified as for the mean.
 
-These two equations now constitute a system of coupled nonlinear ODEs. This is very difficult to solve analytically, so we instead solve the system numerically, using the fourth order Runge-Kutta algorithm \citep{cheeverFourthOrderRungeKutta}.
+These two equations now constitute a system of coupled nonlinear ODEs. This is very difficult to solve analytically, so we instead solve the system numerically, using the fourth order Runge-Kutta algorithm \citep{cheeverFourthOrderRungeKutta}. However, when we attempt to do this, we find that the numerical solution blows up. The issue here is that we always have positive $\fd V t$. This shows us that this closure is not sufficient to capture the behaviour of the system accurately. We therefore try some different approaches to analyse the behaviour of the system not already captured by the mass action approximation.
 
 \subsection{Probability Generating Function}
 
-We now attempt to analyse the process using the probability generating function, defined as
+We can leverage the probability generating function to try to gain some insight into the behaviour of this system. This is defined as
 
 \begin{equation}
-	G: [-1, 1] \times (0, \infty) \mapsto \mathbb{R}: \qquad G(x, t) = \sum_{n=0}^\infty x^n P_n(t).
+	G: [-1, 1] \times (0, \infty) \mapsto \mathbb{R}: \qquad G(x, t) = \sum_{n=0}^\infty x^n P_n(t). \label{PGFdef}
 \end{equation}
 
-We can then derive the following:
+And we can recover the moments for the system using the formulae
+
+\begin{equation}
+	\mathbb{E} [I(t)] = \pd {} {x} G(x, t) \Big|_{x = 1} \qquad
+	\mathrm{Var} [I(t)] = \left( \pdd {} {x} G(x, t) + \pd {} {x} G(x, t) - \left( \pd {} {x} G(x, t) \right)^2 \right) \Big|_{x = 1}.
+	\label{PGFident}
+\end{equation}
+
+From the definition \ref{PGFdef} we can derive:
 
 \begin{multline}
 	\pd{}{t} \sum_{n=0}^\infty x^n P_n(t) = k_S \sum_{n = 0}^\infty (n+1) x^n P_{n+1}(t) + k_I \sum_{n=0}^\infty (n-1)(N - (n-1)) x^n P_{n-1}(t) \label{PGFCME} \\
-	- \sum_{n=0}^\infty (k_S + k_I (N - n))n x^n P_n(t). \notag
+	- \sum_{n=0}^\infty (k_S + k_I (N - n))n x^n P_n(t).
 \end{multline}
 
 We note the following useful identities:
@@ -470,26 +478,27 @@ Clearly to compute this boundary condition, we would already require knowledge o
 	\frac {G(1, t) - G(-1, t)} {2} &= \sum_{k = 0}^\infty P_{2k+1}(t) = \frac 1 2.
 \end{align}
 
-This then simply gives that $G(-1, t) = 0$. This also then gives, from the above equation, that the first $x$ derivatives of $G$, evaluated at $-1$, are also $0$. However, this isn't consistent with the initial condition, so we instead opt for the Dirichlet condition that $G(-1, t) = (-1)^{n_0}$.
+This then simply gives that $G(-1, t) = 0$. This also then gives, from the above equation, that the first $x$ derivatives of $G$, evaluated at $-1$, are also $0$. However, this is not consistent with the initial condition, so we instead opt for the Dirichlet condition that $G(-1, t) = (-1)^{n_0}$.
 
-We can solve this system numerically, using VisualPDE \citep{walkerVisualPDERapidInteractive2023}. Doing this allows us to use the following identities to get numerical estimates for the mean and variance of the system over time:
+We can solve this system numerically, using VisualPDE \citep{walkerVisualPDERapidInteractive2023}. Doing this allows us to use the earlier identities \ref{PGFident} to get numerical estimates for the mean and variance of the system over time.
 
 \begin{equation}
 	\mathbb{E} [I(t)] = \pd {} {x} G(x, t) \Big|_{x = 1} \qquad
 	\mathrm{Var} [I(t)] = \left( \pdd {} {x} G(x, t) + \pd {} {x} G(x, t) - \left( \pd {} {x} G(x, t) \right)^2 \right) \Big|_{x = 1}.
 \end{equation}
 
-We in fact see in the numerical solution, tracking these expressions over time, that the mean rises as we would expect, before levelling off. We also see the variance drop rapidly to a very low value, showing that we expect the solutions to rapidly converge towards an equilibrium.
+We in fact see in the numerical solution, tracking these expressions over time, that the mean rises as we would expect, before levelling off. We also see the variance drop rapidly to a very low value, showing that we expect the solutions to rapidly converge towards an equilibrium. This is an excellent result, as we do not get the blowing up that we had when trying to use the moment closure earlier.
 
 \section{The Stationary Distribution}
 
-We define the stationary distribution as
+We are most interested in the long-term behaviour of the system, and whether the disease will die out or not over time. We therefore examine the stationary distribution, defined as
 
 \begin{equation}
 	\phi(n) := \lim_{t \rightarrow \infty} P_n(t).
 \end{equation}
 
-To compute this, we consider the steady-state CME
+From \citep{pollettProblemEstablishingExistence1993}, we know that the stationary distribution for a continuous-time Markov Process exists if the corresponding transition rate matrix is irreducible and regular. As this is the case for the process we are examining, we can move ahead with actually computing this distribution.
+To begin, we consider the steady-state CME
 
 \begin{equation}
 	k_S (n+1) \phi(n+1) + k_I (n-1) (N-(n-1)) \phi(n-1) - (k_S n + k_I n (N-n)) \phi(n) = 0.
@@ -611,7 +620,19 @@ So
 
 Which is the same result we gained from analysing the CME directly, and so this would give the same results as in \ref{MeanVar}
 
-We can attempt to get an expression for the stationary distribution from the SDE here. Clearly, if we impose the absorbing boundary condition at $x=0$, we will just get the distribution $p_s(x) = 0$, as all trajectories will eventually hit $0$ and be absorbed. However, we are able to extract some useful information by not applying this boundary condition. This will give us a stationary distribution more closely approximating the behaviour we see stopping the simulation after finite time, as the probability of trajectories hitting $0$ in (relatively small) finite time is very low. By setting the time derivative in \ref{ChemFPEq} to $0$, we can derive the formula for the stationary distribution
+We can attempt to get an expression for the stationary distribution from the SDE here. If we impose the absorbing boundary condition at $x=0$, we will just get the distribution $p_s(x) = 0$, as all trajectories will eventually hit $0$ and be absorbed. However, we are able to extract some useful information by not applying this boundary condition. This will give us a stationary distribution more closely approximating the behaviour we see stopping the simulation after finite time, as the probability of trajectories hitting $0$ in (relatively small) finite time is very low. By setting the time derivative in \ref{ChemFPEq} to $0$, we can derive the formula for the stationary distribution
+
+\begin{multline}
+	\fdd{}{x} \left( \frac {g(x)^2} {2} p_s(x) \right) - \fd{}{x} \left( f(x) p_s(x) \right) = 0 \\
+	\implies \fd{}{x} \left( \frac {g(x)^2} {2} p_s(x) \right) - f(x) p_s(x) = C = 0 \quad \text{WLOG} \\
+	\implies \left[ g(x) g'(x) - f(x) \right] p_s(x) + \frac {g(x)^2} {2} p_s'(x) = 0 \\
+	\implies \fd{}{x} p_s(x) + \left[ \frac {2 g'(x)} {g(x)} - \frac {f(x)} {g(x)^2} \right] p_s(x) = 0 \\
+	\implies g(x)^2 \mathrm{exp} \left(- \int_0^x \frac {2 f(y)} {g(y)^2} dy \right) \fd{}{x} p_s(x) + \left[ 2 g'(x)g(x) - 2 f(x) \right] \mathrm{exp} \left(- \int_0^x \frac {2 f(y)} {g(y)^2} dy \right) p_s(x) = 0 \\
+	\implies \fd{}{x} \left( g(x)^2 \mathrm{exp} \left(- \int_0^x \frac {2 f(y)} {g(y)^2} dy \right) p_s(x) \right) = 0 \\
+	\implies g(x)^2 \mathrm{exp} \left( - \int_0^x \frac{2 f(y)} {g(y)^2} dy \right) p_s(x) = 2C.
+\end{multline}
+
+Giving us
 
 \begin{equation}
 	p_s(x) = \frac C {d(x)} \mathrm{exp} \left( \int_0^x \frac {f(y)} {d(y)} dy \right).
@@ -628,7 +649,14 @@ Substituting our functions for $f, g$ in gives the following
 \end{aligned}
 \end{equation}
 
-This is a somewhat complicated function, and difficult to intuit the behaviour of. Plotting it on an appropriate scale, we can clearly see that it looks similar to a Gaussian, and seems to be centred roughly on the value of $x = N- \frac {k_S} {k_I}$, as we would expect from the equilibrium of the mass action approximation. To quantify this, we can differentiate with respect to $x$, and find the $x$ value of the peak of the distribution.
+This is a somewhat complicated function, and difficult to intuit the behaviour of. Plotting it on an appropriate scale, we can see that it looks similar to a Gaussian, and seems to be centred roughly on the value of $x = N- \frac {k_S} {k_I}$, as we would expect from the equilibrium of the mass action approximation. To quantify this, we can differentiate with respect to $x$, and find the $x$ value of the peak of the distribution.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{figs/SDEStatcomp.png}
+	\caption{A comparison of the stationary distribution from this SDE (purple) to a Gaussian centred on $N - \frac {k_S} {k_I}$ (red). For this plot, $N = 400$, $k_I = 0.02$, $k_S = 2$. It is clear that these are extremely close, and the peak of the SDE-derived solution is very close to the equilibrium of the mass-action approximation given by \ref{WMmassAct}}
+	\label{fig:SDEstatcomp}
+\end{figure}
 
 \begin{equation}
 \begin{aligned}
@@ -673,6 +701,10 @@ We have now developed several tools for analysing this model, specifically the C
 
 \chapter{Metapopulation model}
 
+\section{Motivation}
+
+Having now developed a series of tools for the non-spatial model, we examine the simplest kind of spatially-structured model, the metapopulation model. In this model, we introduce a graph structure, where each node of the graph is considered to be a smaller well-mixed population, and so the dynamics are that of the well-mixed model within each smaller population, with the addition of infection from neighbouring nodes. These smaller populations can be considered to represent small communities, such as villages or small towns, where the population interacts with eachother regularly, but also has close interaction with neighbouring villages. As a result of this framework, we choose to model the interaction between nodes as if each person in node A has contact with every person in node B, and so the infection risk of a person in node A is related to the total number of infected people in node B, rather than the fraction of infected people in node B. We draw attention to this assumption, as most other models instead consider the infection risk to be proportional to the fraction of infected people in node B, and our choice to take this other approach has significant impacts on the model behaviour and our analysis.
+
 \section{Setup and Chemical Master Equations}
 
 We consider a graph with: a state vector $\v{I}(t)$, where $I_i(t)$ is the number of infected individuals at node $i$ and at time $t$; adjacency matrix $\m{A}$; and population vector $\v{N}$, where $N_i$ is the number of individuals (in any compartment) at node $i$. We take the population at each node to be fixed over the time interval considered (so there is no birth or death in this model). We also by extension then have the susceptible population in each node at time $t$ as $S_i(t) = N_i - I_i(t)$. If we represent an infected individual in node $i$ as $\ce{I_i}$, and a susceptible individual in node $i$ as $\ce{S_i}$, then we can represent the model with the following system:
@@ -703,7 +735,7 @@ If we set $I(t) = \sum_i I_i(t)$ to be the total infected population, and $\sum_
 
 where $\mathbb{I}$ is the identity matrix.
 
-This sum is difficult to simplify for a generic graph. However, this equation does bear a strong resemblance to the non-spatial SI equation, but with the spreading term modified by the graph interactions.
+This sum is difficult to simplify for a generic graph. However, this equation does bear a strong resemblance to the non-spatial SIS equation, but with the spreading term modified by the graph interactions.
 
 We can use the chemical master equations to represent the behaviour of this system as follows:
 
@@ -748,7 +780,7 @@ We also note that this is really the distribution of $\mathbb{E}(I_i(t) | I_j(t)
 	\fd {M_i} {t} = k_I \left( \sum_j A_{ij} M_j(t) \right) (N_i - M_i) + k_I (N_i M_i + M_i^2 - V_i) - k_S M_i.
 \end{equation}
 
-It would often be common to take the mean-field approximation and treat $M_i$ and $M_j$ as independent and identically distributed. However, in this metapopulation model with a small number of nodes, this is not adequately justified, so we do not.
+It would often be common to take the mean-field approximation and treat $M_i$ and $M_j$ as independent and identically distributed. However, in this metapopulation model with a small number of nodes, the network structure cannot be considered to "average out" in the correct manner, and so this is not a valid assumption. As a result, we instead aim to make a different continuous approximation of the system, to analyse its stability.
 
 \section{Continuous Approximation, Equilibria, and Stability}
 
@@ -1004,13 +1036,15 @@ We now simulate the different networks in the regime where extinction is stable,
 		\caption{Supercritical $S_4$}
 		\label{fig:SISmetaS4sup}
 	\end{subfigure}
-	\caption{Means with $\pm 3$ standard deviations of $100$ simulations of the metapopulation SIS model on various graphs, with both supercritical and subcritical parameter values. As expected, in all of the supercritical simulations, the trajectories tend to an endemic equilibrium. In the subcritical cases, the trajectories all go to the extinction equilibrium, as we would again expect. The blue dotted lines, where shown, give the endemic and extinction equilibria, the endemic equilibria calculated as the homogeneous equilibria given by \ref{metaHomEq}. This shows good agreement between the simulation mean and the prediceted homogeneous equilibrium. All of the supercritical scenarios show a logistic-like growth, though $S_4$ appears to show a more linear characteristic, likely as a result of the specific way in which the graph is connected.}
+	\caption{Means with $\pm 3$ standard deviations of $100$ simulations of the metapopulation SIS model on various graphs, with both supercritical and subcritical parameter values. As expected, in all of the supercritical simulations, the trajectories tend to an endemic equilibrium. In the subcritical cases, the trajectories all go to the extinction equilibrium, as we would again expect. The blue dotted lines, where shown, give the endemic and extinction equilibria, the endemic equilibria calculated as the homogeneous equilibria given by \ref{metaHomEq}. This shows good agreement between the simulation mean and the prediceted homogeneous equilibrium. All of the supercritical scenarios show a logistic-like growth, though the rates differ between the various graph structures.}
 	\label{figs:SISmeta}
 \end{figure}
 
+These simulations correspond well with what we expect from our analysis of the continuous approximation, and show a clear change in behaviour as we vary the model parameters, from the system tending to an endemic equilibrium, to the system tending to the extinction equilibrium. It also demonstrates to us the impact of different graph structures on the disease spread, showing that more connected populations leads to a faster spread of infection in the supercritical case, and a slower recovery in the subcritical case. This may help to advise future epidemic policy. For example, this demonstrates the effectiveness of social distancing measures (which work to decrease the connectivity of communities), but also show the most important factor in controlling infection is to increase the recovery rate relative to the infection rate. This could be done in the real world by decreasing infection (through hand washing, better sanitation, and preventative measures such as barrier contraception for STIs), or through promoting faster recovery (through more effective treatment, increased standards of living, and faster treatment as a result of more widespread testing). All in all, this model provides a great deal of useful insight and further demonstrates the effectiveness of our chemical approach to disease modelling.
+
 \chapter{Networked individuals model}
 
-To give even more depth to the spatial aspect of this model, we can apply it to a networked population where rather than each node representing a smaller population, each node represents an individual in the overall population. This could be thought of in the context of modelling an invididual village or town, with a smaller population than those in the metapopulation model. In this kind of model, the precise network structure chosen has a large impact on the behaviour of the model. We focus on a few kinds. Firstly, the complete graph. This should entirely reproduce the results of the well-mixed model, as every individual is in contact with every other individual. Second, we shall consider some other simple graphs which should inform our expectations for how the graph structure will impact the disease spread. We will also examine how random percolation on the $2$D lattice graph may affect the disease spread characteristics. We will also look at random graphs more closely mimicking social networks, specifically Barabasi-Albert, Watts-Strogatz, and Erdos-Renyi networks, the former being of particular interest due to being a scale-free network. This is a characteristic which is observed to be common to many social networks. The Watts-Strogatz networks demonstrate high clustering, and specifically the small-world property, which are also observed in a variety of real-world networks. These can all be generated easily using the NetworkX package for Python. Finally, we will use the SNAP dataset \citet{snapnets} to analyse the spread of a disease on a network of Facebook users, and see how this network compares to those mentioned earlier.
+To give even more depth to the spatial aspect of this model, we can apply it to a networked population where rather than each node representing a smaller population, each node represents an individual in the overall population. This could be thought of in the context of modelling an invididual village or town, with a smaller population than those in the metapopulation model. In this kind of model, the precise network structure chosen has a large impact on the behaviour of the model. We focus on a few kinds. Firstly, the complete graph. This should entirely reproduce the results of the well-mixed model, as every individual is in contact with every other individual. Second, we shall consider some other simple graphs which should inform our expectations for how the graph structure will impact the disease spread. We will also examine how random percolation on the $2$D lattice graph may affect the disease spread characteristics. We will also look at random graphs more closely mimicking social networks, specifically Barabasi-Albert, Watts-Strogatz, and Erdos-Renyi networks, the former being of particular interest due to being a scale-free network. This is a characteristic which is observed to be common to many social networks \citep{McGlohon2011}. The Watts-Strogatz networks demonstrate high clustering, and specifically the small-world property, which are also observed in a variety of real-world networks \citep{McGlohon2011}. These can all be generated easily using the NetworkX package for Python. Finally, we will use the SNAP dataset \citet{snapnets} to analyse the spread of a disease on a network of Facebook users, and see how this network compares to those mentioned earlier.
 
 Adopting the notation from the metapopulation model, we let $\v{I}$ be the vector storing whether a given node is infected or not, by setting $I_i = 1$ if node $i$ is infected, and $I_i = 0$ otherwise. We set $\m{A}$ to be the adjacency matrix for the graph under examination. We also set the infection rate at $k_I$, and the recovery rate at $k_S$. The chemical equations are
 
@@ -1092,7 +1126,7 @@ where $\bar{d(A)}$ is the average degree of the nodes. Then using the identity $
 	\fd {M} {t} \approx k_I \bar{d(A)} M(t) - k_I \bar{d(A)} V(t) - k_I \bar{d(A)} M(t)^2 - k_S M(t).
 \end{equation}
 
-This is clearly the same as the equation for the mean in the well-mixed case, with a scaled infection coefficient $k_I \bar{d(A)}$. We can thus suspect that the equilibria of the system will be approximately those of the well-mixed system, with an extinction and endemic equilbria. We can further conjecture that the stability of the endemic equilibria will likewise depend on the coefficients, and so we can estimate the stable regime on a given graph by using the average node degree of the graph, which we will utilise to examine subcritical, transcritical, and supercritical regimes on the different graphs we analyse.
+This is the same as the equation for the mean in the well-mixed case, with a scaled infection coefficient $k_I \bar{d(A)}$. We can thus suspect that the equilibria of the system will be approximately those of the well-mixed system, with an extinction and endemic equilbria. We can further conjecture that the stability of the endemic equilibria will likewise depend on the coefficients, and so we can estimate the stable regime on a given graph by using the average node degree of the graph, which we will utilise to examine subcritical, transcritical, and supercritical regimes on the different graphs we analyse.
 
 It is difficult to directly analyse this system for an arbitrary network, so we will look at only the complete graph, due to its simple adjacency matrix. For this graph, the original equation reduces to
 
@@ -1105,7 +1139,7 @@ This is highly reminiscent of the well-mixed mean (\ref{SISmixmean}), as we woul
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\linewidth]{figs/SISindvcomp.png}
-	\caption{A plot of the mean $\pm 3$ standard deviations of $20$ realisations of the modified Gillespie SSA on the complete graph $k_{500}$, where each node is an individual. Parameters used were $k_I = 0.002$, $k_S = 0.1$. The large standard deviation, and slightly lower mean than expected, at the later portion of the plot, is due to the significant number of simulations which hit $0$ infected people.}
+	\caption{A plot of the mean $\pm 1$ standard deviation of $20$ realisations of the modified Gillespie SSA on the complete graph $k_{500}$, where each node is an individual. Parameters used were $k_I = 0.002$, $k_S = 0.1$. The large standard deviation, and slightly lower mean than expected, at the later portion of the plot, is due to the significant number of simulations which hit $0$ infected people.}
 	\label{fig:SISindvcomp}
 \end{figure}
 
@@ -1118,7 +1152,7 @@ We can make a brief attempt to find and analyse some equilibria of these systems
 \end{aligned}
 \end{equation}
 
-This clearly shows that $p_i = p = 0$ is an equilibrium of the system, as we would expect. The other possibility is given by $p(t) = 1 - \frac {k_S} {k_I \sum_j A_{ij}}$. The requirement that $p(t)$ are all identical requires that $\sum_j A_{ij}$ is the same for all $i$. This is satisfied, for example, by several kinds of tree graph, the complete graph, the cycle graph, and (in the infinite limit) the $2$D lattice. We again see that in the case of the complete graph, we reproduce behaviour very close to that of the well-mixed model, as if we sum over the $p_i$, we get $M = N - \frac {k_S N} {k_I (N-1)}$. Analysing the stability of these equilibria is unfortunately very difficult, as we would be required to find the eigenvalues of an $N \times N$ matrix, where $N$ is in general very large. However, as the behaviour is not dissimilar to the well-mixed and metapopulation models, we could expect to see some kind of critical point at which the extinction equilibrium becomes stable.
+This shows that $p_i = p = 0$ is an equilibrium of the system, as we would expect. The other possibility is given by $p(t) = 1 - \frac {k_S} {k_I \sum_j A_{ij}}$. The requirement that $p(t)$ are all identical requires that $\sum_j A_{ij}$ is the same for all $i$. This is satisfied, for example, by several kinds of tree graph, the complete graph, the cycle graph, and (in the infinite limit) the $2$D lattice. We again see that in the case of the complete graph, we reproduce behaviour very close to that of the well-mixed model, as if we sum over the $p_i$, we get $M = N - \frac {k_S N} {k_I (N-1)}$. Analysing the stability of these equilibria is unfortunately very difficult, as we would be required to find the eigenvalues of an $N \times N$ matrix, where $N$ is in general very large. However, as the behaviour is not dissimilar to the well-mixed and metapopulation models, we could expect to see some kind of critical point at which the extinction equilibrium becomes stable.
 
 We now simulate the infection on a variety of graph structures. We begin with a few simple types of graph, in order to demonstrate some important effects. These are the Cycle graph, Tadpole graph, Lollipop graph, and Barbell graph. We then move on to some more complex random-generated graphs, these being the Erdos-Renyi, Barabasi-Albert, and Watts-Strogatz. We then simulate on a small selection of percolation-type lattices, with differing percolation coefficients.
 
@@ -1148,7 +1182,7 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 		\caption{$\mathrm{Barbell}(249, 2)$}
 		\label{fig:SISindvbar}
 	\end{subfigure}
-	\caption{A collection of simulations on various simple and composite graphs. \ref{fig:SISindvcycle} shows the mean $\pm 3$ standard deviations of $20$ realisations on the cycle graph with $500$ nodes, $C_{500}$. This demonstrates how the graph structure significantly impacts the spreading behaviour, as there is a clear linear trend, due to the structure preventing most nodes from being exposed to the disease for a long period of time. This also results in the disease taking much longer to spread. The parameters used were $k_I = 0.7$, $k_S = 0.1$. This is also of note, as for significantly smaller ratios of $k_I$ to $k_S$, the disease became extinct extremely rapidly. \ref{fig:SISindvtadpole} shows the mean $\pm 3$ standard deviations $20$ realisations on the $\mathrm{tadpole}(300, 200)$ graph, the graph of $C_{300}$ connected to $P_{200}$, using the same parameters. This again demonstrates a generally linear growth. However, the growth here is faster. This is because, for the majority of the time, the growth is effectively along three branches, rather than effectively along two. \ref{fig:SISindvloll} shows the mean $\pm 3$ standard deviations of $20$ realisations on the lollipop graph, made up of the complete graph $K_{300}$ connected to the path graph $P_{200}$, using the same parameters again. This shows a very sharp rise at the start, as the high rate of infection causes the disease to rapidly spread through the highly connected portion of the graph. However, the growth slows down massively as the disease spreads roughly linearly along the path section of the graph. \ref{fig:SISindvbar} demonstrates this even more clearly, showing $20$ realisations on the Barbell graph made up of two copies of the complete graph $k_{249}$ connected by the path graph $P_{2}$. The disease rapidly spreads through the large connected populations, but takes much longer to spread along the path between them. However, once the disease reaches the second connected population, it again spreads extremely rapidly, giving this step effect. The parameters used for this graph were $k_I = 0.7$, $k_S = 0.1$. Here, traces are shown, as they are more informative than the mean and standard deviations, and show the interesting behaviour of very different times to jump from one highly connected portion of the graph to the other.}
+	\caption{A collection of simulations on various simple and composite graphs. \ref{fig:SISindvcycle} shows the mean $\pm 1$ standard deviation of $20$ realisations on the cycle graph with $500$ nodes, $C_{500}$. This demonstrates how the graph structure significantly impacts the spreading behaviour, as there is a clear linear trend, due to the structure preventing most nodes from being exposed to the disease for a long period of time. This also results in the disease taking much longer to spread. The parameters used were $k_I = 0.7$, $k_S = 0.1$. This is also of note, as for significantly smaller ratios of $k_I$ to $k_S$, the disease became extinct extremely rapidly. \ref{fig:SISindvtadpole} shows the mean $\pm 3$ standard deviations $20$ realisations on the $\mathrm{tadpole}(300, 200)$ graph, the graph of $C_{300}$ connected to $P_{200}$, using the same parameters. This again demonstrates a generally linear growth. However, the growth here is faster. This is because, for the majority of the time, the growth is effectively along three branches, rather than effectively along two. \ref{fig:SISindvloll} shows the mean $\pm 3$ standard deviations of $20$ realisations on the lollipop graph, made up of the complete graph $K_{300}$ connected to the path graph $P_{200}$, using the same parameters again. This shows a very sharp rise at the start, as the high rate of infection causes the disease to rapidly spread through the highly connected portion of the graph. However, the growth slows down massively as the disease spreads roughly linearly along the path section of the graph. \ref{fig:SISindvbar} demonstrates this behaviour in a more extreme case, showing $20$ realisations on the Barbell graph made up of two copies of the complete graph $k_{249}$ connected by the path graph $P_{2}$. The disease rapidly spreads through the large connected populations, but takes much longer to spread along the path between them. However, once the disease reaches the second connected population, it again spreads extremely rapidly, giving this step effect. The parameters used for this graph were $k_I = 0.7$, $k_S = 0.1$. Here, traces are shown, as they are more informative than the mean and standard deviations, and show the interesting behaviour of very different times to jump from one highly connected portion of the graph to the other.}
 	\label{figs:SISindvsimp}
 \end{figure}
 
@@ -1180,7 +1214,7 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 		\caption{Erdos-Renyi $k_S = 0.55$}
 		\label{fig:SISindvER0_55}
 	\end{subfigure}
-	\caption{A set of plots of the mean $\pm 3$ standard deviations of $20$ realisations of the individual simulation on an Erdos-Renyi random graph, generated with $500$ nodes, and using $p= 0.5$. The simulations used $k_I = 0.002$ and $k_S$ as given. The means are all somewhat skewed by the fraction of realisations in each case which hit the extinction state. We can clearly see that varying $k_S$ leads to a tipping behaviour around $k_S = 0.4$, where for lower values, the simulations tend to an endemic state, whereas for higher values, the simulations tend to an extinction state. The mean number of infected individuals also decreases with increasing $k_S$, as we would expect.}
+	\caption{A set of plots of the mean $\pm 1$ standard deviation of $20$ realisations of the individual simulation on an Erdos-Renyi random graph, generated with $500$ nodes, and using $p= 0.5$. The simulations used $k_I = 0.002$ and $k_S$ as given. The means are all somewhat skewed by the fraction of realisations in each case which hit the extinction state. We can see that varying $k_S$ leads to a tipping behaviour around $k_S = 0.4$, where for lower values, the simulations tend to an endemic state, whereas for higher values, the simulations tend to an extinction state. The mean number of infected individuals also decreases with increasing $k_S$, as we would expect.}
 	\label{figs:SISindvER}
 \end{figure}
 
@@ -1212,7 +1246,7 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 		\caption{$k_S = 0.3$}
 		\label{fig:SISindvBA0_3}
 	\end{subfigure}
-	\caption{A set of plots of the mean $\pm 3$ standard deviations of $20$ realisations of the individual simulation on a Barabasi-Albert random graph, generated with $500$ nodes, and using an attachment of $40$. The simulations used $k_I = 0.002$ and $k_S$ as given. The means are all somewhat skewed by the fraction of realisations in each case which hit the extinction state. We can clearly see that varying $k_S$ leads to a tipping behaviour around $k_S = 0.2$, where for lower values, the simulations tend to an endemic state, whereas for higher values, the simulations tend to an extinction state. The mean number of infected individuals also decreases with increasing $k_S$, as we would expect.}
+	\caption{A set of plots of the mean $\pm 1$ standard deviation of $20$ realisations of the individual simulation on a Barabasi-Albert random graph, generated with $500$ nodes, and using an attachment of $40$. The simulations used $k_I = 0.002$ and $k_S$ as given. The means are all somewhat skewed by the fraction of realisations in each case which hit the extinction state. We can see that varying $k_S$ leads to a tipping behaviour around $k_S = 0.2$, where for lower values, the simulations tend to an endemic state, whereas for higher values, the simulations tend to an extinction state. The mean number of infected individuals also decreases with increasing $k_S$, as we would expect.}
 	\label{figs:SISindvBA}
 \end{figure}
 
@@ -1244,7 +1278,7 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 		\caption{$k_S = 0.3$}
 		\label{fig:SISindvWS0_3}
 	\end{subfigure}
-	\caption{A set of plots of the mean $\pm 3$ standard deviations of $20$ realisations of the individual simulation on a Watts-Strogatz random graph, generated with $500$ nodes, connecting $40$ nearest neighbours and rewiring with probability $0.5$. The simulations used $k_I = 0.002$ and $k_S$ as given. The means are all somewhat skewed by the fraction of realisations in each case which hit the extinction state. We can clearly see that varying $k_S$ leads to a tipping behaviour around $k_S = 0.07$, where for lower values, the simulations tend to an endemic state, whereas for higher values, the simulations tend to an extinction state. The mean number of infected individuals also decreases with increasing $k_S$, as we would expect.}
+	\caption{A set of plots of the mean $\pm 1$ standard deviation of $20$ realisations of the individual simulation on a Watts-Strogatz random graph, generated with $500$ nodes, connecting $40$ nearest neighbours and rewiring with probability $0.5$. The simulations used $k_I = 0.002$ and $k_S$ as given. The means are all somewhat skewed by the fraction of realisations in each case which hit the extinction state. We can see that varying $k_S$ leads to a tipping behaviour around $k_S = 0.07$, where for lower values, the simulations tend to an endemic state, whereas for higher values, the simulations tend to an extinction state. The mean number of infected individuals also decreases with increasing $k_S$, as we would expect.}
 	\label{figs:SISindvWS}
 \end{figure}
 
@@ -1306,19 +1340,49 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 		\caption{Supcritical, $k_S = 0.2$}
 		\label{fig:SISindvpercsup0_2}
 	\end{subfigure}
-	\caption{A set of plots of the mean $\pm$ 3 standard deviations, of $20$ realisations of the individual simulation on $3$ different $2$D lattice percolation graphs. These are the subcritical, critical, and supercritical graphs, corresponding to a $20$ by $25$ lattice with edges present with probabilities $0.45$, $0.5$, and $0.55$. This allows us to examine the effect of the criticality of the graph interacting with the tipping point of the disease model. We see that in the critical and supercritical cases, the simulations with $k_S = 0.02$, the endemic case, have far lower variance than the subcritical graph case - this corresponds to a much lower likelihood of the extinction scenario occuring. We also see the simulations change in character for $k_S = 0.1$, near the tipping point of the model. We see that the supercritical graph allows for more rapid growth of the disease, when it does not hit the extinction scenario. Finally, in the case with $k_S = 0.2$, where extinction is always reached, we see that the simulations on the supercritical graph actually hit extinction much more quickly than in the critical or subcritical graphs. All simulations used $k_I = 0.1$.}
+	\caption{A set of plots of the mean $\pm 1$ standard deviation, of $20$ realisations of the individual simulation on $3$ different $2$D lattice percolation graphs. These are the subcritical, critical, and supercritical graphs, corresponding to a $20$ by $25$ lattice with edges present with probabilities $0.45$, $0.5$, and $0.55$. This allows us to examine the effect of the criticality of the graph interacting with the tipping point of the disease model. We see that in the critical and supercritical cases, the simulations with $k_S = 0.02$, the endemic case, have far lower variance than the subcritical graph case - this corresponds to a much lower likelihood of the extinction scenario occuring. We also see the simulations change in character for $k_S = 0.1$, near the tipping point of the model. We see that the supercritical graph allows for more rapid growth of the disease, when it does not hit the extinction scenario. Finally, in the case with $k_S = 0.2$, where extinction is always reached, we see that the simulations on the supercritical graph actually hit extinction much more quickly than in the critical or subcritical graphs. All simulations used $k_I = 0.1$.}
 	\label{figs:SISindvperc}
 \end{figure}
 
-These different kinds of random graphs exhibit a variety of interesting properties, but all also have limitations compared to real-life examples of social networks. The Erdos-Renyi model exhibits low clustering, which is not the case with real social networks (if person $A$ knows people $B$ and $C$, then it is generally likely that person $B$ knows person $C$). The Barabasi-Albert model and Watts-Strogatz model don't suffer from this problem, but have their own shortcomings. The Watts-Strogatz model does exhibit high clustering, as well as the small-world property (including short average path lengths, the famous "seven degrees of separation" idea), but is not scale-free, which social networks are thought to be. This is a shortcoming that the Barabasi-Albert model seeks to address, however it too does not demonstrate the small-world property. A further abstraction is made in the percolation-type networks, where every individual can only be connected to a maximum of $4$ others. This isn't highly realistic for most diseases, though could be the case for diseases spread only through specific forms of contact (such as STIs or blood-borne diseases), which most individuals only experience with a small number of others. The percolation graphs demonstrate a strong difference in behaviour based on how well-connected the network is as a whole, which may be useful in understanding the spread of diseases such as HIV, HPV, or hepatitis. We also see very clearly from these different simulations that the specifics of a given graph have a very strong impact on the disease characteristics.
+These different kinds of random graphs exhibit a variety of interesting properties, but all also have limitations compared to real-life examples of social networks. The Erdos-Renyi model exhibits low clustering, which is not the case with real social networks (if person $A$ knows people $B$ and $C$, then it is generally likely that person $B$ knows person $C$). The Barabasi-Albert model and Watts-Strogatz model do not suffer from this problem, but have their own shortcomings. The Watts-Strogatz model does exhibit high clustering, as well as the small-world property (including short average path lengths, the famous "seven degrees of separation" idea), but is not scale-free, which social networks are thought to be. This is a shortcoming that the Barabasi-Albert model seeks to address, however it too does not demonstrate the small-world property. A further abstraction is made in the percolation-type networks, where every individual can only be connected to a maximum of $4$ others. This is not highly realistic for most diseases, though could be the case for diseases spread only through specific forms of contact (such as STIs or blood-borne diseases), which most individuals only experience with a small number of others. The percolation graphs demonstrate a strong difference in behaviour based on how well-connected the network is as a whole, which may be useful in understanding the spread of diseases such as HIV, HPV, or hepatitis. We also see very clearly from these different simulations that the specifics of a given graph have a very strong impact on the disease characteristics.
 
 \section{The Facebook Network}
 
 We finally move onto analysing the disease spread on a real social network, the Facebook network from the SNAP dataset \citet{snapnets}. This is a network of $4039$ Facebook users, and the connections between them. The average clustering coefficient of this network is $0.6055$, and the degree distribution is shown in [[FIGURE HERE]], and [[COMPARE TO OTHERS]]. Running the simulation for a variety of parameter values yields the following plots.
 
-[[PLOTS HERE]]
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}[t]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvFB0_1.png}
+		\caption{$k_S = 0.1$}
+		\label{fig:SISindvFB0_1}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvFB1.png}
+		\caption{$k_S = 1$}
+		\label{fig:SISindvFB1}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvFB4.png}
+		\caption{$k_S = 4$}
+		\label{fig:SISindvFB4}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figs/SISindvFB10.png}
+		\caption{$k_S = 10$}
+		\label{fig:SISindvFB10}
+	\end{subfigure}
+	\caption{A series of plots showing the mean $\pm 1$ standard deviation of $20$ realisations of the individual simulation on the SNAP facebook graph. We can clearly see the change in behaviour as $k_S$ is varied. We used $k_I = 0.1$, and the network had $4039$ individuals/nodes.}
+	\label{figs:SISindvFB}
+\end{figure}
 
-[[DISCUSS RESULTS]]
+We again see the behaviour we have learnt to expect from our analysis and previous simulations, where as we increase the value of $k_S$, the system experiences a form of criticality, where below some critical value, the number of infected individuals tends to some endmic equilibrium, for values around that critical value they either hit the extinction equilibrium, or remain low, and for values greater than the critical value, the simulations invariably hit the extinction equilibrium.
+
+We also see that all of the other random network models seem to do a poor job of approximating the behaviour of the model on a real social network. Somewhat surprisingly, we find that a critical percolation network is actually the most similar in behaviour to the facebook network. We also once again see that the structure of the networks has a large impact on the exact dynamics of the disease spread, particularly affecting the rate at which the disease propogates across the graph. However, it is apparent that the greatest impact on the overall long-term behaviour is from the exact parameters used, specifically the ratio between infection and recovery rates. We see that in all cases, if the recovery rate is sufficiently high relative to the infection rate, the disease will invariably become extinct. This may be useful to inform public health policy, as it shows that the most effective means to reduce the impact of an epidemic is to lower the rate of infection (for example, through better hand washing and sanitation), or to increase the rate of recovery (by developing better treatments, or screening greater numbers of people to be able to start treatment earlier).
 
 \bibliography{mybib.bib}
 

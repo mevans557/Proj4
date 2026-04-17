@@ -165,65 +165,66 @@ def draw_graph(G, I, N, colours=plt.cm.viridis):
                      vmin=0, vmax=1, cmap=plt.cm.plasma)
     plt.show()
 
+if __name__ == "__main__":
+    G = nx.cycle_graph(5)
+    Ii = np.zeros(5)
+    Ni = np.array([1000, 1000, 1000, 1000, 1000])
+    Ii[0] = 20
 
-G = nx.complete_graph(5)
-Ii = np.zeros(5)
-Ni = np.array([1000, 1000, 1000, 1000, 1000])
-Ii[0] = 20
+    iters = 80
+    END = 1.5
+    k_I = 0.002
+    k_S = 20
 
-iters = 100
-END = 2
-k_I = 0.002
-k_S = 0.2
+    tcollect = []
+    Icollect = []
+    conns = []
+    processes = []
 
-tcollect = []
-Icollect = []
-conns = []
-processes = []
+    for i in range(iters):
+        par_conn, child_conn = Pipe()
+        process = Process(target=mult_Gillespie, args=(
+            G, Ii, Ni, k_I, k_S, child_conn, END, 0.1, False,))
+        processes.append(process)
+        conns.append(par_conn)
+        process.start()
 
-for i in range(iters):
-    par_conn, child_conn = Pipe()
-    process = Process(target=mult_Gillespie, args=(
-        G, Ii, Ni, k_I, k_S, child_conn, END, 0.1, False,))
-    processes.append(process)
-    conns.append(par_conn)
-    process.start()
+    for conn in conns:
+        ts, Is = conn.recv()
+        tcollect.append(ts)
+        Icollect.append(Is)
 
-for conn in conns:
-    ts, Is = conn.recv()
-    tcollect.append(ts)
-    Icollect.append(Is)
+    for proc in processes:
+        proc.join()
 
-for proc in processes:
-    proc.join()
-
-# for i in range(iters):
-#     plt.plot(tcollect[i], Icollect[i], '--')
-
-
-# GRID
-tgrid = np.arange(0, END, END/(np.sum(Ni)*4))
-Igrid = []
-for i in range(iters):
-    Igrid.append(griddify(np.array(tcollect[i]), tgrid, np.array(Icollect[i])))
-
-Igrida = np.array(Igrid)
-avs = np.sum(Igrida, 0)/iters
-sds = np.sqrt(np.sum(Igrida**2, 0)/iters - avs**2)
-
-plt.plot(tgrid, avs, "g")
-plt.plot(tgrid, avs + 3*sds, "--r")
-plt.plot(tgrid, avs - 3*sds, "--r")
+    # for i in range(iters):
+    #     plt.plot(tcollect[i], Icollect[i], '--')
 
 
-linet = [0, END]
-extinct = [0, 0]
-endemic = 5000*(1 - k_S/(k_I * 5000))
-lineI = [endemic, endemic]
+    # GRID
+    tgrid = np.arange(0, END, END/(np.sum(Ni)*4))
+    Igrid = []
+    for i in range(iters):
+        Igrid.append(griddify(np.array(tcollect[i]), tgrid, np.array(Icollect[i])))
 
-plt.plot(linet, lineI, '--b')
-plt.plot(linet, extinct, '--b')
+    Igrida = np.array(Igrid)
+    avs = np.sum(Igrida, 0)/iters
+    sds = np.sqrt(np.sum(Igrida**2, 0)/iters - avs**2)
 
-plt.xlabel("Time t")
-plt.ylabel("Total Infecteds I(t)")
-plt.show()
+    plt.plot(tgrid, avs, "g")
+    plt.plot(tgrid, avs + sds, "--r")
+    plt.plot(tgrid, avs - sds, "--r")
+    plt.fill_between(tgrid, avs - sds, avs + sds, color=(1, 0, 0, 0.2))
+
+    # Equilibria plotting
+    # linet = [0, END]
+    # extinct = [0, 0]
+    # endemic = 5000*(1 - k_S/(k_I * 3000))
+    # lineI = [endemic, endemic]
+
+    # plt.plot(linet, lineI, '--b')
+    # plt.plot(linet, extinct, '--b')
+
+    plt.xlabel("Time t")
+    plt.ylabel("Total Infecteds I(t)")
+    plt.show()

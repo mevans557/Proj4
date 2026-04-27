@@ -181,7 +181,7 @@
 			\includegraphics[scale=0.8]{figs/durham-logo.pdf}
 			\vspace{45mm}
 			
-			\Huge \textbf{An exploration of networked SIS disease modelling.}
+			\Huge \textbf{A chemical approach to networked SIS epidemic modelling.}
 			
 			\vspace{15mm}
 			\large
@@ -229,7 +229,7 @@
 		\large\textbf{Abstract}
 	\end{center}
 	\begin{quote}
-                TODO: write one of these
+                This paper investigates the potential of a chemical model of disease spread to predict and analyse epidemics on networks. A model was first constructed without any network structure, which was simulated and then analysed in depth. This model was then extended to both a metapopulation model and an individuals model, incorporating various network structures. A series of simulations were run, and compared to simulations on a network derived from connections between facebook users. Our analysis shows that a tipping point between endemic and extinction scenarios exists, and that the main factor impacting this is the ratio of infection rate to recovery rate. We conclude that this chemical approach provides useful tools to analyse epidemics, and briefly describe ways the model may be extended.
 	\end{quote}
 	
 	\newpage
@@ -256,22 +256,27 @@
 
 \chapter{Introduction and Background}
 
-Throughout human history, disease has been a constant threat to health and happiness. From the black death sweeping through Europe from 1347 to 1353, killing an estimated 50 million, to the recent COVID-19 pandemic which shut down world travel and trade while killing in excess of 25 million \citep{dattaniWhatWereDeath2023}, the impacts of disease on society can be vast. It is therefore of great importance to develop accurate models for the spread of different kinds of diseases, to understand how they work, and how best to combat their spread. In the recent COVID-19 pandemic, many countries based their responses on mathematical models \citep{smithHowHaveMathematical2023}, and this has led to these models occupying a much greater space in the public consciousness. Before the pandemic, most people had probably never heard of the R number $R_0$, but during the pandemic, discussion around this modelling parameter permeated a large amount of the news \citep{bbcCoronavirusWhatNumber2020}. Developing good models is therefore extremely important for pandemic preparedness \citep{lancetHowModellingCan2024}.
+Throughout human history, disease has been a constant threat to health and happiness. From the black death sweeping through Europe from 1347 to 1353, killing an estimated 50 million, to the recent COVID-19 pandemic which shut down world travel and trade while killing in excess of 25 million \citep{dattaniWhatWereDeath2023}, the impacts of disease on society can be vast. It is therefore of great importance to develop accurate models for the spread of different kinds of diseases, to understand how they work, and how best to combat their spread. In the recent COVID-19 pandemic, many countries based their responses on mathematical models \citep{smithHowHaveMathematical2023}, and this has led to these models occupying a much greater space in the public consciousness. Before the pandemic, most people had probably never heard of the so-called "R number" $R_0$, but during the pandemic, discussion around this modelling parameter permeated a large amount of the news and were followed by the public \citep{bbcCoronavirusWhatNumber2020}. Developing good models is therefore extremely important for pandemic preparedness \citep{lancetHowModellingCan2024}.
 
 The original work in the field of mathematical disease modelling was done in 1927, by Kermack and McKendrick \citep{kermackContributionMathematicalTheory1927}, where they introduced the concept of a compartmental model, in which the population of concern is split into several compartments. They primarily examined what became known as the SIR model, where individuals are considered to either be Susceptible, Infected, or Removed (either through recovery or death). In this model, only Susceptible people can be infected, and only Infected people can be removed - there is also no movement back into the Susceptible compartment. Once an individual has had the disease, they are either dead, or immune for life. This model is applicable to a large number of diseases that were of great concern at the time, such as measels, polio, or diptheria. However, in the present day UK, where most people are vaccinated against these diseases \citep{ukhsaVaccinationCoverageStatistics}, we are more interested in diseases from which we only develop temporary immunity, or those from which no immunity is gained at all. In this project, we focus on the related, but more simple SIS model, where individuals are either Susceptible or Infected. Like in the SIR model, only Susceptible individuals can be infected, but we also allow infected individuals to recover, without immunity, and become Susceptible again. This is a good model for several common diseases against which no immunity is developed, such as Gonorrhea or Syphillis. This model is also a good starting point to develop the machinery for a more complex future model, as it can easily be extended to have more compartments, or to introduce the effects of social distancing and other measures, as in \citet{croccoloSpreadingInfectionsRandom2020}.
 
-Another departure we make from the original work of Kermack and McKendrick is to consider discrete populations, where they considered the populations to be continuous. This means we can no longer use the machinery of ODEs that they utilise, and so we must choose another method of modelling this discrete process. A natural way to do this is by treating the individuals in different compartments as different chemical species, and the transitions between compartments as chemical reactions. This allows us to leverage a large amount of machinery developed for these kinds of discrete stochastic processes, the vast majority of which is described in \citep{erbanStochasticModellingReaction2019}.
+Another departure we make from the original work of Kermack and McKendrick is to consider discrete populations, where they considered the populations to be continuous. This means we can no longer use the machinery of ODEs that they utilise, and so we must choose another method of modelling this discrete process. A natural way to do this is by treating the individuals in different compartments as different chemical species, and the transitions between compartments as chemical reactions. This allows us to leverage a large amount of machinery developed for these kinds of discrete stochastic processes, the vast majority of which is described in \citet{erbanStochasticModellingReaction2019}.
 
-We first focus on a model with no spatial variation, this is equivalent to thinking of our individuals (which we are treating as chemicals) as being well-mixed, and so we refer to this as the well-mixed model. We then examine two ways of introducing spatial structure using networks. First, we analyse the system on simple graphs, with a relatively large population on each node. This is known as the metapopulation model, and each of the nodes can be thought of as representing a town or village in this model, which are themselves well-mixed. Second, we look at several models for networks of individuals, where each node of the network represents an individual person. This is referred to as the individual model. Finally, we look at the behaviour of the model on a real social network, utilising the SNAP dataset \citep{snapnets} to simulate the individual model on a network of Facebok users and their friends.
+We first focus on a model with no spatial variation, this is equivalent to thinking of our individuals (which we are treating as chemicals) as being well-mixed, and so we refer to this as the well-mixed model. We then examine two ways of introducing spatial structure using networks. First, we analyse the system on simple graphs, with a relatively large population on each node. This is known as the metapopulation model, and each of the nodes can be thought of as representing a town or village in this model, which are themselves well-mixed. Second, we look at several models for networks of individuals, where each node of the network represents an individual person. This is referred to as the individual model. Finally, we look at the behaviour of the model on a real social network, utilising the SNAP dataset \citep{snapnets} to simulate the individual model on a network of facebook users and their friends.
 
-For all of these models, we examine the stability of the equilibria of ODE approximations of the models, and show that there exists a tipping point for all of them, at which the extinction equilibrium becomes stable.
+For all of these models, we examine the stability of the equilibria of ODE approximations of the models, and show that there exists a tipping point for all of them, at which the extinction equilibrium becomes stable. We also show that this tipping point is largely impacted by the ratio of infection rate to recovery rate.
+
+%       %       %  %   %
+ %     % %     %   %% %%
+  %   %   %   %    % % %
+   % %     % %     %   %
+    %       %      %   %
 
 \chapter{Well-mixed model}
 
 \section{The Gillespie SSA and Mass-Action Approximation}
 
-Here we examine a discretised SIS model without any network structure, where all individuals are assumed to be in contact with all others. This will allow us to develop the tools we will need to analyse the networked models, and will provide a point of comparison for the networked models.
-We consider the population to behave like a chemical reaction, and so leverage the mathematical tools relevant to that field here. The reactions we consider are:
+Here we examine a discretised SIS model without any network structure, where all individuals are assumed to be in contact with all others. This will allow us to develop the tools we will need to analyse the networked models, and will provide a point of comparison for them. In discretising the population, we are unable to use the various analytical tools for Ordinary Differential Equations (ODEs) that a continuous system could use, and so instead we leverage the mathematical tools developed for analysing chemical reactions. We can imagine our individuals as being different chemicals, depending on which compartment they are in, Susceptible or Infected. We can then consider infection and recovery to be different kinds of reaction, and this is the framing we will use throughout. The reactions we consider are therefore:
 
 \begin{equation}
 	\ce{S + I ->[k_I] 2 I} \qquad \ce{I ->[k_S] S}.
@@ -296,7 +301,7 @@ Where $k_I$ is the rate of infection, and $k_S$ the rate of recovery, without im
 	\EndIf
 \end{algorithmic}
 
-This is an algorithm, originally implemented by David Kendall, but popularised by Dan Gillespie. It allows us to simulate a Markov jump process, such as this one. This process satisfies the Markov property, as the chance of a reaction occuring depends purely on the current numbers of different chemicals in the system, and not on the system's past. We can thus use this algorithm to simulate our system, though we also attempt several other forms of analysis. We can make a simple approximation utilising the law of mass action and treating the populations as continuous functions on time. First, we consider only $I(t)$, the number of infected individuals at time $t$, and take $S(t) = N - I(t)$ the number of susceptible individuals at time $t$ is the total population, minus the number of infected individuals at time $t$. We are also assuming here that the population size does not change over time, so no births or deaths take place over the time period considered. We can then approximate the behaviour of the system with the equation
+This is an algorithm, originally implemented by David Kendall, but popularised by Dan Gillespie, and hence bears his name. It allows us to simulate a Markov jump process, such as this one. This process satisfies the Markov property, as the chance of a reaction occuring depends purely on the current numbers of different chemicals in the system, and not on the system's past. We can thus use this algorithm to simulate our system, though we also attempt several other forms of analysis. We can make a simple approximation utilising the law of mass action and treating the populations as continuous functions on time. The law of mass action states that the rate of a reaction is proportional to the concentrations (or here, just amounts) of the reactants. First, we consider only $I(t)$, the number of infected individuals at time $t$, and take $S(t) = N - I(t)$ the number of susceptible individuals at time $t$ is the total population, minus the number of infected individuals at time $t$. We are also assuming here that the population size does not change over time, so no births or deaths take place over the time period considered. We can then approximate the behaviour of the system with the equation
 
 \begin{equation}
 	\fd {I} {t} = k_I (N - I(t)) I(t) - k_S I(t). \label{SIScts}
@@ -323,16 +328,16 @@ Giving
 
 We can also perform a linear stability analysis to predict the expected behaviour of the system. By plotting $\fd {I} {t}$ against $I(t)$, we can see that there is an unstable equilibrium at $I(t) = 0$, the extinction scenario, and a stable equilibrium at $I(t) = N - \frac {k_S} {k_I}$. From this it is clear that with no recovery ($k_S = 0$), the stable equilibrium is total infection of the population. It is also clear that in the (quite extreme) situation of $\frac {k_S} {k_I} = N$, extinction is the only equilibrium, and is stable (as the infected population cannot be negative). However, the mass action model is only an approximation and works best for large numbers of infected individuals.
 
-\begin{figure}
+\begin{figure}[H]
 	\centering
-	\includegraphics[width = \linewidth]{figs/SISmixStab.png}
+	\includegraphics[width = 0.8\linewidth]{figs/SISmixStab.png}
 	\caption{The stability plot for the mass action approximation, showing $\fd I t$ against $I(t)$. The unstable extinction equilibrium and stable endemic equilibrium are shown. The parameters used were $k_I = 0.002$, $k_S = 0.1$, $N = 500$.}
 	\label{fig:SISMAstab}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
 	\centering
-	\includegraphics[width = \linewidth]{figs/SISmix.png}
+	\includegraphics[width = 0.8\linewidth]{figs/SISmix.png}
 	\caption{A plot of the mean $\pm 1$ standard deviation of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted blue line is the deterministic solution to the mass action approximation. We see that it is higher than the simulation average, as some of the simulations hit the extinction solution, and stay at $0$, lowering the average.}
 	\label{fig:SISmix}
 \end{figure}
@@ -352,10 +357,10 @@ Now taking the limit as $dt \rightarrow 0$, we have
 
 \begin{multline}
 	\fd {} {t} P_n(t) = k_S (n+1) P_{n+1}(t) + k_I (n-1) (N- (n-1)) P_{n-1}(t) \\
-	 - (k_S n + k_I n (N-n)) P_n(t).
+	 - (k_S n + k_I n (N-n)) P_n(t). \label{WMCME}
 \end{multline}
 
-This is not easily solvable analytically, as it is a system of $N$ equations (where $N$ is large), and so we instead examine the mean and variance processes, and the stationary distribution.
+This system of equations are known as the Chemical Master Equations (CMEs). These are not simple to solve analytically, as they are a system of $N$ equations (where $N$ is typically large), and so we instead examine the mean and variance processes.
 
 \subsection{Mean and Variance} \label{MeanVar}
 
@@ -418,7 +423,7 @@ We can leverage the probability generating function to try to gain some insight 
 	G: [-1, 1] \times (0, \infty) \mapsto \mathbb{R}: \qquad G(x, t) = \sum_{n=0}^\infty x^n P_n(t). \label{PGFdef}
 \end{equation}
 
-And we can recover the moments for the system using the formulae
+This is useful as we can recover the moments for the system using the formulae
 
 \begin{equation}
 	\mathbb{E} [I(t)] = \pd {} {x} G(x, t) \Big|_{x = 1} \qquad
@@ -426,7 +431,7 @@ And we can recover the moments for the system using the formulae
 	\label{PGFident}
 \end{equation}
 
-From the definition \ref{PGFdef} we can derive:
+Substituting the chemical master equations \ref{WMCME} into the definition \ref{PGFdef} we obtain:
 
 \begin{multline}
 	\pd{}{t} \sum_{n=0}^\infty x^n P_n(t) = k_S \sum_{n = 0}^\infty (n+1) x^n P_{n+1}(t) + k_I \sum_{n=0}^\infty (n-1)(N - (n-1)) x^n P_{n-1}(t) \label{PGFCME} \\
@@ -482,14 +487,14 @@ Clearly to compute this boundary condition, we would already require knowledge o
 
 This then simply gives that $G(-1, t) = 0$. This also then gives, from the above equation, that the first $x$ derivatives of $G$, evaluated at $-1$, are also $0$. However, this is not consistent with the initial condition, so we instead opt for the Dirichlet condition that $G(-1, t) = (-1)^{n_0}$.
 
-We can solve this system numerically, using VisualPDE \citep{walkerVisualPDERapidInteractive2023}. Doing this allows us to use the earlier identities \ref{PGFident} to get numerical estimates for the mean and variance of the system over time.
+We can solve this system numerically, using VisualPDE \citep{walkerVisualPDERapidInteractive2023}. Doing this allows us to use the earlier identities \ref{PGFident} to obtain numerical estimates for the mean and variance of the system over time.
 
 \begin{equation}
 	\mathbb{E} [I(t)] = \pd {} {x} G(x, t) \Big|_{x = 1} \qquad
 	\mathrm{Var} [I(t)] = \left( \pdd {} {x} G(x, t) + \pd {} {x} G(x, t) - \left( \pd {} {x} G(x, t) \right)^2 \right) \Big|_{x = 1}.
 \end{equation}
 
-We in fact see in the numerical solution, tracking these expressions over time, that the mean rises as we would expect, before levelling off. We also see the variance drop rapidly to a very low value, showing that we expect the solutions to rapidly converge towards an equilibrium. This is an excellent result, as we do not get the blowing up that we had when trying to use the moment closure earlier. However, it tells us little about the eventual long-term behaviour of the system. For that, we examine the stationary distribution.
+We in fact see in the numerical solution, tracking these expressions over time, that the mean rises as we would expect, before levelling off. We also see the variance drop rapidly to a very low value, showing that we expect the solutions to rapidly converge towards an equilibrium. This is an excellent result, as we do not get the blowing up that we had when trying to use the moment closure earlier. However, it tells us little about the eventual long-term behaviour of the system. For that, we must examine the stationary distribution.
 
 \section{The Stationary Distribution}
 
@@ -499,7 +504,7 @@ We are most interested in the long-term behaviour of the system, and whether the
 	\phi(n) := \lim_{t \rightarrow \infty} P_n(t).
 \end{equation}
 
-From \citep{pollettProblemEstablishingExistence1993}, we know that the stationary distribution for a continuous-time Markov Process exists if the corresponding transition rate matrix is irreducible and regular. As this is the case for the process we are examining, we can move ahead with actually computing this distribution.
+From \citet{pollettProblemEstablishingExistence1993}, we know that the stationary distribution for a continuous-time Markov Process exists if the corresponding transition rate matrix is irreducible and regular. As this is the case for the process we are examining, we can move ahead with actually computing this distribution.
 To begin, we consider the steady-state CME
 
 \begin{equation}
@@ -516,7 +521,7 @@ We then see, setting $n=1$, that
 
 Again this gives $\phi(2) = 0$, from which it is clear that $\phi(k) = 0$ for all $k > 0$. As $\sum_{k=0}^N \phi(k) = 1$, we get $\phi(0) = 1$. This seems initally surprising, although on further consideration, it is clear what is happening here. If at some time $t_0$ we have $I(t_0) = 0$, then we also have $I(t) = 0$ for all $t > t_0$. As we take the limit of time going to infinity, the probability of any given realisation hitting $0$ infected population goes to $1$, and so the stationary distribution takes this form, where only the extinction scenario remains. This is in contrast to the comparable continuous system (\ref{SIScts}), where the extinction scenario is unstable, and the stable equilibrium is one where some fraction of the population is infected. This behaviour is therefore a direct result of the discretised nature of this model, and captures a behaviour not seen in the continuous model.
 
-We can also consider the recovery-free (SI) model, by setting $k_S - 0$. This gives the modified steady-state CME
+We can also consider the recovery-free (SI) model, by setting $k_S = 0$. This gives the modified steady-state CME
 
 \begin{equation}
 	k_I (n-1)(N-(n-1)) \phi(n-1) - k_I n (N-n) \phi(n) = 0.
@@ -528,7 +533,7 @@ These results make sense, however they do not align with what we see in simulati
 
 \section{Stochastic Differential Equation Approach, and Finite-Time Stationary Distribution Approximation}
 
-The final approach we can consider to obtain more information about the system, is to approximate it as a Stochastic Differential Equation, following the procedure laid out in \citet{erbanStochasticDifferentialEquations2020}. We define two functions
+The final approach we can consider to obtain more information about the system, is to approximate it as a Stochastic Differential Equation (SDE), following the procedure laid out in \citet{erbanStochasticModellingReaction2019}. We define two functions
 
 \begin{equation}
 	h_1(n, t) = k_S n P_n(t), \qquad h_2(n, t) = k_I n (N-n) P_n(t).
@@ -540,7 +545,7 @@ These allow us to rewrite the the CME as
 	\fd {} {t} P_n(t) = h_1 (n+1, t) + h_2 (n-1, t) - h_1 (n, t) - h_2 (n, t).
 \end{equation}
 
-Approximating for large $n$, we consider a large fixed $\omega$ such that $n = \eta \omega$, for some continuous $\eta > 0$, and we set $P_n(t) = P(\eta, t)$. This continuous approximation lets us write
+Approximating for large $n$, we consider a large fixed $\omega$ such that $n = \eta \omega$, for some (approximately) continuous $\eta > 0$, and we set $P_n(t) = P(\eta, t)$. This continuous approximation lets us write
 
 \begin{equation}
 	h_1(\eta, t) = k_S \eta \omega P(\eta, t), \qquad h_2(\eta, t) = k_I \eta \omega (N- \eta \omega) P(\eta, t).
@@ -586,7 +591,7 @@ So we have
 	&= - \pd {} {x} (f(x) P(x, t)) + \pdd {} x (d(x) P(x, t)). \label{ChemFPEq}
 \end{align}
 
-This is a PDE known as the Chemical Fokker Planck equation. We then have the drift and diffusion terms
+This is a Partial Differential Equation (PDE) known as the Chemical Fokker Planck equation. We then have the drift and diffusion terms
 
 \begin{equation}
 	f(x) = (k_I x (N-x) - k_S x), \qquad d(x) = \frac {k_S x + k_I x (N-x)} {2} = \frac {g(x)^2} 2.
@@ -624,7 +629,7 @@ So
 
 Which is the same result we gained from analysing the CME directly, and so this would give the same results as in \ref{MeanVar}
 
-We can attempt to get an expression for the stationary distribution from the SDE here. If we impose the absorbing boundary condition at $x=0$, we will just get the distribution $p_s(x) = 0$, as all trajectories will eventually hit $0$ and be absorbed. However, we are able to extract some useful information by not applying this boundary condition. This will give us a stationary distribution more closely approximating the behaviour we see stopping the simulation after finite time, as the probability of trajectories hitting $0$ in (relatively small) finite time is very low. By setting the time derivative in \ref{ChemFPEq} to $0$, we can derive the formula for the stationary distribution
+We can also attempt to get an expression for the stationary distribution from the SDE. If we impose the absorbing boundary condition at $x=0$, we will just get the distribution $p_s(x) = 0$, as all trajectories will eventually hit $0$ and be absorbed. However, we are able to extract some useful information by not applying this boundary condition. This will give us a stationary distribution more closely approximating the behaviour we see stopping the simulation after finite time, as the probability of trajectories that do not immediately reach extinction doing so in (relatively small) finite time is very low. By setting the time derivative in \ref{ChemFPEq} to $0$, we can derive the formula for the stationary distribution
 
 \begin{multline}
 	\fdd{}{x} \left( \frac {g(x)^2} {2} p_s(x) \right) - \fd{}{x} \left( f(x) p_s(x) \right) = 0 \\
@@ -673,20 +678,20 @@ This is a somewhat complicated function, and difficult to intuit the behaviour o
 \end{aligned}
 \end{equation}
 
-Clearly we are not interested about an area where $p_s(x) = 0$, so we only care about where the second part is $0$. Rearranging and applying the quadratic formula gives the (somewhat unweildy) result
+Clearly we are not interested about an area where $p_s(x) = 0$, so we only care about where the second part is $0$. Rearranging and applying the quadratic formula gives the (somewhat unwieldy) result
 
 \begin{align}
 	x &= \frac {2k_S - 2 k_I - 2k_I N \pm \sqrt{4k_S^2 + 4k_I^2 + 4k_I^2 N^2 - 16 k_I k_S - 8 k_I k_S N}} {-4 k_I} \notag \\
 	&= \frac N 2 + \frac 1 2 - \frac {k_S} {2 k_I} \mp \frac 1 2 \sqrt{ \left( \frac {k_S} {k_I} \right)^2 + 1 + N^2 - 4 \frac {k_S} {k_I} - 2 \frac {k_S} {k_I} N}.
 \end{align}
 
-While this does not offer much insight in itself, we observe that we can write
+While this does not offer much insight in itself, we observe that we can write the mass-action equilibrium as
 
 \begin{equation}
 	N - \frac {k_S} {k_I} = \frac N 2 + \frac 1 2 - \frac {k_S} {2 k_I} - \frac {1} {2} \sqrt{N^2 + 1 + \left( \frac {k_S} {k_I} \right)^2 - 2 N - 2 \frac {k_S} {k_I} N + 2 \frac {k_S} {k_I}}. \label{FPStatapprox}
 \end{equation}
 
-These expressions are very similar, and we can attempt to quantify the difference. The difference in the expressions under the square root is
+These expressions are very similar, and so we attempt to quantify the difference. The difference in the expressions under the square root is
 
 \begin{equation}
 	6 \frac {k_S} {k_I} - 2N
@@ -701,7 +706,13 @@ and dividing this by the expression under the square root in \ref{FPStatapprox} 
 
 We then have three possible cases. If $\frac {k_S} {k_I}$ and $N$ are similar in magnitude, then this expression is of magnitude $\frac 1 N \ll 1$. If $\frac {k_S} {k_I}$ is of significantly smaller magnitude than $N$, then the expression is again of magnitude $\frac 1 N \ll 1$. And finally, if $\frac {k_S} {k_I}$ is significantly larger than $N$, then the magnitude of the expression is $\frac {k_I} {k_S} \ll 1$. In all cases, this expression is much smaller than $1$, and as the difference is effectively square rooted, the difference between this peak and the ODE equilibrium $N - \frac {k_S} {k_I}$ should be less than $1$. When we substitute a range of values for $\frac {k_S} {k_I}$ and $N$, this is in fact what we do find. We have therefore shown that we expect, for finite durations of time, for the stochastic simulations to approximate the endemic equilibrium from the mass action approximation, which is what we see.
 
-We have now developed several tools for analysing this model, specifically the Chemical Master Equations, mass action approximation, and stochastic differential equations. We also analysed the probability generating function for the chemical master equations. We have used these to determine a stationary distribution for the simulations, and to analyse the stability of solutions to the mass action approximation, which we have used to predict the qualitative behaviour of the model. We have seen that the model results in noisy trajectories, which are approximated by logistic growth, in the case that the extinction equilibrium of the mass action ODE is unstable, and which decay exponentially to extinction, in the case that the extinction equilibrium of the mass action ODE is stable. In the discussion on network models, we will focus primarily on the chemical master equations, approximations of their solutions, and the resulting stability analysis.
+We have now developed several tools for analysing this model, specifically the Chemical Master Equations, mass action approximation, and stochastic differential equations. We also analysed the probability generating function for the chemical master equations. We have used these to determine a stationary distribution for the simulations, and to analyse the stability of solutions to the mass action approximation, which we have used to predict the qualitative behaviour of the model. We have seen that the model results in noisy trajectories, which are approximated by logistic growth, in the case that the extinction equilibrium of the mass action ODE is unstable, and which decay exponentially to extinction, in the case that the extinction equilibrium of the mass action ODE is stable. In the discussion on network models, we will focus primarily on the chemical master equations, approximations of their solutions, and the resulting stability analysis. We will demonstrate our results with simulations using the Gillespie SSA.
+
+%   %   %%%
+%% %%   %  %
+% % %   %%%
+%   %   %
+%   %   %
 
 \chapter{Metapopulation model}
 
@@ -1045,6 +1056,12 @@ We now simulate the different networks in the regime where extinction is stable,
 \end{figure}
 
 These simulations correspond well with what we expect from our analysis of the continuous approximation, and show a clear change in behaviour as we vary the model parameters, from the system tending to an endemic equilibrium, to the system tending to the extinction equilibrium. It also demonstrates to us the impact of different graph structures on the disease spread, showing that more connected populations leads to a faster spread of infection in the supercritical case, and a slower recovery in the subcritical case. This may help to advise future epidemic policy. For example, this demonstrates the effectiveness of social distancing measures (which work to decrease the connectivity of communities), but also show the most important factor in controlling infection is to increase the recovery rate relative to the infection rate. This could be done in the real world by decreasing infection (through hand washing, better sanitation, and preventative measures such as barrier contraception for STIs), or through promoting faster recovery (through more effective treatment, increased standards of living, and faster treatment as a result of more widespread testing). All in all, this model provides a great deal of useful insight and further demonstrates the effectiveness of our chemical approach to disease modelling.
+
+%%%   %   %
+ %    %% %%
+ %    % % %
+ %    %   %
+%%%   %   %
 
 \chapter{Networked individuals model}
 

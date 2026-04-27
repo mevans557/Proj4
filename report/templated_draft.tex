@@ -331,14 +331,14 @@ We can also perform a linear stability analysis to predict the expected behaviou
 \begin{figure}[H]
 	\centering
 	\includegraphics[width = 0.8\linewidth]{figs/SISmixStab.png}
-	\caption{The stability plot for the mass action approximation, showing $\fd I t$ against $I(t)$. The unstable extinction equilibrium and stable endemic equilibrium are shown. The parameters used were $k_I = 0.002$, $k_S = 0.1$, $N = 500$.}
+	\caption{The stability plot for the mass action approximation, showing $\fd I t$ against $I(t)$. The unstable extinction equilibrium and stable endemic equilibrium are shown.}
 	\label{fig:SISMAstab}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width = 0.8\linewidth]{figs/SISmix.png}
-	\caption{A plot of the mean $\pm 1$ standard deviation of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted blue line is the deterministic solution to the mass action approximation. We see that it is higher than the simulation average, as some of the simulations hit the extinction solution, and stay at $0$, lowering the average.}
+	\caption{A plot of the mean $\pm 1$ standard deviation of $20$ realisations of the Gillespie SSA, with parameters $k_I = 0.002$, $k_S = 0.1$, $N = 500$. The dotted blue line is the deterministic solution to the mass action approximation. We see that it is higher than the simulation average, as some of the simulations hit the extinction solution, and stay at $0$, lowering the average. The code to create this plot is found at \url{https://github.com/mevans557/Proj4}.}
 	\label{fig:SISmix}
 \end{figure}
 
@@ -718,11 +718,11 @@ We have now developed several tools for analysing this model, specifically the C
 
 \section{Motivation}
 
-Having now developed a series of tools for the non-spatial model, we examine the simplest kind of spatially-structured model, the metapopulation model. In this model, we introduce a graph structure, where each node of the graph is considered to be a smaller well-mixed population, and so the dynamics are that of the well-mixed model within each smaller population, with the addition of infection from neighbouring nodes. These smaller populations can be considered to represent small communities, such as villages or small towns, where the population interacts with eachother regularly, but also has close interaction with neighbouring villages. As a result of this framework, we choose to model the interaction between nodes as if each person in node A has contact with every person in node B, and so the infection risk of a person in node A is related to the total number of infected people in node B, rather than the fraction of infected people in node B. We draw attention to this assumption, as most other models instead consider the infection risk to be proportional to the fraction of infected people in node B, and our choice to take this other approach has significant impacts on the model behaviour and our analysis.
+Having now developed a series of tools for the non-spatial model, we examine the simplest kind of spatially-structured model, the metapopulation model. In this model, we introduce a graph structure, where each node of the graph is considered to be a smaller well-mixed population, and so the dynamics are that of the well-mixed model within each smaller population, with the addition of infection from neighbouring nodes. These smaller populations can be considered to represent small communities, such as villages or small towns, where the population interacts with eachother regularly, but also has close interaction with neighbouring villages. As a result of this framework, we choose to model the interaction between nodes as if each person in node A has contact with every person in node B, and so the infection risk of a person in node A is related to the total number of infected people in node B, rather than the fraction of infected people in node B. We draw attention to this assumption, as most other models instead consider the infection risk to be proportional to the fraction of infected people in node B, and our choice to take this different approach has significant impacts on the model behaviour and our analysis.
 
 \section{Setup and Chemical Master Equations}
 
-We consider a graph with: a state vector $\v{I}(t)$, where $I_i(t)$ is the number of infected individuals at node $i$ and at time $t$; adjacency matrix $\m{A}$; and population vector $\v{N}$, where $N_i$ is the number of individuals (in any compartment) at node $i$. We take the population at each node to be fixed over the time interval considered (so there is no birth or death in this model). We also by extension then have the susceptible population in each node at time $t$ as $S_i(t) = N_i - I_i(t)$. If we represent an infected individual in node $i$ as $\ce{I_i}$, and a susceptible individual in node $i$ as $\ce{S_i}$, then we can represent the model with the following system:
+We consider a graph with: a state vector $\v{I}(t)$, where $I_i(t)$ is the number of infected individuals at node $i$ and at time $t$; adjacency matrix $\m{A}$; and population vector $\v{N}$, where $N_i$ is the total number of individuals (in any compartment) at node $i$. We take the population at each node to be fixed over the time interval considered (so there is no birth or death in this model). We also by extension then have the susceptible population in each node at time $t$ as $S_i(t) = N_i - I_i(t)$. If we represent an infected individual in node $i$ as $\ce{I_i}$, and a susceptible individual in node $i$ as $\ce{S_i}$, then we can represent the model with the following chemical reactions:
 
 \begin{equation}
 	\ce{I_i + S_i ->[k_I] 2 I_i} \qquad
@@ -730,7 +730,7 @@ We consider a graph with: a state vector $\v{I}(t)$, where $I_i(t)$ is the numbe
 	\ce{S_i + I_j ->[A_{ij} k_I] I_i + I_j}.
 \end{equation}
 
-Here the first equation corresponds to infection within node $i$, the second to recovery of an infected person in node $i$, and the third infection of an individual in node $i$ by an individual in node $j$. We take the infection and recovery rates $k_I$, $k_S$ to be constant. This corresponds to an assumption that both infection and recovery are purely based on the disease in question, and unaffected by differences between the different metapopulations. We also are imagining the disease spreads across the graph by some interaction between any of the inhabitants of node $i$ with an inhabitant of node $j$.
+Here the first equation corresponds to infection within node $i$, the second to recovery of an infected person in node $i$, and the third infection of an individual in node $i$ by an individual in node $j$. We take the infection and recovery rates $k_I$, $k_S$ to be constant. This corresponds to an assumption that both infection and recovery are purely based on the disease in question, and unaffected by differences between the different metapopulations. We are modelling the disease spread across the graph as transmission from any of the inhabitants of node $i$ to an inhabitant of node $j$.
 
 From these equations, we can see that the mass-action approximation would be of the form
 
@@ -750,7 +750,7 @@ If we set $I(t) = \sum_i I_i(t)$ to be the total infected population, and $\sum_
 
 where $\mathbb{I}$ is the identity matrix.
 
-This sum is difficult to simplify for a generic graph. However, this equation does bear a strong resemblance to the non-spatial SIS equation, but with the spreading term modified by the graph interactions.
+This sum is difficult to simplify for a generic graph. However, this equation does bear a strong resemblance to the well-mixed SIS mass-action approximation \ref{SIScts}, but with the spreading term modified by the graph interactions.
 
 We can use the chemical master equations to represent the behaviour of this system as follows:
 
@@ -799,7 +799,7 @@ It would often be common to take the mean-field approximation and treat $M_i$ an
 
 \section{Continuous Approximation, Equilibria, and Stability}
 
-If we shift our framing slightly, and instead consider an (approximately continuous) "infection density" $\rho_i(t) = \frac {I_i(t)} {N_i}$, we can attempt to analyse equilibria of the system and their stability. The mass-action approximation \ref{metaMA} becomes
+If we shift our framing slightly, and instead consider an (approximately continuous) "infection density" $\rho_i(t) = \frac {I_i(t)} {N_i}$, we can attempt to analyse the equilibria of the system and their stability. The mass-action approximation \ref{metaMA} becomes
 
 \begin{equation}
 	\fd {\rho_i} {t} = k_I \rho_i(t) N_i (1- \rho_i(t)) + k_I (1 - \rho_i(t)) \sum_j A_{ij} N_j \rho_j(t) - k_S \rho_i(t).
@@ -826,7 +826,7 @@ giving $\rho = 0$, the extinction scenario, or
 
 which is highly reminiscent of the $I = N - \frac {k_S} {k_I}$ equilibrium for the well-mixed scenario, and actually is exactly equivalent for the complete graph, as we would expect. As we assumed homogeneity, we can see that we require the population of a node, summed with the populations of its neighbours, must always be constant. For the complete graph, this does not constrain the populations at all, so this solution always exists there. On the cycle graph, it enforces a repeating pattern of three populations, so for cycle graphs with a multiple of $3$ nodes, the population can be varying between nodes, but on any other cycle graph the nodes must all have the same population for this equilibrium to exist. For the path graph, this equilibrium cannot exist, as there is no way for the "end nodes" to have the same population sums as their neighbours, and this is also the case for the star graph.
 
-If we instead allow for inhomogeneous equilibria, we can simplify the equations somewhat by considering constant "neighbour infectivity", i.e. $\sum_j A_{ij} N_j \rho_j = C$, so every node is at the same risk of infection by a neighbouring node as every other node. The equation then becomes
+If we allow for inhomogeneous equilibria, we can simplify the equations by instead considering constant "neighbour infectivity", i.e. $\sum_j A_{ij} N_j \rho_j = C$, so every node is at the same risk of infection by a neighbouring node as every other node. The equation then becomes
 
 \begin{equation}
 	k_I N_i \rho_i^2 + (k_I C - k_I N_i + k_S) \rho_i + k_I C= 0.
@@ -879,7 +879,7 @@ So both $\rho_i \geq 0$, with equality if and only if $c_i = 0$, which gives the
 
 We also have $1 \geq 1 - c_i - 2 k_i \geq \rho_i$, so these are both valid solutions, for some conditions which we now derive.
 
-We note that as $C = \sum_j A_{ij} N_j \rho_j$, we have the vector equation $\v C = \m A (\v N \otimes \boldsymbol{\rho})$, where $\v C$ is the vector where each element is $C$, and $\otimes$ denotes the component wise product of two vectors. For our metapopulation model, we have no unconnected vertices, and thus no zero rows or columns in $\m A$, we consider only the case where $\m A$ is invertible. There are no simple conditions for the adjacency matrix of a graph to be invertible, so this process is only applicable to those which do have an invertible adjacency matrix. We can then write $\v N \boldsymbol{\rho} = \m A^{-1} \v C = C \m A^{-1} \v 1$, where $\v 1$ is the vector where each element is $1$. We thus let $\m A^{-1} = \v a$, so we have $\rho_i = \frac {C a_i} {N_i}$. Substituting this into our equation for $\rho_i$ gives
+We note that as $C = \sum_j A_{ij} N_j \rho_j$, we have the vector equation $\v C = \m A (\v N \otimes \boldsymbol{\rho})$, where $\v C$ is the vector where each element is $C$, and $\otimes$ denotes the component wise product of two vectors. For our metapopulation model, we have no unconnected vertices, and thus no zero rows or columns in $\m A$, we consider only the case where $\m A$ is invertible. There are no simple conditions for the adjacency matrix of a graph to be invertible, so this process is only applicable to those which do have an invertible adjacency matrix. We can then write $\v N \boldsymbol{\rho} = \m A^{-1} \v C = C \m A^{-1} \v 1$, where $\v 1$ is the vector where each element is $1$. We thus let $\m A^{-1} \v 1 = \v a$, so we have $\rho_i = \frac {C a_i} {N_i}$. Substituting this into our equation for $\rho_i$ gives
 
 \begin{equation}
 \begin{aligned}
@@ -935,7 +935,7 @@ For the extinction equilibrium, we have
 	M_{ij} = k_I N_i A_{ij} + \delta_{ij} (k_I N_i - k_S).
 \end{equation}
 
-If we now take the populations $N_i = N$ to be the same at every node, we can write $\m M = k_I N \m A + (k_I N - k_S) \m I$. Then, as in \citet{porterDynamicalSystemsNetworks2015}, we have that any eigenvector of $\m A$, $\v w_r$ with eigenvalue $\lambda_r$ satisfies $(k_I N \m A + (k_I N - k_S) \m I) \v w_r = (k_I N \lambda_r + (k_I N - k_S)) \v w_r$ and so any eigenvector of $\m A$ is also an eigenvector of $\m M$. Again an equilibrium here is asymptotically stable if and only if all of the eigenvalues of $\m M$ are negative (as $\m M$ is symmetric here, they are all real). We thus need $k_I N \lambda_r + (k_I N - k_S) < 0$ for all $\lambda_r$. The authors point to \citet{newmanDynamicalSystemsNetworks2018}, where the result is shown that the adjacency matrix must always have both positive and negative eigenvalues. This shows that we must also have $k_I N - k_S < 0$ for stability. It then follows here that $\lambda_r < (k_S - k_I N)/(k_I N)$ for $k_I N > 0$ and $\lambda_r > (k_S - k_I N)/(k_I N)$ for $k_I N < 0$. As we always have $k_I N > 0$, we can discard this last condition. It is clear, however, that if the greatest eigenvalue, $\lambda_1$, satisfies $\lambda_1 < (k_S - k_I N) / (k_I N)$, then so do all the other eigenvalues. This condition actually implies that $k_S / k_I > N$, so we can write that for stability of the extinction equilibrium, we require
+If we now take the populations $N_i = N$ to be the same at every node, we can write $\m M = k_I N \m A + (k_I N - k_S) \m I$. Then, as in \citet{porterDynamicalSystemsNetworks2015}, we have that any eigenvector of $\m A$, $\v w_r$ with eigenvalue $\lambda_r$ satisfies $(k_I N \m A + (k_I N - k_S) \m I) \v w_r = (k_I N \lambda_r + (k_I N - k_S)) \v w_r$ and so any eigenvector of $\m A$ is also an eigenvector of $\m M$. Again an equilibrium here is asymptotically stable if and only if all of the eigenvalues of $\m M$ are negative (as $\m M$ is symmetric here, they are all real). We thus need $k_I N \lambda_r + (k_I N - k_S) < 0$ for all $\lambda_r$. The authors point to \citet{newmanDynamicalSystemsNetworks2018}, where the result is shown that the adjacency matrix must always have both positive and negative eigenvalues. This shows that we must also have $k_I N - k_S < 0$ for stability. It then follows here that we want $\lambda_r < (k_S - k_I N)/(k_I N)$ for $k_I N > 0$ and $\lambda_r > (k_S - k_I N)/(k_I N)$ for $k_I N < 0$. As we always have $k_I N > 0$, we can discard this last condition. It is clear, however, that if the greatest eigenvalue, $\lambda_1$, satisfies $\lambda_1 < (k_S - k_I N) / (k_I N)$, then so do all the other eigenvalues. This condition actually implies that $k_S / k_I > N$, so we can write that for stability of the extinction equilibrium, we require
 
 \begin{equation}
 	N (\lambda_1 + 1) < \frac {k_S} {k_I}.
@@ -943,7 +943,7 @@ If we now take the populations $N_i = N$ to be the same at every node, we can wr
 
 We refer to the point at which $k_S / k_I = N (\lambda_1 + 1)$ as the critical ratio. We refer to a ratio of $k_S / k_I$ greater than this as the subcritical case, and a ratio lower than the critical ratio as the supercritical case.
 
-We focus now on some simple graphs to examine the behaviour of the model. These are the complete graph $k_5$, the cycle graph $C_5$, the path graph $P_5$, and the star graph $S_4$. These are chosen for their simple nature, making them easy to analyse, and their different properties giving us a good intuition for how more complex structures may behave, and they all have the same number of nodes, making them easily comparable. The adjacency matrices are as follows. The matrices $\m M$ for extinction are given by $\m M = k_I \m A + k_I \m N - k_S \m I$ where $\m N$ is the matrix with the populations on the diagonal, and zeroes everywhere else. 
+We focus now on some simple graphs to examine the behaviour of the model. These are the complete graph $k_5$, the cycle graph $C_5$, the path graph $P_5$, and the star graph $S_4$. These are chosen for their simple nature, making them easy to analyse, and their different properties giving us a good intuition for how more complex structures may behave, and they all have the same number of nodes, making them easily comparable. The adjacency matrices are as follows. The matrices $\m M$ for extinction stability are given by $\m M = k_I \m A + k_I \m N - k_S \m I$ where $\m N$ is the matrix with the populations on the diagonal, and zeroes everywhere else. 
 
 \begin{tabular}{c c c c c }
 	Graph & $\m A$ & Image & Largest eigenvalue $\lambda_1$ & Critical ratio\\ [20pt]
@@ -999,9 +999,9 @@ We focus now on some simple graphs to examine the behaviour of the model. These 
 
 These changes in the stability of the extinction equilibrium all correspond to a transcritical bifurcation, where the equilibrium at $\rho_i = 0$ always exists, but its stability changes as we vary the system parameters. In fact, when it exists the homogeneous endemic equilibrium given by \ref{metaHomEq} drops below $0$ when the equilibrium at $0$ becomes stable. We refer to these regimes from now on as the "supercritical" (unstable $0$ equilibrium) and "subcritical" (stable $0$ equilibrium) regimes.
 
-We now simulate the different networks in the regime where extinction is stable, and where it is unstable. The population at each node was set to be $1000$, representing groups of small villages. The parameters used were $k_I = 0.002$ in all simulations, with $k_S = 0.2$ in the supercritical cases and $k_S = 20$ in the subcritical cases. All simulations started with $20$ individuals infected on node $0$, which is the central node in $S_4$ and one of the end nodes in $P_5$.
+We now simulate the different networks in the regime where extinction is stable, and where it is unstable. The population at each node was set to be $1000$, representing groups of small villages. The parameters used were $k_I = 0.002$ in all simulations, with $k_S = 0.2$ in the supercritical cases and $k_S = 20$ in the subcritical cases. All simulations started with $20$ individuals infected on node $0$, which is the central node in $S_4$ and one of the end nodes in $P_5$. The code used to run these simulations and create the plots can be found at \url{https://github.com/mevans557/Proj4}.
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\begin{subfigure}[t]{0.24\textwidth}
 		\centering
@@ -1065,7 +1065,7 @@ These simulations correspond well with what we expect from our analysis of the c
 
 \chapter{Networked individuals model}
 
-To give even more depth to the spatial aspect of this model, we can apply it to a networked population where rather than each node representing a smaller population, each node represents an individual in the overall population. This could be thought of in the context of modelling an invididual village or town, with a smaller population than those in the metapopulation model. In this kind of model, the precise network structure chosen has a large impact on the behaviour of the model. We focus on a few kinds. Firstly, the complete graph. This should entirely reproduce the results of the well-mixed model, as every individual is in contact with every other individual. Second, we shall consider some other simple graphs which should inform our expectations for how the graph structure will impact the disease spread. We will also examine how random percolation on the $2$D lattice graph may affect the disease spread characteristics. We will also look at random graphs more closely mimicking social networks, specifically Barabasi-Albert, Watts-Strogatz, and Erdos-Renyi networks, the former being of particular interest due to being a scale-free network. This is a characteristic which is observed to be common to many social networks \citep{McGlohon2011}. The Watts-Strogatz networks demonstrate high clustering, and specifically the small-world property, which are also observed in a variety of real-world networks \citep{McGlohon2011}. These can all be generated easily using the NetworkX package for Python. Finally, we will use the SNAP dataset \citet{snapnets} to analyse the spread of a disease on a network of Facebook users, and see how this network compares to those mentioned earlier.
+To give even more depth to the spatial aspect of this model, we can apply it to a networked population where, rather than each node representing a smaller population, each node represents an individual in the overall population. This could be thought of in the context of modelling an invididual village or town, with a smaller population than those in the metapopulation model. In this kind of model, the precise network structure chosen has a large impact on the behaviour of the model. We focus on a few kinds. Firstly, the complete graph. This should entirely reproduce the results of the well-mixed model, as every individual is in contact with every other individual. Second, we shall consider some other simple graphs which should inform our expectations for how the graph structure will impact the disease spread. We will also examine how random percolation on the $2$D lattice graph may affect the disease spread characteristics. We will also look at random graphs more closely mimicking social networks, specifically Barabasi-Albert, Watts-Strogatz, and Erdos-Renyi networks, the former being of particular interest due to being a scale-free network. This is a characteristic which is observed to be common to many social networks \citep{McGlohon2011}. The Watts-Strogatz networks demonstrate high clustering, and specifically the small-world property, which are also observed in a variety of real-world networks \citep{McGlohon2011}. These can all be generated easily using the NetworkX package for Python. Finally, we will use the SNAP dataset \citep{snapnets} to analyse the spread of a disease on a network of Facebook users, and see how this network compares to those mentioned earlier.
 
 Adopting the notation from the metapopulation model, we let $\v{I}$ be the vector storing whether a given node is infected or not, by setting $I_i = 1$ if node $i$ is infected, and $I_i = 0$ otherwise. We set $\m{A}$ to be the adjacency matrix for the graph under examination. We also set the infection rate at $k_I$, and the recovery rate at $k_S$. The chemical equations are
 
@@ -1093,7 +1093,7 @@ The infection is spread according to the following modified Gillespie SSA:
 	\EndIf
 \end{algorithmic}
 
-Where $\v{1}$ is the vector where each element is $1$, so that $\v{1} - \v{I}(t)$ is the vector containing a $0$ for each infected node, and a $1$ for each uninfected node. It is then clear that $(\v{1} - \v{I}(t)) * (\m{A} \times \v{I}(t))_i$, where $*$ is the component-wise product, is $1$ if the infection could possibly spread to node $i$, and $0$ if not. The above algorithm therefore carries out a single reaction step.
+Where $\v{1}$ is the vector where each element is $1$, so that $\v{1} - \v{I}(t)$ is the vector containing a $0$ for each infected node, and a $1$ for each uninfected node. It is then clear that $(\v{1} - \v{I}(t)) * (\m{A} \times \v{I}(t))_i$, where $*$ is the component-wise vector product, is $1$ if the infection could possibly spread to node $i$, and $0$ if not. The above algorithm therefore carries out a single reaction step.
 
 We then define $p_i(t) = \mathbb{P}(I_i(t) = 1)$ to be the probability that node $i$ is infected at time $t$. Considering a small timestep $\Delta t$ then gives use
 
@@ -1115,10 +1115,10 @@ Taking the limit as $\Delta t \rightarrow 0$ gives
 This can then be rewritten in vector notation
 
 \begin{equation}
-	\fd {\v{p}} {t} = k_I \m{A} \v{p}(t) - k_I (\m{A} \v{p}(t)) \odot \v{p}(t) - k_S \v{p}(t).
+	\fd {\v{p}} {t} = k_I \m{A} \v{p}(t) - k_I (\m{A} \v{p}(t)) * \v{p}(t) - k_S \v{p}(t).
 \end{equation}
 
-Where $\odot$ is the component-wise vector product.
+Where $*$ is again the component-wise vector product.
 
 By setting the average number of infected individuals to $M(t) = \sum_{i} p_i(t)$, we can show the following
 
@@ -1164,7 +1164,7 @@ This is highly reminiscent of the well-mixed mean (\ref{SISmixmean}), as we woul
 	\label{fig:SISindvcomp}
 \end{figure}
 
-We can make a brief attempt to find and analyse some equilibria of these systems, by treating the CME probabilities as a continuous approximation of the system, where we can interpret the probabilities approximately as the amount of time we would expect to see a given node infected for. Setting the derivative in the CME \ref{indvCME} to $0$, we get a rather complex expression for the probabilities. To simplify the situation, we consider the mean-field approximation, where we take all $p_i = p$ to be identically and independently distributed. This gives us
+We now make a brief attempt to find and analyse some equilibria of these systems of individuals, by treating the CME probabilities as a continuous approximation of the system, where we can interpret the probabilities approximately as the amount of time we would expect to see a given node infected for. Setting the derivative in the CME \ref{indvCME} to $0$, we get a rather complex expression for the probabilities. To simplify the situation, we consider the mean-field approximation, where we take all $p_i = p$ to be identically and independently distributed. This gives us
 
 \begin{equation}
 \begin{aligned}
@@ -1175,9 +1175,9 @@ We can make a brief attempt to find and analyse some equilibria of these systems
 
 This shows that $p_i = p = 0$ is an equilibrium of the system, as we would expect. The other possibility is given by $p(t) = 1 - \frac {k_S} {k_I \sum_j A_{ij}}$. The requirement that $p(t)$ are all identical requires that $\sum_j A_{ij}$ is the same for all $i$. This is satisfied, for example, by several kinds of tree graph, the complete graph, the cycle graph, and (in the infinite limit) the $2$D lattice. We again see that in the case of the complete graph, we reproduce behaviour very close to that of the well-mixed model, as if we sum over the $p_i$, we get $M = N - \frac {k_S N} {k_I (N-1)}$. Analysing the stability of these equilibria is unfortunately very difficult, as we would be required to find the eigenvalues of an $N \times N$ matrix, where $N$ is in general very large. However, as the behaviour is not dissimilar to the well-mixed and metapopulation models, we could expect to see some kind of critical point at which the extinction equilibrium becomes stable.
 
-We now simulate the infection on a variety of graph structures. We begin with a few simple types of graph, in order to demonstrate some important effects. These are the Cycle graph, Tadpole graph, Lollipop graph, and Barbell graph. We then move on to some more complex random-generated graphs, these being the Erdos-Renyi, Barabasi-Albert, and Watts-Strogatz. We then simulate on a small selection of percolation-type lattices, with differing percolation coefficients.
+We now simulate the infection on a variety of graph structures. We begin with a few simple types of graph, in order to demonstrate some important effects. These are the Cycle graph, Tadpole graph, Lollipop graph, and Barbell graph. We then move on to some more complex random-generated graphs, these being the Erdos-Renyi, Barabasi-Albert, and Watts-Strogatz. We then simulate on a small selection of percolation-type lattices, with differing percolation coefficients. The code used to generate these figures can be found at \url{https://github.com/mevans557/Proj4}.
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\begin{subfigure}[t]{0.45\textwidth}
 		\centering
@@ -1209,7 +1209,7 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 
 % ER plots
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\begin{subfigure}[t]{0.45\textwidth}
 		\centering
@@ -1241,7 +1241,7 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 
 % BA plots
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\begin{subfigure}[t]{0.45\textwidth}
 		\centering
@@ -1273,7 +1273,7 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 
 % WS plots
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\begin{subfigure}[t]{0.45\textwidth}
 		\centering
@@ -1305,7 +1305,7 @@ We now simulate the infection on a variety of graph structures. We begin with a 
 
 % Percolation plots
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\begin{subfigure}[t]{0.3\textwidth}
 		\centering
@@ -1369,9 +1369,9 @@ These different kinds of random graphs exhibit a variety of interesting properti
 
 \section{The Facebook Network}
 
-We finally move onto analysing the disease spread on a real social network, the Facebook network from the SNAP dataset \citet{snapnets}. This is a network of $4039$ Facebook users, and the connections between them. The degree distribution is shown alongside the other random network models examined previously in \ref{figs:degcomp}. We clearly see the previously stated power-law degree distribution, and how well the different network models emulate this. As the network is extremely large, it is very difficult to do any further advanced analysis. Running the simulation for a variety of parameter values yields the plots \ref{figs:SISindvFB}.
+We finally move onto analysing the disease spread on a real social network, the Facebook network from the SNAP dataset \citep{snapnets}. This is a network of $4039$ Facebook users, and the connections between them. The degree distribution is shown alongside the other random network models examined previously in \ref{figs:degcomp}. We clearly see the previously stated power-law degree distribution, and how well the different network models emulate this. As the network is extremely large, it is very difficult to do any further advanced analysis. Running the simulation for a variety of parameter values yields the plots \ref{figs:SISindvFB}.
 
-\begin{figure}
+\begin{figure}[H]
         \centering
         \begin{subfigure}[t]{0.45\textwidth}
                 \centering
@@ -1401,7 +1401,7 @@ We finally move onto analysing the disease spread on a real social network, the 
         \label{figs:degcomp}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\begin{subfigure}[t]{0.45\textwidth}
 		\centering
@@ -1439,7 +1439,7 @@ This model of the spread of a disease between individuals grants us useful insig
 
 \chapter{Conclusion}
 
-In this report, we began by examining a very simple chemical model of disease with no spatial component, to see what factors affected the behaviour of the disease spread, and to observe the stable points of the model. In doing so we devloped a series of useful tools, including a Stochastic Differential Equation (SDE) approximation of the system. We then expanded this to a metapopulation model, introducing spatial variation through the use of networks. This allowed us to model the spread of a disease between communities, and to observe how the level of connection between communities affected the rate of spread. From this we have gained useful insight into how public health policy can seek to lessen the spread and impact of an epidemic by reducing interconnection between communities, for example by social distancing, or reducing transmission rates between otherwise separate communities through other means (such as mask wearing, or restricting contact through other means). We also examined the stable equilibria of a continuous approximation on these networks, and showed there exists a critical threshold above which the epidemic will tend to an endemic stable point, and below which it will rapidly die off to extinction. We then looked at a model of disease spread on more complex networks, intended to simulate small communities, to see how the disease spreads at these scales. We examined some simple networks, some common models of random networks often used to model social networks, and a real-life social network of facebook users. We found that all of the common random network models struggled to adequately capture the behaviour of the epidemic on a real social network, and examined the ways in which they differed. We also observed the effect of network criticality, in the case of the percolation network model, on the tipping points for the epidemic. On every network we examined, we found that there could be two major regimes of the disease model. In one, the disease rapidly dies out and becomes extinct. In the other, the disease spreads throughout the population until an endemic stable point is reached. The greatest impact on this was always the ratio of recovery rate to infection rate, showing us that the most effective way to reduce the impact of an epidemic remains to either reduce infectivity (through sanitation, hand washing, mask wearing, etc), or to promote faster recovery (through effective treatment, ensuring adequate nutrition, early identification of infection, etc). In this process, we developed a small amount of Python code which can be used to simulate a variety of disease models on networks, and which could trivially be extended to simulate more complex models, such as models with more compartments (SIR, SEIR, MSIRS etc), models with immune individuals, and models with time-evolving parameters. The code developed could even be extended to allow dynamic construction and destruction of edges on the networks, which could be used as in \citep{croccoloSpreadingInfectionsRandom2020} to examine the effect of lockdowns or other similar public health measures.
+In this report, we began by examining a very simple chemical model of disease with no spatial component, to see what factors affected the behaviour of the disease spread, and to observe the stable points of the model. In doing so we devloped a series of useful tools, including a Stochastic Differential Equation (SDE) approximation of the system. We then expanded this to a metapopulation model, introducing spatial variation through the use of networks. This allowed us to model the spread of a disease between communities, and to observe how the level of connection between communities affected the rate of spread. From this we have gained useful insight into how public health policy can seek to lessen the spread and impact of an epidemic by reducing interconnection between communities, for example by social distancing, or reducing transmission rates between otherwise separate communities through other means (such as mask wearing, or restricting contact through other means). We also examined the stable equilibria of a continuous approximation on these networks, and showed there exists a critical threshold above which the epidemic will tend to an endemic stable point, and below which it will rapidly die off to extinction. We then looked at a model of disease spread on more complex networks, intended to simulate small communities, to see how the disease spreads at these scales. We examined some simple networks, some common models of random networks often used to model social networks, and a real-life social network of facebook users. We found that all of the common random network models struggled to adequately capture the behaviour of the epidemic on a real social network, and examined the ways in which they differed. We also observed the effect of network criticality, in the case of the percolation network model, on the tipping points for the epidemic. On every network we examined, we found that there could be two major regimes of the disease model. In one, the disease rapidly dies out and becomes extinct. In the other, the disease spreads throughout the population until an endemic stable point is reached. The greatest impact on this was always the ratio of recovery rate to infection rate, showing us that the most effective way to reduce the impact of an epidemic remains to either reduce infectivity (through sanitation, hand washing, mask wearing, etc), or to promote faster recovery (through effective treatment, ensuring adequate nutrition, early identification of infection, etc). In this process, we developed a small amount of Python code which can be used to simulate a variety of disease models on networks, and which could trivially be extended to simulate more complex models, such as models with more compartments (SIR, SEIR, MSIRS etc), models with immune individuals, and models with time-evolving parameters. The code developed could even be extended to allow dynamic construction and destruction of edges on the networks, which could be used as in \citep{croccoloSpreadingInfectionsRandom2020} to examine the effect of lockdowns or other similar public health measures. This can be found at \url{https://github.com/mevans557/Proj4}. This model serves as a proof of concept for utilising the tools developed for analysis and simulation of chemical reactions, to examine epidemics. We have shown the applicability of those tools to this field, and shown that we can obtain useful and accurate results this way.
 
 \bibliography{mybib.bib}
 
